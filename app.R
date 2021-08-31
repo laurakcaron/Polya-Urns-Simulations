@@ -1,0 +1,826 @@
+library(tidyverse)
+library(plotly)
+library(gridExtra)
+library(pryr)
+library(scales)
+library(shiny)
+library(shinythemes)
+library(rsconnect)
+
+ui <- fluidPage(theme=shinytheme("flatly"),
+                # Application title
+                navbarPage("Polya Urns", id="nav",
+                           tabPanel("About", 
+                                    fluidRow(column(8, uiOutput("help"), offset=2 ))
+                           ),
+                           tabPanel("Simulations",           
+                                    sidebarLayout(
+                                      sidebarPanel(
+                                        withMathJax(),
+                                        h3("Simulation Parameters"),
+                                        fluidRow(
+                                          column(6, numericInput("I", "Number of urns to simulate", 50, min=1, step=5)),
+                                          column(6, numericInput("N", "Number of draws from each urn", 100, min=1, step=10))),
+                                        fluidRow(
+                                          column(12, numericInput("seed", "Seed", 1234, min=0))),
+                                        h3("Initial Urn Contents"),
+                                        fluidRow(
+                                          column(5, numericInput("w_0", "Initial number of women (white balls)", 1, min=0)), 
+                                          column(5, numericInput("m_0", "Initial number of men (maroon balls)", 1, min=0))),
+                                        h3("Replacement Scheme"),
+                                        h4("Note: draws are with replacement."),
+                                        h4("If a woman is drawn:"),
+                                        fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic replacement"="none", "Stochastic replacement (dependent)" = "balanced", "Stochastic replacement (independent)"= "unbalanced"), selected="none"))),
+                                        conditionalPanel(condition = "input.woman_stochastic!= 'none'",
+                                                         fluidRow(                       
+                                                           column(8, checkboxInput("woman_depends", "Depends on urn contents?", value=FALSE))),
+                                                         fluidRow(
+                                                           conditionalPanel(condition="input.woman_depends==false",
+                                                                            column(5, numericInput("p_w_w", "Probability of women added", 1, step=0.1))),
+                                                           conditionalPanel(condition="input.woman_depends==true",
+                                                                            column(5, radioButtons("w_w_function", label="Probability of women added", choices=c("\\(p_{w_w} = 1-b*(share_w)^a\\)"="linear","\\(p_{w_w} = \\frac{1}{1+b*(share_w)^a}\\)"="inverse", "\\(p_{w_w} = \\frac{1}{1+b*\\exp(c*share_w)}\\)"="inverseexp"))))
+                                                         ),
+                                                         fluidRow(
+                                                           conditionalPanel(condition="input.w_w_function!='inverseexp'&input.woman_depends==true", 
+                                                                            column(5, numericInput("w_w_a", "\\(a\\)", 1, step = 0.1)), 
+                                                                            column(5, numericInput("w_w_b", "\\(b\\)", 1, step=0.1))), 
+                                                           conditionalPanel(condition="input.w_w_function=='inverseexp'", 
+                                                                            column(5, numericInput("w_w_b", "\\(b\\)", 1, step=0.1)), 
+                                                                            column(5, numericInput("w_w_c", "\\(c\\)", 1, step=0.1)))  ) ,
+                                                         
+                                                         conditionalPanel(condition="input.woman_stochastic=='unbalanced'",
+                                                                          fluidRow(
+                                                                            conditionalPanel(condition="input.woman_depends==false",
+                                                                                             column(5, numericInput("p_m_w", "Probability of men added", 1, step=0.1))),
+                                                                            conditionalPanel(condition="input.woman_depends==true",
+                                                                                             column(5, radioButtons("m_w_function", label="Probability of men added", choices=c("\\(p_{m_w} = 1-b*(share_m)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b*(share_m)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c*share_m)}\\)"="inverseexp"))))
+                                                                          )),
+                                                         fluidRow(
+                                                           conditionalPanel(condition="input.m_w_function!='inverseexp'&input.woman_depends==true & input.woman_stochastic=='unbalanced'", 
+                                                                            column(5, numericInput("m_w_a", "\\(a\\)", 1, step = 0.1)), 
+                                                                            column(5, numericInput("m_w_b", "\\(b\\)", 1, step=0.1))), 
+                                                           conditionalPanel(condition="input.m_w_function=='inverseexp'", 
+                                                                            column(5, numericInput("m_w_b", "\\(b\\)", 1, step=0.1)), 
+                                                                            column(5, numericInput("m_w_c", "\\(c\\)", 1, step=0.1)))  )            
+                                        ),
+                                        fluidRow(
+                                          column(5, numericInput("w_w", "Number of women added", 1)), 
+                                          column(5, numericInput("m_w", "Number of men added", 0))
+                                        ),
+                                        h4("If a man is drawn:"),
+                                        fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic replacement"="none", "Stochastic replacement (dependent)" = "balanced", "Stochastic replacement (independent)"= "unbalanced"), selected="none"))),
+                                        conditionalPanel(condition = "input.man_stochastic!= 'none'",
+                                                         fluidRow(                       
+                                                           column(8, checkboxInput("man_depends", "Depends on urn contents?", value=FALSE))),
+                                                         fluidRow(
+                                                           conditionalPanel(condition="input.man_depends==false",
+                                                                            column(5, numericInput("p_w_m", "Probability of women added", 1, step=0.1))),
+                                                           conditionalPanel(condition="input.man_depends==true",
+                                                                            column(5, radioButtons("w_m_function", label="Probability of women added", choices=c("\\(p_{w_m} = 1-b*(share_w)^a\\)"="linear","\\(p_{w_m} = \\frac{1}{1+b*(share_w)^a}\\)"="inverse", "\\(p_{w_m} = \\frac{1}{1+b*\\exp(c*share_w)}\\)"="inverseexp"))))
+                                                         ),
+                                                         fluidRow(
+                                                           conditionalPanel(condition="input.w_m_function!='inverseexp'&input.man_depends==true", 
+                                                                            column(5, numericInput("w_m_a", "\\(a\\)", 1, step = 0.1)), 
+                                                                            column(5, numericInput("w_m_b", "\\(b\\)", 1, step=0.1))), 
+                                                           conditionalPanel(condition="input.w_m_function=='inverseexp'", 
+                                                                            column(5, numericInput("w_m_b", "\\(b\\)", 1, step=0.1)), 
+                                                                            column(5, numericInput("w_m_c", "\\(c\\)", 1, step=0.1)))  ) ,
+                                                         
+                                                         conditionalPanel(condition="input.man_stochastic=='unbalanced'",
+                                                                          fluidRow(
+                                                                            conditionalPanel(condition="input.man_depends==false",
+                                                                                             column(5, numericInput("p_m_m", "Probability of men added", 1, step=0.1))),
+                                                                            conditionalPanel(condition="input.man_depends==true",
+                                                                                             column(5, radioButtons("m_m_function", label="Probability of men added", choices=c("\\(p_{m_m} = 1-b*(share_m)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b*(share_m)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c*share_m)}\\)"="inverseexp"))))
+                                                                          )),
+                                                         fluidRow(
+                                                           conditionalPanel(condition="input.m_m_function!='inverseexp'&input.man_depends==true & input.man_stochastic=='unbalanced'", 
+                                                                            column(5, numericInput("m_m_a", "\\(a\\)", 1, step = 0.1)), 
+                                                                            column(5, numericInput("m_m_b", "\\(b\\)", 1, step=0.1))), 
+                                                           conditionalPanel(condition="input.m_m_function=='inverseexp'", 
+                                                                            column(5, numericInput("m_m_b", "\\(b\\)", 1, step=0.1)), 
+                                                                            column(5, numericInput("m_m_c", "\\(c\\)", 1, step=0.1)))  )            
+                                        ),
+                                        fluidRow(
+                                          column(5, numericInput("w_m", "Number of women added", 0)), 
+                                          column(5, numericInput("m_m", "Number of men added", 1))
+                                        ),   
+                                        h3("Interventions"),
+                                        fluidRow(column(12, radioButtons("intervention", "Affirmative Action", selected="none", choices=c("None"="none", "Draw two, if at least one is a woman, select a woman (deterministic)"="atleast","Draw two, if at least one is a woman, select a woman with probability"="atleast_stochastic","Draw one and replace accordingly, plus always replace one woman each round"="alwayswoman")))),
+                                        conditionalPanel(condition="input.intervention=='atleast_stochastic'", 
+                                                         fluidRow(column(12, numericInput("prob_atleast", "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
+                                        fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none'",
+                                                                             radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority"="balanced"))))
+                                        ), 
+                                        h3("Graph options"), 
+                                        fluidRow(column(12,
+                                                        radioButtons("graph_auto", "Dimensions", choices=c("Automatic"="auto", "Custom"="custom")),
+                                                        fluidRow(conditionalPanel(condition="input.graph_auto=='custom'",
+                                                                                  column(6, numericInput("graph_dim", "Graph Dimensions", value=100, min=0,step=50)),
+                                                                                  column(6, numericInput("graph_origin", "Origin", value=0, min=0,step=10))))
+                                        )),
+                                        
+                                        fluidRow(column(5, actionButton("rerun", "Re-run Simulation")))
+                                      ),
+                                      mainPanel(
+                                        tabsetPanel(
+                                          tabPanel("Distribution of Share of Women", 
+                                                   fluidRow(column(6,plotlyOutput("histogram", height="50%")),
+                                                            column(6, plotlyOutput("ratio_over_time", height="50%"))),
+                                                   fluidRow(column(6, plotlyOutput("density", height="50%")),
+                                                            column(6, plotlyOutput("cdf", height="50%")))),
+                                          tabPanel("Urn Paths Over Time", 
+                                                   fluidRow(uiOutput("distribution_title")),
+                                                   fluidRow(column(9, plotlyOutput("rayplot", height="50%"))),
+                                                   fluidRow(column(8, plotlyOutput("prob_w_over_time", height="50%")))
+                                          ),
+                                          tabPanel("Selected Candidates", 
+                                                   fluidRow(column(9, plotlyOutput("stockplot", height="50%"))),
+                                                   fluidRow(column(9, plotlyOutput("stock_composition", height="50%"))),
+                                                   fluidRow(column(9, plotlyOutput("stock_composition_bar", height="50%")))
+                                                   
+                                          ),
+                                          tabPanel("About the Urn",
+                                                   uiOutput("matrix")
+                                          )
+                                        )
+                                      ))
+                           )
+                           , selected ="Simulations"))
+  
+server <- function(input, output){
+  list_output<- reactive ({
+    
+    input$rerun
+    
+    isolate({
+      
+      set.seed(input$seed)
+      
+      w_0 <- input$w_0
+      m_0 <- input$m_0
+      
+      #number of urns
+      I <-input$I
+      #trials for each urn
+      N <- input$N
+      
+      paths_w_n <- data.frame(matrix(nrow=N+1,ncol=I))
+      colnames(paths_w_n) <- paste0("Urn", seq(1:I))
+      paths_m_n <- data.frame(matrix(nrow=N+1,ncol=I))
+      colnames(paths_m_n) <- paste0("Urn", seq(1:I))
+      paths_ratio <- matrix(nrow=N+1,ncol=I)
+      
+      paths_prob_w_n <- data.frame(matrix(nrow=N,ncol=I))
+      colnames(paths_prob_w_n) <- paste0("Urn", seq(1:I))
+      paths_prob_w_w_replace_n <- data.frame(matrix(nrow=N,ncol=I))
+      colnames(paths_prob_w_w_replace_n) <- paste0("Urn", seq(1:I))
+      paths_prob_w_m_replace_n <- data.frame(matrix(nrow=N,ncol=I))
+      colnames(paths_prob_w_m_replace_n) <- paste0("Urn", seq(1:I))
+      
+      paths_selected <- data.frame(matrix(nrow=N,ncol=I))
+      colnames(paths_selected) <- paste0("Urn", seq(1:I))    
+      paths_selected_rank <- data.frame(matrix(nrow=N,ncol=I))
+      colnames(paths_selected_rank) <- paste0("Urn", seq(1:I))      
+      paths_selected_w <- data.frame(matrix(nrow=N,ncol=I))
+      colnames(paths_selected_w) <- paste0("Urn", seq(1:I))    
+      paths_selected_m <- data.frame(matrix(nrow=N,ncol=I))
+      colnames(paths_selected_m) <- paste0("Urn", seq(1:I))    
+      
+      #parameters for stochastic balanced replacement
+      p_w_w <- ifelse(input$woman_stochastic=="none", 1, input$p_w_w)
+      p_w_m <- ifelse(input$woman_stochastic=="none", 1, input$p_w_m)
+      p_m_m <- ifelse(input$man_stochastic=="balanced", 1-input$p_w_m, ifelse(input$man_stochastic == "none", 1, input$p_m_m))
+      p_m_w <- ifelse(input$woman_stochastic=="balanced", 1-input$p_w_w, ifelse(input$woman_stochastic == "none", 1, input$p_m_w))
+      
+      #conditions to be able to handle removing balls
+      w_w_added <- ifelse(input$w_w >=0, input$w_w, 0)
+      m_w_added <- ifelse(input$m_w >=0, input$m_w, 0)
+      w_m_added <- ifelse(input$w_m >=0, input$w_m, 0)
+      m_m_added <- ifelse(input$m_m >=0, input$m_m, 0)
+      
+      w_w_removed <- ifelse(input$w_w <0, -input$w_w, 0)
+      m_w_removed <- ifelse(input$m_w <0, -input$m_w, 0)
+      w_m_removed <- ifelse(input$w_m <0, -input$w_m, 0)
+      m_m_removed <- ifelse(input$m_m <0, -input$m_m, 0)    
+      
+      ##add progress bar
+      withProgress(message = 'Running simluation', value = 0, {
+        for (i in 1:I){
+          
+          urn <- c(rep("w", w_0),rep("m", m_0))
+          
+          w_n <- w_0
+          m_n <- m_0
+          prob_w_n <- NULL
+          prob_w_w_replace_n <- NULL
+          prob_w_m_replace_n <- NULL
+          selected <- NULL
+          selected_w <- NULL
+          selected_m <- NULL
+          selected_rank <- NULL
+          end <- NA 
+          
+          for (n in 1:(N)){
+            
+            previous_w <- sum(urn=="w")
+            previous_m <- sum(urn=="m")
+            previous_share <- previous_w/(previous_w+previous_m)
+            
+            if(input$woman_depends==TRUE){
+              p_w_w <- ifelse(input$w_w_function=="linear", 1-input$w_w_b * previous_share^input$w_w_a, ifelse(input$w_w_function=="inverse", 1/(1+input$w_w_b*previous_share^input$w_w_a) , ifelse(input$w_w_function=="inverseexp", 1/(1+input$w_w_b*exp(input$w_w_c * previous_share)), NA)))
+              p_m_w <- ifelse(input$woman_stochastic=="balanced", 1-p_w_w, ifelse(input$m_w_function=="linear", 1-input$m_w_b * (1-previous_share)^input$m_w_a, ifelse(input$m_w_function=="inverse", 1/(1+input$m_w_b*(1-previous_share)^input$m_w_a) , ifelse(input$m_w_function=="inverseexp", 1/(1+input$m_w_b*exp(input$m_w_c * (1-previous_share)) ), NA))))
+              
+            }
+            
+            if(input$man_depends==TRUE){
+              p_w_m <- ifelse(input$w_m_function=="linear", 1-input$w_m_b * previous_share^input$w_m_a, ifelse(input$w_m_function=="inverse", 1/(1+input$w_m_b*previous_share^input$w_m_a) , ifelse(input$w_m_function=="inverseexp", 1/(1+input$w_m_b*exp(input$w_m_c * previous_share)), NA)))
+              p_m_m <- ifelse(input$man_stochastic=="balanced", 1-p_w_m, ifelse(input$m_m_function=="linear", 1-input$m_m_b * (1-previous_share)^input$m_m_a, ifelse(input$m_m_function=="inverse", 1/(1+input$m_m_b*(1-previous_share)^input$m_m_a) , ifelse(input$m_m_function=="inverseexp", 1/(1+input$m_m_b*exp(input$m_m_c * (1-previous_share)) ), NA))))
+              
+            }
+            
+            #conditions for ending of affirmative action
+            end <- ifelse(input$intervention=="none", NA, ifelse(input$stopintervention=="continue", 0, ifelse((previous_share>=0.5 | end %in% 1), 1, 0)))
+            
+            ##probability of woman selected
+            prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0)),(1-(1-previous_share)^2) , ifelse((input$intervention=="atleast_stochastic" & (end %in% 0)),previous_share+(1-previous_share)*(previous_share)*input$prob_atleast, previous_share))
+            
+            
+            #random draws done ahead of time for the case of balanced replacement
+            r_w_w <- rbinom(1,1,p_w_w)
+            r_w_m <- rbinom(1,1,p_w_m)
+            r_m_w <- ifelse(input$woman_stochastic=="balanced", 1-r_w_w, rbinom(1,1,p_m_w))
+            r_m_m <- ifelse(input$man_stochastic=="balanced", 1-r_w_m, rbinom(1,1,p_m_m))
+            
+            rank <-1
+            
+            if (input$intervention=="none" | end %in% 1){
+              ball_drawn <- sample(urn, 1)
+              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
+              ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
+              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
+              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            }
+            if (input$intervention=="atleast" & (end %in% 0)){
+              ball_drawn <- sample(urn, 2, replace=TRUE)
+              rank <- ifelse("w" %in% ball_drawn, min(which(ball_drawn=="w")), 1)
+              ball_drawn <- ifelse("w" %in% ball_drawn, "w", "m")
+              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
+              ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
+              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
+              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            }
+            if (input$intervention=="atleast_stochastic" & (end %in% 0)){
+              ball_drawn <- sample(urn, 2, replace=TRUE)
+              rank <- ifelse("w" %in% ball_drawn, min(which(ball_drawn=="w")), 1)
+              ball_drawn <- ifelse( min(which(ball_drawn=="w"))==1, "w", ifelse(min(which(ball_drawn=="w"))==2, sample(ball_drawn, 1, prob=c(1-input$prob_atleast, input$prob_atleast)), "m"))
+              rank <- ifelse("m" %in% ball_drawn, 1, rank)
+              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
+              ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
+              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
+              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            }        
+            if (input$intervention=="alwayswoman" & (end %in% 0)){
+              ball_drawn <- sample(urn, 1)
+              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
+              #add one woman to the count
+              ball_replaced <- if(is_empty(ball_replaced)) "w" else c(ball_replaced, "w")
+              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
+              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            }        
+            
+            new_w <- previous_w + sum(ball_replaced=="w") - sum(ball_removed=="w")
+            new_w <- ifelse(new_w <0, 0, new_w)
+            new_m <- previous_m + sum(ball_replaced=="m") - sum(ball_removed=="m")
+            new_m <- ifelse(new_m<0, 0 , new_m)
+            urn <- c(rep("w", new_w), rep("m", new_m))
+            selected <- c(selected, ball_drawn)
+            selected_rank <- if(n > 1) c(selected_rank, rank) else rank
+            selected_w <- if(n > 1) c(selected_w, selected_w[n-1]+as.numeric(ball_drawn=="w")) else as.numeric(ball_drawn=="w")
+            selected_m <- if(n > 1) c(selected_m, selected_m[n-1]+as.numeric(ball_drawn=="m")) else as.numeric(ball_drawn=="m")
+            
+            w_n <- c(w_n, new_w)
+            m_n <- c(m_n, new_m)
+            prob_w_n <- c(prob_w_n, prob_w_selected)
+            prob_w_w_replace_n<- c(prob_w_w_replace_n, p_w_w)
+            prob_w_m_replace_n<- c(prob_w_m_replace_n, p_w_m)
+            
+          }
+          eval(parse(text=paste0("paths_w_n$Urn", i, "<- w_n" )))
+          eval(parse(text=paste0("paths_m_n$Urn", i, "<- m_n" )))
+          paths_ratio[1:(N+1), i] <- w_n/ (m_n + w_n)
+          eval(parse(text=paste0("paths_prob_w_n$Urn", i, "<- prob_w_n" )))
+          eval(parse(text=paste0("paths_prob_w_w_replace_n$Urn", i, "<- prob_w_w_replace_n" )))
+          eval(parse(text=paste0("paths_prob_w_m_replace_n$Urn", i, "<- prob_w_m_replace_n" )))
+          eval(parse(text=paste0("paths_selected$Urn", i, "<- selected" )))
+          eval(parse(text=paste0("paths_selected_rank$Urn", i, "<- selected_rank" )))
+          eval(parse(text=paste0("paths_selected_w$Urn", i, "<- selected_w" )))
+          eval(parse(text=paste0("paths_selected_m$Urn", i, "<- selected_m" )))
+          
+          
+          incProgress(1/I, detail = paste("Percent completed", i*100/I, "%"))
+          
+        }
+        
+      })  
+      
+      #save the urn functions for probability later
+      w_w_function_t <- if(input$woman_depends==FALSE){
+        paste0("Bern(", p_w_w, ")")
+      }
+      else if(input$w_w_function=="linear"){
+        paste0("Bern(1-", input$w_w_b, "*share_w^", input$w_w_a, ")")
+      }
+      else if(input$w_w_function=="inverse"){
+        paste0("Bern(\\frac{1}{1+", input$w_w_b, "*(share_w)^", input$w_w_a, " } )")
+      }
+      else if(input$w_w_function=="inverseexp"){
+        paste0("Bern(\\frac{1}{1+", input$w_w_b, "*\\exp(", input$w_w_c, "*share_w)} )")
+      }
+      
+      m_w_function_t <- if(input$woman_depends==FALSE & (input$woman_stochastic=="balanced" | input$woman_stochastic=="none")){
+        paste0("1-Bern(", p_w_w, ")")
+      }
+      else if(input$woman_depends==FALSE & input$woman_stochastic=="unbalanced") {
+        paste0("Bern(", p_m_w, ")")
+      }
+      else if(input$woman_depends==TRUE) {
+        if (input$woman_stochastic=="balanced") {
+          paste0("1-",w_w_function_t)
+          
+        }
+        else if(input$m_w_function=="linear") {
+          paste0("1-", input$m_w_b, "*share_m^", input$m_w_a)
+        }
+        else if(input$m_w_function=="inverse") {
+          paste0("\\frac{1}{1+", input$m_w_b, "*(share_m)^", input$m_w_a, " }")
+        }
+        else if(input$m_w_function=="inverseexp"){
+          paste0("\\frac{1}{1+", input$m_w_b, "*\\exp(", input$m_w_c, "*share_m)}")
+        }    
+      }
+      
+      
+      w_m_function_t <- if(input$man_depends==FALSE){
+        paste0("Bern(", p_w_m, ")")
+      }
+      else if(input$w_m_function=="linear"){
+        paste0("Bern(1-", input$w_m_b, "*share_w^", input$w_m_a, ")")
+      }
+      else if(input$w_m_function=="inverse"){
+        paste0("Bern(\\frac{1}{1+", input$w_m_b, "*(share_w)^", input$w_m_a, " } )")
+      }
+      else if(input$w_m_function=="inverseexp"){
+        paste0("Bern(\\frac{1}{1+", input$w_m_b, "*\\exp(", input$w_m_c, "*share_w)} )")
+      }
+      
+      m_m_function_t <- if(input$man_depends==FALSE & input$man_stochastic=="balanced"){
+        paste0("1-Bern(", p_w_m, ")")
+      }
+      else if(input$man_depends==FALSE & input$man_stochastic=="unbalanced") {
+        paste0("Bern(", p_m_m, ")")
+      }
+      else if(input$man_depends==TRUE) {
+        if (input$man_stochastic=="balanced") {
+          paste0("1-",w_m_function_t)
+          
+        }
+        else if(input$m_m_function=="linear") {
+          paste0("1-", input$m_m_b, "*share_m^", input$m_m_a)
+        }
+        else if(input$m_m_function=="inverse") {
+          paste0("\\frac{1}{1+", input$m_m_b, "*(share_m)^", input$m_m_a, " }")
+        }
+        else if(input$m_m_function=="inverseexp"){
+          paste0("\\frac{1}{1+", input$m_m_b, "*\\exp(", input$m_m_c, "*share_m)}")
+        }    
+      }    
+      
+      
+      ##create a vector of the parameters to save for later
+      parameters <- list("p_w_w"=p_w_w, "p_w_m"=p_w_m, "p_m_m"=p_m_m, "p_m_w"=p_m_w, 
+                         "w_w_added"=w_w_added, "w_m_added"=w_m_added, "m_w_added"=m_w_added, "m_m_added"=m_m_added, 
+                         "w_w_removed"=w_w_removed, "w_m_removed"=w_m_removed, "m_w_removed"=m_w_removed, "m_m_removed"=m_m_removed, 
+                         "w_w_function" = w_w_function_t, "w_m_function"=w_m_function_t, "m_w_function"=m_w_function_t, "m_m_function"=m_m_function_t)
+      ##create a list with all the outputs
+      outputlist <- list(paths_ratio=paths_ratio, paths_w_n=paths_w_n, paths_m_n=paths_m_n, paths_prob_w_w_replace_n=paths_prob_w_w_replace_n, paths_prob_w_m_replace_n=paths_prob_w_m_replace_n, paths_prob_w_n=paths_prob_w_n, paths_selected=paths_selected, paths_selected_rank=paths_selected_rank, paths_selected_w=paths_selected_w, paths_selected_m=paths_selected_m, parameters=parameters)
+      return(outputlist)
+    })
+    
+    
+  })
+  
+  
+  output$histogram <- renderPlotly({
+    
+    input$rerun
+    
+    isolate({  
+      ##ratios
+      outputlist <- list_output()
+      paths_ratio <- outputlist$paths_ratio
+      hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
+      colnames(hist_data) <- "Share of women after trials"
+      hist <- ggplot(hist_data) + 
+        geom_histogram(aes(x=`Share of women after trials`), bins=sqrt(input$N))+
+        scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")
+        ) + 
+        labs(title ="Distribution of final share of women")
+      
+      plot_ly(x=~hist_data$`Share of women after trials`, type="histogram",  nbinsx = sqrt(input$I)) %>%
+        layout(xaxis=list(title = "Share of women after trials", range=c(0,1)))
+    })
+    
+  })
+  
+  output$density <- renderPlotly({
+    
+    input$rerun
+    
+    isolate({  
+      
+      outputlist <- list_output()
+      paths_ratio <- outputlist$paths_ratio
+      hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
+      colnames(hist_data) <- "Share of women after trials"
+      density <- ggplot(hist_data) + 
+        geom_density(aes(x=`Share of women after trials`))+
+        scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")
+        ) + 
+        labs(title ="Distribution of final share of women")
+      
+      plot_ly(x = ~density(hist_data$`Share of women after trials`)$x, y = ~density(hist_data$`Share of women after trials`)$y, type = 'scatter', mode = 'lines')  %>%
+        layout(xaxis=list(title = "Share of women after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified")
+      
+    })
+    
+  })
+  
+  output$cdf <- renderPlotly({
+    
+    input$rerun
+    
+    isolate({  
+      
+      outputlist <- list_output()
+      paths_ratio <- outputlist$paths_ratio
+      hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
+      colnames(hist_data) <- "Share of women after trials"
+      hist_data <- arrange(hist_data, `Share of women after trials`)  
+      cdf <- ggplot(hist_data) + 
+        stat_ecdf(aes(x=`Share of women after trials`), geom="step")+
+        geom_vline(xintercept=0.5, color="red", alpha=0.5)+
+        scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")
+        ) + 
+        labs(y="Fraction of urns", title ="CDF of final share of women")
+      
+      ggplotly(cdf) %>% layout(hovermode="x unified")
+      
+    })
+    
+  })
+  
+  
+  output$ratio_over_time <- renderPlotly({
+    input$rerun
+    
+    isolate({
+      outputlist <- list_output()
+      paths_ratio <- outputlist$paths_ratio
+      ##ratios
+      paths_ratio <- paths_ratio %>% as.data.frame %>% mutate(draw=row_number()) 
+      ratio <- paths_ratio %>% pivot_longer(-draw)
+      
+      average_ratio <- paths_ratio %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
+      r <- ggplot() + 
+        geom_line(data=ratio, aes(x=draw-1, y=value, group=name), color="lightgray") +
+        geom_line(aes(x=rep(0:(input$N)), y=average_ratio), color="blue") +
+        scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")
+        ) + 
+        labs(title ="Share of women over time, average highlighted", x="Draw")
+      
+      
+      
+      ggplotly(r) %>% style(hoverinfo = "skip", traces = 1) %>%
+        style(hovertemplate = paste('Draw: %{x:.0f}',
+                                    '<br>Average share of women: %{y:.4f}<br>'), traces = 2) %>%
+        layout(hovermode="x unified)")
+    })
+    
+  })
+  
+  
+  output$prob_w_over_time <- renderPlotly({
+    input$rerun
+    
+    isolate({
+      outputlist <- list_output()
+      paths_prob_w_n <- outputlist$paths_prob_w_n
+      ##ratios
+      paths_prob_w_n <- paths_prob_w_n %>% as.data.frame %>% mutate(draw=row_number()) 
+      prob_w_n <- paths_prob_w_n %>% pivot_longer(-draw)
+      
+      average_prob_w <- paths_prob_w_n %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
+      r <- ggplot() + 
+        geom_line(data=prob_w_n, aes(x=draw, y=value, group=name), color="lightgray") +
+        geom_line(aes(x=rep(1:(input$N)), y=average_prob_w), color="blue") +
+        scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")
+        ) + 
+        labs(title ="Probability of selecting a woman, average highlighted")
+      
+      ggplotly(r) %>% style(hoverinfo = "skip", traces = 1) %>%
+        style(hovertemplate = paste('Draw: %{x:.0f}',
+                                    '<br>Average P(select woman): %{y:.4f}<br>'), traces = 2) %>%
+        layout(hovermode="x unified)")
+    })
+    
+  })
+  
+  
+  output$rayplot <- renderPlotly({
+    
+    input$rerun
+    
+    isolate({
+      outputlist <- list_output()
+      paths_w_n <- outputlist$paths_w_n
+      paths_m_n <- outputlist$paths_m_n
+      
+      
+      
+      ##rays
+      w_n_long <- pivot_longer(paths_w_n, cols=starts_with("Urn"), names_to="Urn")
+      colnames(w_n_long)[2] <- "W"
+      m_n_long <- pivot_longer(paths_m_n, cols=starts_with("Urn"), names_to="Urn")
+      colnames(m_n_long)[2] <- "M"
+      
+      ray_data <- cbind(w_n_long, m_n_long$M)
+      colnames(ray_data)[3] <- "M"  
+      
+      #get the graph limits
+      limits<-c(ifelse(input$graph_auto=="auto", min(input$w_0, input$m_0), input$graph_origin), ifelse(input$graph_auto=="auto", input$N + max(input$w_0, input$m_0), input$graph_dim))
+      
+      rays <- ggplot(ray_data) +
+        geom_line(aes(x=W, y=M, group=Urn),size = 0.1, alpha=min(1, 50/input$I)) +
+        stat_density_2d(aes(x=W, y=M, fill=..density.., alpha = sqrt(..density..)), geom = "raster", contour = FALSE) +
+        scale_fill_distiller(palette= "Spectral", direction=-1) +
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")) + 
+        labs(x="Number of women", y="Number of men",title = "Evolution of urn contents")
+      
+      
+      rays <- if(input$graph_auto=="auto") rays + scale_x_continuous() + scale_y_continuous() else rays + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
+      
+      
+      ggplotly(rays)
+      
+    })
+    
+  })
+  
+  output$stockplot <- renderPlotly({
+    
+    input$rerun
+    
+    isolate({
+      outputlist <- list_output()
+      paths_selected <- outputlist$paths_selected
+      paths_selected_w <- outputlist$paths_selected_w
+      paths_selected_m <- outputlist$paths_selected_m
+      
+      
+      ##rays
+      w_n_long <- mutate(paths_selected_w, draw=row_number()) %>% pivot_longer(cols=starts_with("Urn"), names_to="Urn") 
+      colnames(w_n_long)[3] <- "W"
+      m_n_long <- pivot_longer(paths_selected_m, cols=starts_with("Urn"), names_to="Urn")
+      colnames(m_n_long)[2] <- "M"
+      
+      stock_data <- cbind(w_n_long, m_n_long$M)
+      colnames(stock_data)[4] <- "M"  
+      average <- stock_data %>% as.data.frame() %>% group_by(draw) %>% summarize(mean_w = mean(W), mean_m = mean(M))
+      
+      #get the graph limits
+      limits<-c(ifelse(input$graph_auto=="auto", min(input$w_0, input$m_0), input$graph_origin), ifelse(input$graph_auto=="auto", input$N + max(input$w_0, input$m_0), input$graph_dim))
+      
+      stock <- ggplot(stock_data) +
+        geom_line(aes(x=W, y=M, group=Urn),size = 0.1, alpha=min(1, 50/input$I)) +
+        geom_line(data=average, aes(x=mean_w, y=mean_m),color="blue") +
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")) + 
+        labs(x="Number of women selected", y="Number of men selected",title = "Average highlighted in blue")
+      
+      stock <- if(input$graph_auto=="auto") stock + scale_x_continuous() + scale_y_continuous() else stock + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
+      
+      
+      ggplotly(stock)%>% style(hoverinfo = "skip", traces = 1) %>%
+        style(hovertemplate = paste('%{x:.3f}',
+                                    '<br>%{y:.3f}<br>'), traces = 2) %>%
+        layout(hovermode="x unified)")
+      
+      
+    })
+    
+  })
+  
+  
+  
+  output$stock_composition <- renderPlotly({
+    
+    input$rerun
+    
+    isolate({
+      outputlist <- list_output()
+      paths_selected_rank <- outputlist$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(name) %>% arrange(draw) %>% mutate(count_best=cumsum(value==1), share_best=cumsum(value==1)/draw) %>% ungroup()
+      
+      average <- paths_selected_rank %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
+      
+      
+      stock <- ggplot(paths_selected_rank) +
+        geom_line(aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I)) +
+        geom_line(data=average, aes(x=draw, y=mean_share), color="blue") +
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")) + 
+        labs(x="Draw", y="Share of selected that are the best candidate")
+      
+      ggplotly(stock) %>% style(hoverinfo = "skip", traces = 1) %>%
+        style(hovertemplate = paste('Draw: %{x:.0f}',
+                                    '<br>%{y:.4f}<br>'), traces = 2) %>%
+        layout(hovermode="x unified)")
+      
+      
+    })
+    
+  })
+  
+  
+  output$stock_composition_bar <- renderPlotly({
+    
+    input$rerun
+    
+    isolate({
+      outputlist <- list_output()
+      paths_selected_rank <- outputlist$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(name) %>% arrange(draw) %>% mutate(count_best=cumsum(value==1), share_best=cumsum(value==1)/draw) %>% ungroup() %>% filter(draw==input$N)
+      
+      plot_ly(x =~paths_selected_rank$share_best,type="histogram",  nbinsx = sqrt(input$I))  %>%
+        layout(xaxis=list(title = "Share of selected that are the best candidate after trials", range=c(0,1)), yaxis=list(title="Density"))
+      
+      
+      
+    })
+    
+  })
+  
+  
+  output$distribution_title<- renderText({
+    input$rerun
+    
+    isolate({
+      paste0(input$I, " Polya Urns over ", input$N, " trials, W_0=", input$w_0, ", M_0=", input$m_0)
+      
+    })})
+  output$matrix <- renderUI({
+    input$rerun
+    
+    isolate({
+      outputlist <- list_output()
+      parameters <- outputlist$parameters
+      withMathJax(
+        if(input$woman_stochastic=="none" & input$man_stochastic=="none"){
+          paste0("Ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]],
+                 "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]],"\\end{pmatrix}$$")
+        }
+        else if(input$woman_stochastic!="none" & input$man_stochastic=="none"){
+          paste0("Ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "*", parameters[["w_w_function"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]], "*(", parameters[["m_w_function"]], ")",
+                 "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]],"\\end{pmatrix}$$")
+        }
+        
+        else if(input$woman_stochastic!="none" & input$man_stochastic!="none"){
+          paste0("Ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "*", parameters[["w_w_function"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]], "*(", parameters[["m_w_function"]], ")",
+                 "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "*", parameters[["w_m_function"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]], "*(", parameters[["m_m_function"]], ") \\end{pmatrix}$$")
+        }   
+        else if(input$woman_stochastic=="none" & input$man_stochastic!="none"){
+          paste0("Ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]],
+                 "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "*", parameters[["w_m_function"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]], "*(", parameters[["m_m_function"]], ") \\end{pmatrix}$$")
+        }        
+      )   
+      
+      
+    })
+  })
+  
+  output$help <-renderUI({
+    input$rerun
+    
+    isolate({
+      outputlist <- list_output()
+      parameters <- outputlist$parameters
+      withMathJax(
+        HTML(paste0(
+          h2("About the Urn Simulator"),
+          p("Laura Caron, Columbia University. Updated August 2021."),
+          p("Note: you need to press \"re-run\" simulation in order to refresh the results. Some graphs may be slow to appear."),
+          h3("Simulation Parameters"),
+          p("You may choose the number of rounds from each urn and the number of urns to be simulated. You may also change the seed for the random number generator in order to get different results."),
+          h3("Initial Urn Contents"), 
+          p("Input the initial number of each color ball in the urn, \\(w_0\\) and \\(m_0\\)."),
+          h3("Replacement Scheme"), 
+          p("Here you may specify the replacement matrix in the form:
+  $$\\begin{pmatrix} w_w & m_w \\\\ w_m & m_m \\end{pmatrix} $$
+  
+  where \\(m_w\\) represents the number of men added when a woman is drawn, and so on."),
+          h3("Stochastic replacement options"), 
+          
+          HTML(paste0("Stochastic replacement is currently:<b>", if(input$woman_stochastic!="none") " enabled " else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic!="none") " enabled " else " disabled ", "</b> when a man is drawn. <br></br>", 
+                      "The stochastic replacement may be either independent or dependent. In the dependent variety, balls are always added to the urn in each draw, regardless of the state of any random variables. The 2 \\(\\times\\) 2 case where \\(x\\) balls are added in each round can be written in terms of 2 Bernoulli random variables:
+
+$$
+
+\\begin{pmatrix}
+w_w \\times Bern(p) & m_w (1-Bern(p)) \\\\
+w_m \\times Bern(q) & m_m (1-Bern(q))
+\\end{pmatrix}
+
+$$", 
+                      "In that case, when a white ball is drawn, \\(p\\) gives the probability that \\(w_w\\) white balls are added. Otherwise, \\(m_w\\) maroon balls are added. <br></br>",
+                      "<br></br> Dependent stochastic replacement is currently: <b>", if(input$woman_stochastic=="balanced") " enabled" else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic=="balanced") " enabled " else " disabled ", "</b>when a man is drawn. <br></br>", 
+                      
+                      "The case with indepndence is written in terms of four Bernoulli random variables:
+
+$$
+
+\\begin{pmatrix}
+w_w \\times Bern(p_{w_w}) & m_w \\times Bern(p_{m_w})\\\\
+w_m \\times Bern(p_{w_m}) & m_m \\times Bern(p_{m_m})
+\\end{pmatrix}
+
+$$",
+                      
+                      "Stochastic replacement may depend on the urn contents. In this case, the idea is that, e.g., the probability \\(p_{w_w}\\) is a decreasing function of the share of white balls in the earn. As a probability, this function should be bounded between 0 and 1 for shares of white balls between 0 and 1.
+
+The most direct of such functions would be:
+  $$p_{w_w} = 1-share_w^a $$
+  with parameter \\(a \\in (0,\\infty) \\). We could also imagine various nonlinear functions, such as 
+
+$$p_{w_w} = \\frac{1}{1+b share_w^a}$$
+  with parameters \\(a,b \\in(0,\\infty) \\).
+
+Another possiblity:
+  $$p_{w_w} = \\frac{1}{1+b \\exp(c*share_w)}$$
+  with parameters \\(b,c \\in(0,\\infty) \\).
+
+As above, this may be done in the dependent or indepdendent case. "
+                      
+                      
+                      
+          ))
+          
+        )))
+    })
+  })
+  
+  output$memory<-renderUI({
+    input$rerun
+    
+    isolate({
+      paste(ceiling(mem_used()/1000000), "MB used")
+    })
+  })
+}
+
+shinyApp(ui, server)
