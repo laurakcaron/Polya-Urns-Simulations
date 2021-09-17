@@ -146,8 +146,10 @@ navbarPage("Polya Urns", id="nav",
                 conditionalPanel(condition="input.intervention=='atleast_stochastic'", 
                                  fluidRow(column(12, numericInput("prob_atleast", "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
                 fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none'",
-                                                     radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority"="balanced"))))
+                                                     radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority"="majority", "Stop after X draws"="temp"))))
                 ), 
+                fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'", numericInput("stopafter", "Stop after", 30)))),
+                
                 # Fifth section: Graph options
                 h3("Graph options"), 
                 fluidRow(column(12,
@@ -216,7 +218,7 @@ server <- function(input, output){
     # Trigger to rerun
     input$rerun
     
-    # Isolate force it not to refresh until the rerun button is pressed
+    # Isolate forces it not to refresh until the rerun button is pressed
     isolate({
       
       # Set the random number seed
@@ -311,7 +313,7 @@ server <- function(input, output){
             }
             
             # Conditions for ending of affirmative action
-            end <- ifelse(input$intervention=="none", NA, ifelse(input$stopintervention=="continue", 0, ifelse((previous_share>=0.5 | end %in% 1), 1, 0)))
+            end <- ifelse(input$intervention=="none", NA, ifelse(input$stopintervention=="continue", 0, ifelse(input$stopintervention=="majority" & (previous_share>=0.5 | end %in% 1), 1, ifelse(input$stopintervention=="temp" & n > input$stopafter, 1, 0))))
             
             # Probability of woman selected
             prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0)),(1-(1-previous_share)^2) , ifelse((input$intervention=="atleast_stochastic" & (end %in% 0)),previous_share+(1-previous_share)*(previous_share)*input$prob_atleast, previous_share))
@@ -360,6 +362,15 @@ server <- function(input, output){
               ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
               ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
             }        
+            if (input$intervention=="quota" & previous_share <= input$quota){
+              ball_drawn <- sample(urn, urn)
+              rank <- min(which(ball_drawn=="w"))
+              ball_drawn <- ball_drawn[rank]
+              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
+              ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
+              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
+              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            } 
             
             # Save results 
             
