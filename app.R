@@ -66,97 +66,110 @@ navbarPage("Polya Urns", id="nav",
                 #options for stochastic replacement -- only appear when selected
                 fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic replacement"="none", "Stochastic replacement (dependent)" = "balanced", "Stochastic replacement (independent)"= "unbalanced"), selected="none"))),
                 conditionalPanel(condition = "input.woman_stochastic!= 'none'",
-                                 fluidRow(                       
-                                   column(8, checkboxInput("woman_depends", "Depends on urn contents?", value=FALSE))),
-                                 fluidRow(
-                                   conditionalPanel(condition="input.woman_depends==false",
-                                                    column(5, numericInput("p_w_w", "Probability of women added", 1, step=0.1))),
-                                   conditionalPanel(condition="input.woman_depends==true",
-                                                    column(5, radioButtons("w_w_function", label="Probability of women added", choices=c("\\(p_{w_w} = 1-b*(share_w)^a\\)"="linear","\\(p_{w_w} = \\frac{1}{1+b*(share_w)^a}\\)"="inverse", "\\(p_{w_w} = \\frac{1}{1+b*\\exp(c*share_w)}\\)"="inverseexp"))))
-                                 ),
-                                 fluidRow(
-                                   conditionalPanel(condition="input.w_w_function!='inverseexp'&input.woman_depends==true", 
-                                                    column(5, numericInput("w_w_a", "\\(a\\)", 1, step = 0.1)), 
-                                                    column(5, numericInput("w_w_b", "\\(b\\)", 1, step=0.1))), 
-                                   conditionalPanel(condition="input.w_w_function=='inverseexp'", 
-                                                    column(5, numericInput("w_w_b", "\\(b\\)", 1, step=0.1)), 
-                                                    column(5, numericInput("w_w_c", "\\(c\\)", 1, step=0.1)))  ) ,
-                                 
-                                 conditionalPanel(condition="input.woman_stochastic=='unbalanced'",
-                                                  fluidRow(
-                                                    conditionalPanel(condition="input.woman_depends==false",
-                                                                     column(5, numericInput("p_m_w", "Probability of men added", 1, step=0.1))),
-                                                    conditionalPanel(condition="input.woman_depends==true",
-                                                                     column(5, radioButtons("m_w_function", label="Probability of men added", choices=c("\\(p_{m_w} = 1-b*(share_m)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b*(share_m)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c*share_m)}\\)"="inverseexp"))))
-                                                  )),
-                                 fluidRow(
-                                   conditionalPanel(condition="input.m_w_function!='inverseexp'&input.woman_depends==true & input.woman_stochastic=='unbalanced'", 
-                                                    column(5, numericInput("m_w_a", "\\(a\\)", 1, step = 0.1)), 
-                                                    column(5, numericInput("m_w_b", "\\(b\\)", 1, step=0.1))), 
-                                   conditionalPanel(condition="input.m_w_function=='inverseexp'", 
-                                                    column(5, numericInput("m_w_b", "\\(b\\)", 1, step=0.1)), 
-                                                    column(5, numericInput("m_w_c", "\\(c\\)", 1, step=0.1)))  )            
-                ),
+                     fluidRow(                       
+                       column(12, radioButtons("woman_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of women in urn"="urn", "\\(X = \\) share of women in selected candidates"="selected"), selected="none"))),
+                     fluidRow(
+                       conditionalPanel(condition="input.woman_depends=='none'",
+                                        column(5, numericInput("p_w_w", "Probability of women added", 1, step=0.1))),
+                       conditionalPanel(condition="input.woman_depends!='none'",
+                                        column(5, radioButtons("w_w_function", label="Probability of women added", choices=c("\\(p_{w_w} = c-bX^a\\)"="linear","\\(p_{w_w} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_w} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
+                     ),
+                     fluidRow(
+                       conditionalPanel(condition="input.w_w_function!='inverseexp'&input.woman_depends!='none'", 
+                                        column(4, numericInput("w_w_a", "\\(a\\)", 1, step = 0.1)), 
+                                        column(4, numericInput("w_w_b", "\\(b\\)", 1, step=0.1)),
+                                        column(4, numericInput("w_w_c", "\\(c\\)", 1, step=0.1))), 
+                       conditionalPanel(condition="input.w_w_function=='inverseexp'", 
+                                        column(5, numericInput("w_w_b", "\\(b\\)", 1, step=0.1)), 
+                                        column(5, numericInput("w_w_c", "\\(c\\)", 1, step=0.1)))  ) ,
+                     
+                     conditionalPanel(condition="input.woman_stochastic=='unbalanced'",
+                                      fluidRow(
+                                        conditionalPanel(condition="input.woman_depends=='none'",
+                                                         column(5, numericInput("p_m_w", "Probability of men added", 1, step=0.1))),
+                                        conditionalPanel(condition="input.woman_depends!='none'",
+                                                         column(5, radioButtons("m_w_function", label="Probability of men added", choices=c("\\(p_{m_w} = c-b(1-X)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
+                                      )),
+                     fluidRow(
+                       conditionalPanel(condition="input.m_w_function!='inverseexp'&input.woman_depends!='none' & input.woman_stochastic=='unbalanced'", 
+                                        column(4, numericInput("m_w_a", "\\(a\\)", 1, step = 0.1)), 
+                                        column(4, numericInput("m_w_b", "\\(b\\)", 1, step=0.1)),
+                                        column(4, numericInput("m_w_c", "\\(c\\)", 1, step=0.1))), 
+                       conditionalPanel(condition="input.m_w_function=='inverseexp'", 
+                                        column(5, numericInput("m_w_b", "\\(b\\)", 1, step=0.1)), 
+                                        column(5, numericInput("m_w_c", "\\(c\\)", 1, step=0.1)))  )            
+    ),
                 fluidRow(
                   column(5, numericInput("w_w", "Number of women added", 1)), 
                   column(5, numericInput("m_w", "Number of men added", 0))
                 ),
+    
+    
                 h4("If a man is drawn:"),
                 fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic replacement"="none", "Stochastic replacement (dependent)" = "balanced", "Stochastic replacement (independent)"= "unbalanced"), selected="none"))),
                 conditionalPanel(condition = "input.man_stochastic!= 'none'",
-                                 fluidRow(                       
-                                   column(8, checkboxInput("man_depends", "Depends on urn contents?", value=FALSE))),
-                                 fluidRow(
-                                   conditionalPanel(condition="input.man_depends==false",
-                                                    column(5, numericInput("p_w_m", "Probability of women added", 1, step=0.1))),
-                                   conditionalPanel(condition="input.man_depends==true",
-                                                    column(5, radioButtons("w_m_function", label="Probability of women added", choices=c("\\(p_{w_m} = 1-b*(share_w)^a\\)"="linear","\\(p_{w_m} = \\frac{1}{1+b*(share_w)^a}\\)"="inverse", "\\(p_{w_m} = \\frac{1}{1+b*\\exp(c*share_w)}\\)"="inverseexp"))))
-                                 ),
-                                 fluidRow(
-                                   conditionalPanel(condition="input.w_m_function!='inverseexp'&input.man_depends==true", 
-                                                    column(5, numericInput("w_m_a", "\\(a\\)", 1, step = 0.1)), 
-                                                    column(5, numericInput("w_m_b", "\\(b\\)", 1, step=0.1))), 
-                                   conditionalPanel(condition="input.w_m_function=='inverseexp'", 
-                                                    column(5, numericInput("w_m_b", "\\(b\\)", 1, step=0.1)), 
-                                                    column(5, numericInput("w_m_c", "\\(c\\)", 1, step=0.1)))  ) ,
-                                 
-                                 conditionalPanel(condition="input.man_stochastic=='unbalanced'",
-                                                  fluidRow(
-                                                    conditionalPanel(condition="input.man_depends==false",
-                                                                     column(5, numericInput("p_m_m", "Probability of men added", 1, step=0.1))),
-                                                    conditionalPanel(condition="input.man_depends==true",
-                                                                     column(5, radioButtons("m_m_function", label="Probability of men added", choices=c("\\(p_{m_m} = 1-b*(share_m)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b*(share_m)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c*share_m)}\\)"="inverseexp"))))
-                                                  )),
-                                 fluidRow(
-                                   conditionalPanel(condition="input.m_m_function!='inverseexp'&input.man_depends==true & input.man_stochastic=='unbalanced'", 
-                                                    column(5, numericInput("m_m_a", "\\(a\\)", 1, step = 0.1)), 
-                                                    column(5, numericInput("m_m_b", "\\(b\\)", 1, step=0.1))), 
-                                   conditionalPanel(condition="input.m_m_function=='inverseexp'", 
-                                                    column(5, numericInput("m_m_b", "\\(b\\)", 1, step=0.1)), 
-                                                    column(5, numericInput("m_m_c", "\\(c\\)", 1, step=0.1)))  )            
+                     fluidRow(                       
+                       column(12, radioButtons("man_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of women in urn"="urn", "\\(X = \\) share of women in selected candidates"="selected"), selected="none"))),
+                     fluidRow(
+                       conditionalPanel(condition="input.man_depends=='none'",
+                                        column(5, numericInput("p_w_m", "Probability of women added", 1, step=0.1))),
+                       conditionalPanel(condition="input.man_depends!='none'",
+                                        column(5, radioButtons("w_m_function", label="Probability of women added", choices=c("\\(p_{w_m} = c-bX^a\\)"="linear","\\(p_{w_m} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_m} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
+                     ),
+                     fluidRow(
+                       conditionalPanel(condition="input.w_m_function!='inverseexp'&input.man_depends!='none'", 
+                                        column(4, numericInput("w_m_a", "\\(a\\)", 1, step = 0.1)), 
+                                        column(4, numericInput("w_m_b", "\\(b\\)", 1, step=0.1)),
+                                        column(4, numericInput("w_m_c", "\\(c\\)", 1, step=0.1))), 
+                       conditionalPanel(condition="input.w_m_function=='inverseexp'", 
+                                        column(5, numericInput("w_m_b", "\\(b\\)", 1, step=0.1)), 
+                                        column(5, numericInput("w_m_c", "\\(c\\)", 1, step=0.1)))  ) ,
+                     
+                     conditionalPanel(condition="input.man_stochastic=='unbalanced'",
+                                      fluidRow(
+                                        conditionalPanel(condition="input.man_depends=='none'",
+                                                         column(5, numericInput("p_m_m", "Probability of men added", 1, step=0.1))),
+                                        conditionalPanel(condition="input.man_depends!='none'",
+                                                         column(5, radioButtons("m_m_function", label="Probability of men added", choices=c("\\(p_{m_m} = 1-b(1-X)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
+                                      )),
+                     fluidRow(
+                       conditionalPanel(condition="input.m_m_function!='inverseexp'&input.man_depends==true & input.man_stochastic=='unbalanced'", 
+                                        column(4, numericInput("m_m_a", "\\(a\\)", 1, step = 0.1)), 
+                                        column(4, numericInput("m_m_b", "\\(b\\)", 1, step=0.1)),
+                                        column(4, numericInput("m_m_c", "\\(c\\)", 1, step=0.1))), 
+                       conditionalPanel(condition="input.m_m_function=='inverseexp'", 
+                                        column(5, numericInput("m_m_b", "\\(b\\)", 1, step=0.1)), 
+                                        column(5, numericInput("m_m_c", "\\(c\\)", 1, step=0.1)))  )            
                 ),
                 fluidRow(
                   column(5, numericInput("w_m", "Number of women added", 0)), 
                   column(5, numericInput("m_m", "Number of men added", 1))
                 ),
                 
+               #options for replacement that depends on stock of selected candidates -- only appear when selected
+    
+    
+    
                 # Fourth section: Interventions
                 h3("Interventions"),
-                fluidRow(column(12, radioButtons("intervention", "Affirmative Action", selected="none", choices=c("None"="none", "Draw two, if at least one is a woman, select a woman (deterministic)"="atleast","Draw two, if at least one is a woman, select a woman with probability"="atleast_stochastic","Draw one and replace accordingly, plus always replace one woman each round"="alwayswoman")))),
+                fluidRow(column(12, radioButtons("intervention", "Affirmative Action", selected="none", choices=c("None"="none", "Draw two, if at least one is a woman, select a woman (deterministic)"="atleast","Draw two, if at least one is a woman, select a woman with probability"="atleast_stochastic","Draw one and replace accordingly, plus always replace one woman each round"="alwayswoman", "Hiring quota"="quota")))),
                 conditionalPanel(condition="input.intervention=='atleast_stochastic'", 
-                                 fluidRow(column(12, numericInput("prob_atleast", "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
-                fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none'",
-                                                     radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority"="majority", "Stop after X draws"="temp"))))
+                     fluidRow(column(12, numericInput("prob_atleast", "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
+                conditionalPanel(condition="input.intervention=='quota'", 
+                                 column(6, numericInput("quota", "Select only women until they make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)),
+                                 column(6, numericInput("quota_start", "Start after", value=10, min=0, step=1))),
+                     fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
+                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority"="majority", "Stop after X draws"="temp"))))
                 ), 
-                fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'", numericInput("stopafter", "Stop after", 30)))),
+                fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)))),
                 
                 # Fifth section: Graph options
                 h3("Graph options"), 
                 fluidRow(column(12,
-                                radioButtons("graph_auto", "Dimensions", choices=c("Automatic"="auto", "Custom"="custom")),
-                                fluidRow(conditionalPanel(condition="input.graph_auto=='custom'",
-                                                          column(6, numericInput("graph_dim", "Graph Dimensions", value=100, min=0,step=50)),
-                                                          column(6, numericInput("graph_origin", "Origin", value=0, min=0,step=10))))
+                  radioButtons("graph_auto", "Dimensions", choices=c("Automatic"="auto", "Custom"="custom")),
+                  fluidRow(conditionalPanel(condition="input.graph_auto=='custom'",
+                            column(6, numericInput("graph_dim", "Graph Dimensions", value=100, min=0,step=50)),
+                            column(6, numericInput("graph_origin", "Origin", value=0, min=0,step=10))))
                 )),
                 
                 
@@ -256,6 +269,10 @@ server <- function(input, output){
       paths_selected_m <- data.frame(matrix(nrow=N,ncol=I))
       colnames(paths_selected_m) <- paste0("Urn", seq(1:I))    
       
+      # Some options for AA 
+      
+      stopintervention <- ifelse(input$intervention == "none" | input$intervention=="quota", "na", input$stopintervention)
+      
       # Set parameters for stochastic balanced replacement
       p_w_w <- ifelse(input$woman_stochastic=="none", 1, input$p_w_w)
       p_w_m <- ifelse(input$woman_stochastic=="none", 1, input$p_w_m)
@@ -298,26 +315,42 @@ server <- function(input, output){
             previous_w <- sum(urn=="w")
             previous_m <- sum(urn=="m")
             previous_share <- previous_w/(previous_w+previous_m)
+            previous_share_selected = ifelse(n == 1, previous_share, selected_w[n-1]/(selected_w[n-1] + selected_m[n-1]))
             
             # Set probability of drawing woman when it depends on urn contents
-            if(input$woman_depends==TRUE){
-              p_w_w <- ifelse(input$w_w_function=="linear", 1-input$w_w_b * previous_share^input$w_w_a, ifelse(input$w_w_function=="inverse", 1/(1+input$w_w_b*previous_share^input$w_w_a) , ifelse(input$w_w_function=="inverseexp", 1/(1+input$w_w_b*exp(input$w_w_c * previous_share)), NA)))
-              p_m_w <- ifelse(input$woman_stochastic=="balanced", 1-p_w_w, ifelse(input$m_w_function=="linear", 1-input$m_w_b * (1-previous_share)^input$m_w_a, ifelse(input$m_w_function=="inverse", 1/(1+input$m_w_b*(1-previous_share)^input$m_w_a) , ifelse(input$m_w_function=="inverseexp", 1/(1+input$m_w_b*exp(input$m_w_c * (1-previous_share)) ), NA))))
+            if(input$woman_depends=="urn"){
+              p_w_w <- ifelse(input$w_w_function=="linear", input$w_w_c-input$w_w_b * previous_share^input$w_w_a, ifelse(input$w_w_function=="inverse", 1/(1+input$w_w_b*previous_share^input$w_w_a) , ifelse(input$w_w_function=="inverseexp", 1/(1+input$w_w_b*exp(input$w_w_c * previous_share)), NA)))
+              p_m_w <- ifelse(input$woman_stochastic=="balanced", 1-p_w_w, ifelse(input$m_w_function=="linear", input$m_w_c-input$m_w_b * (1-previous_share)^input$m_w_a, ifelse(input$m_w_function=="inverse", 1/(1+input$m_w_b*(1-previous_share)^input$m_w_a) , ifelse(input$m_w_function=="inverseexp", 1/(1+input$m_w_b*exp(input$m_w_c * (1-previous_share)) ), NA))))
               
             }
             
-            if(input$man_depends==TRUE){
-              p_w_m <- ifelse(input$w_m_function=="linear", 1-input$w_m_b * previous_share^input$w_m_a, ifelse(input$w_m_function=="inverse", 1/(1+input$w_m_b*previous_share^input$w_m_a) , ifelse(input$w_m_function=="inverseexp", 1/(1+input$w_m_b*exp(input$w_m_c * previous_share)), NA)))
-              p_m_m <- ifelse(input$man_stochastic=="balanced", 1-p_w_m, ifelse(input$m_m_function=="linear", 1-input$m_m_b * (1-previous_share)^input$m_m_a, ifelse(input$m_m_function=="inverse", 1/(1+input$m_m_b*(1-previous_share)^input$m_m_a) , ifelse(input$m_m_function=="inverseexp", 1/(1+input$m_m_b*exp(input$m_m_c * (1-previous_share)) ), NA))))
+            if(input$man_depends=="urn"){
+              p_w_m <- ifelse(input$w_m_function=="linear", input$w_m_c-input$w_m_b * previous_share^input$w_m_a, ifelse(input$w_m_function=="inverse", 1/(1+input$w_m_b*previous_share^input$w_m_a) , ifelse(input$w_m_function=="inverseexp", 1/(1+input$w_m_b*exp(input$w_m_c * previous_share)), NA)))
+              p_m_m <- ifelse(input$man_stochastic=="balanced", 1-p_w_m, ifelse(input$m_m_function=="linear", input$m_m_c-input$m_m_b * (1-previous_share)^input$m_m_a, ifelse(input$m_m_function=="inverse", 1/(1+input$m_m_b*(1-previous_share)^input$m_m_a) , ifelse(input$m_m_function=="inverseexp", 1/(1+input$m_m_b*exp(input$m_m_c * (1-previous_share)) ), NA))))
+              
+            }
+            if(input$woman_depends=="selected"){
+              p_w_w <- ifelse(input$w_w_function=="linear", input$w_w_c-input$w_w_b * previous_share_selected^input$w_w_a, ifelse(input$w_w_function=="inverse", 1/(1+input$w_w_b*previous_share_selected^input$w_w_a) , ifelse(input$w_w_function=="inverseexp", 1/(1+input$w_w_b*exp(input$w_w_c * previous_share_selected)), NA)))
+              p_m_w <- ifelse(input$woman_stochastic=="balanced", 1-p_w_w, ifelse(input$m_w_function=="linear", input$m_w_c-input$m_w_b * (1-previous_share_selected)^input$m_w_a, ifelse(input$m_w_function=="inverse", 1/(1+input$m_w_b*(1-previous_share_selected)^input$m_w_a) , ifelse(input$m_w_function=="inverseexp", 1/(1+input$m_w_b*exp(input$m_w_c * (1-previous_share_selected)) ), NA))))
               
             }
             
+            if(input$man_depends=="selected"){
+              p_w_m <- ifelse(input$w_m_function=="linear", input$w_m_c-input$w_m_b * previous_share_selected^input$w_m_a, ifelse(input$w_m_function=="inverse", 1/(1+input$w_m_b*previous_share_selected^input$w_m_a) , ifelse(input$w_m_function=="inverseexp", 1/(1+input$w_m_b*exp(input$w_m_c * previous_share_selected)), NA)))
+              p_m_m <- ifelse(input$man_stochastic=="balanced", 1-p_w_m, ifelse(input$m_m_function=="linear", input$m_m_c-input$m_m_b * (1-previous_share_selected)^input$m_m_a, ifelse(input$m_m_function=="inverse", 1/(1+input$m_m_b*(1-previous_share_selected)^input$m_m_a) , ifelse(input$m_m_function=="inverseexp", 1/(1+input$m_m_b*exp(input$m_m_c * (1-previous_share_selected)) ), NA))))
+              
+            }
             # Conditions for ending of affirmative action
-            end <- ifelse(input$intervention=="none", NA, ifelse(input$stopintervention=="continue", 0, ifelse(input$stopintervention=="majority" & (previous_share>=0.5 | end %in% 1), 1, ifelse(input$stopintervention=="temp" & n > input$stopafter, 1, 0))))
+            end <- ifelse(input$intervention=="none", NA, 
+                     ifelse(input$intervention=="quota"& (previous_share_selected > input$quota | end %in% 1) & n > input$quota_start,1, 
+                          ifelse(stopintervention=="continue", 0, 
+                            ifelse(stopintervention=="majority" & (previous_share>=0.5 | end %in% 1), 1, 
+                              ifelse(stopintervention=="temp" & n > input$stopafter, 1, 0)))))
             
             # Probability of woman selected
-            prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0)),(1-(1-previous_share)^2) , ifelse((input$intervention=="atleast_stochastic" & (end %in% 0)),previous_share+(1-previous_share)*(previous_share)*input$prob_atleast, previous_share))
-            
+            prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0)),(1-(1-previous_share)^2) , 
+                                 ifelse((input$intervention=="atleast_stochastic" & (end %in% 0)),previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
+                                    ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start, 1, previous_share)))
             
             # Random draws done ahead of time for the case of balanced replacement
             r_w_w <- rbinom(1,1,p_w_w)
@@ -328,14 +361,14 @@ server <- function(input, output){
             rank <-1
             
             # Draw, replace, remove balls for each AA case
-            if (input$intervention=="none" | end %in% 1){
+            if (input$intervention=="none" | end %in% 1 | (n < input$quota_start & input$intervention=="quota")){
               ball_drawn <- sample(urn, 1)
               ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
               ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
               ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
               ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
             }
-            if (input$intervention=="atleast" & (end %in% 0)){
+            if (input$intervention=="atleast" & !(end %in% 1)){
               ball_drawn <- sample(urn, 2, replace=TRUE)
               rank <- ifelse("w" %in% ball_drawn, min(which(ball_drawn=="w")), 1)
               ball_drawn <- ifelse("w" %in% ball_drawn, "w", "m")
@@ -344,7 +377,7 @@ server <- function(input, output){
               ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
               ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
             }
-            if (input$intervention=="atleast_stochastic" & (end %in% 0)){
+            if (input$intervention=="atleast_stochastic" & !(end %in% 1)){
               ball_drawn <- sample(urn, 2, replace=TRUE)
               rank <- ifelse("w" %in% ball_drawn, min(which(ball_drawn=="w")), 1)
               ball_drawn <- ifelse( min(which(ball_drawn=="w"))==1, "w", ifelse(min(which(ball_drawn=="w"))==2, sample(ball_drawn, 1, prob=c(1-input$prob_atleast, input$prob_atleast)), "m"))
@@ -354,7 +387,7 @@ server <- function(input, output){
               ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
               ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
             }        
-            if (input$intervention=="alwayswoman" & (end %in% 0)){
+            if (input$intervention=="alwayswoman" & !(end %in% 1)){
               ball_drawn <- sample(urn, 1)
               ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
               #add one woman to the count
@@ -362,15 +395,16 @@ server <- function(input, output){
               ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
               ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
             }        
-            if (input$intervention=="quota" & previous_share <= input$quota){
-              ball_drawn <- sample(urn, urn)
+            if (input$intervention=="quota"& !(end %in% 1) & n>input$quota_start){
+              ball_drawn <- sample(urn, length(urn))
               rank <- min(which(ball_drawn=="w"))
               ball_drawn <- ball_drawn[rank]
               ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
               ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
               ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
               ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
-            } 
+            
+            }
             
             # Save results 
             
@@ -411,7 +445,7 @@ server <- function(input, output){
       })  
       
       # Save the urn functions for probability later
-      w_w_function_t <- if(input$woman_depends==FALSE){
+      w_w_function_t <- if(input$woman_depends=="none"){
         paste0("Bern(", p_w_w, ")")
       }
       else if(input$w_w_function=="linear"){
@@ -424,13 +458,13 @@ server <- function(input, output){
         paste0("Bern(\\frac{1}{1+", input$w_w_b, "*\\exp(", input$w_w_c, "*share_w)} )")
       }
       
-      m_w_function_t <- if(input$woman_depends==FALSE & (input$woman_stochastic=="balanced" | input$woman_stochastic=="none")){
+      m_w_function_t <- if(input$woman_depends=="none" & (input$woman_stochastic=="balanced" | input$woman_stochastic=="none")){
         paste0("1-Bern(", p_w_w, ")")
       }
-      else if(input$woman_depends==FALSE & input$woman_stochastic=="unbalanced") {
+      else if(input$woman_depends=="none" & input$woman_stochastic=="unbalanced") {
         paste0("Bern(", p_m_w, ")")
       }
-      else if(input$woman_depends==TRUE) {
+      else if(input$woman_depends=="urn") {
         if (input$woman_stochastic=="balanced") {
           paste0("1-",w_w_function_t)
           
@@ -447,7 +481,7 @@ server <- function(input, output){
       }
       
       
-      w_m_function_t <- if(input$man_depends==FALSE){
+      w_m_function_t <- if(input$man_depends=="none"){
         paste0("Bern(", p_w_m, ")")
       }
       else if(input$w_m_function=="linear"){
@@ -460,13 +494,13 @@ server <- function(input, output){
         paste0("Bern(\\frac{1}{1+", input$w_m_b, "*\\exp(", input$w_m_c, "*share_w)} )")
       }
       
-      m_m_function_t <- if(input$man_depends==FALSE & input$man_stochastic=="balanced"){
+      m_m_function_t <- if(input$man_depends=="none" & input$man_stochastic=="balanced"){
         paste0("1-Bern(", p_w_m, ")")
       }
-      else if(input$man_depends==FALSE & input$man_stochastic=="unbalanced") {
+      else if(input$man_depends=="none" & input$man_stochastic=="unbalanced") {
         paste0("Bern(", p_m_m, ")")
       }
-      else if(input$man_depends==TRUE) {
+      else if(input$man_depends=="urn") {
         if (input$man_stochastic=="balanced") {
           paste0("1-",w_m_function_t)
           
