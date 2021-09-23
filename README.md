@@ -1,14 +1,3 @@
----
-title: "Running the Polya Urn Simulator Locally"
-author: "Laura Caron"
-date: "September 2021"
-output: html_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ## About the App
 
 The Polya Urn Simulator runs using R. The app is built mainly on a package called Shiny, which is what turns it from regular code into an interactive web app. 
