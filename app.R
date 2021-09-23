@@ -10,15 +10,27 @@
 #           Loads the packages we need
 ##################################################
 
-library(groundhog)
-groundhog.library("tidyverse", date="2021-08-30")
-groundhog.library("plotly", date="2021-08-30")
-groundhog.library("gridExtra", date="2021-08-30")
-groundhog.library("pryr", date="2021-08-30")
-groundhog.library("scales", date="2021-08-30")
-groundhog.library("shiny", date="2021-08-30")
-groundhog.library("shinythemes", date="2021-08-30")
-groundhog.library("rsconnect", date="2021-08-30")
+#Set working directory
+#setwd("C:/Users/laura/OneDrive/Desktop/Laura's computer/Documents/My Own Documents/School Work/PhD RA Work/Underrepresentation Polya Urns/Github Repository/Polya-Urns-Simulations")
+
+## Set up renv for package version control
+if (!require("remotes"))
+  install.packages("remotes")
+
+
+#library(renv)
+renv::restore()
+
+library(remotes)
+library(tidyverse)
+library(plotly)
+library(gridExtra)
+library(pryr)
+library(scales)
+library(shiny)
+library(shinythemes)
+library(rsconnect)
+
 
 ##################################################
 #                      UI
@@ -443,7 +455,7 @@ server <- function(input, output){
         }
         
       })  
-      
+
       # Save the urn functions for probability later
       w_w_function_t <- if(input$woman_depends=="none"){
         paste0("Bern(", p_w_w, ")")
@@ -516,7 +528,7 @@ server <- function(input, output){
         }    
       }    
       
-      
+
       # Create a vector of the parameters to save for later
       parameters <- list("p_w_w"=p_w_w, "p_w_m"=p_w_m, "p_m_m"=p_m_m, "p_m_w"=p_m_w, 
                          "w_w_added"=w_w_added, "w_m_added"=w_m_added, "m_w_added"=m_w_added, "m_m_added"=m_m_added, 
@@ -525,6 +537,7 @@ server <- function(input, output){
       # Create a list with all the outputs
       outputlist <- list(paths_ratio=paths_ratio, paths_w_n=paths_w_n, paths_m_n=paths_m_n, paths_prob_w_w_replace_n=paths_prob_w_w_replace_n, paths_prob_w_m_replace_n=paths_prob_w_m_replace_n, paths_prob_w_n=paths_prob_w_n, paths_selected=paths_selected, paths_selected_rank=paths_selected_rank, paths_selected_w=paths_selected_w, paths_selected_m=paths_selected_m, parameters=parameters)
       return(outputlist)
+      
     })
     
     
