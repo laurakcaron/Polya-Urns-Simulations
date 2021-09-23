@@ -63,7 +63,7 @@ The code is in app.R. The other files are for the packages.
 
 ## Running the App
 
-You can run the app by opening the file and pressing the "Run App" button in RStudio. Alternatively, you can use the following command in an R script or in the R console. The app will open in a pop-up window. 
+You can run the app by opening the file and pressing the "Run App" button in RStudio. Alternatively, you can use the following command in an R script or in the R console. The app will open in a pop-up window. If it asks whether you want to active the project, type Y in the console and press enter.
 
 ![](run app button.png)
 
