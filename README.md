@@ -65,7 +65,7 @@ The code is in app.R. The other files are for the packages.
 
 You can run the app by opening the file and pressing the "Run App" button in RStudio. Alternatively, you can use the following command in an R script or in the R console. The app will open in a pop-up window. If it asks whether you want to active the project, type Y in the console and press enter.
 
-![](run app button.png)
+![](info/run app button.png)
 
 Please note that R requires you to use the forward slash or escape the backslash in your file paths. 
 
