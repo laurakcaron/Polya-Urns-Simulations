@@ -2,7 +2,6 @@
 
 The [Polya Urn Simulator]( https://caron.shinyapps.io/Women-Men-Polya-Urns/) is introduced and discussed in the paper "Women, Men, and Polya Urns: Underrepresentation at Equal Talent in the Absence of Discrimination" by Laura Caron, Alessandra Casella, and Victoria Mooers (in progress, September 2021). Please cite the paper for results obtained using this app. 
 
-
 The app runs using R and a package called Shiny, which is what turns it from regular code into an interactive web app. The following provides instructions for someone who has never used R to run the app on their own computer.
 
 ## Installing R and RStudio
@@ -58,7 +57,7 @@ renv::restore()
 
 ## Getting the App from Github
 
-Visit the Github repository [here](https://github.com/laurakcaron/Polya-Urns-Simulations) and click on the green button that says Code. Download the zip file and unzip it. Alternatively, clone the repository using git.
+Visit the Github repository [here](https://github.com/laurakcaron/Polya-Urns-Simulations). The repository has two "branches", or two versions of the app. The default is the beta version. Most users should use the branch button to change to the public release. Then, click on the green button that says Code. Download the zip file and unzip it. Alternatively, clone the repository using git.
 
 *Note: Do not rename any of the files. The code must be named app.R in order to run.*
 

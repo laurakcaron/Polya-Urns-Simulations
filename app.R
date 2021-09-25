@@ -2,7 +2,7 @@
 #              Polya Urns Simulations
 #              Laura Caron
 #              Columbia University
-#         This version: September 16, 2021
+#         This version: September 25, 2021
 ##################################################
 
 ##################################################
