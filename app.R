@@ -2,7 +2,7 @@
 #              Polya Urns Simulations
 #              Laura Caron
 #              Columbia University
-#         This version: September 16, 2021
+#         This version: September 25, 2021
 ##################################################
 
 ##################################################
@@ -10,9 +10,6 @@
 #           Loads the packages we need
 ##################################################
 
-
-#Set working directory
-#setwd("C:/Users/laura/OneDrive/Desktop/Laura's computer/Documents/My Own Documents/School Work/PhD RA Work/Underrepresentation Polya Urns/Github Repository/Polya-Urns-Simulations")
 
 ## Set up renv for package version control
 if (!require("remotes"))
