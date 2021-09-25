@@ -10,6 +10,7 @@
 #           Loads the packages we need
 ##################################################
 
+
 #Set working directory
 #setwd("C:/Users/laura/OneDrive/Desktop/Laura's computer/Documents/My Own Documents/School Work/PhD RA Work/Underrepresentation Polya Urns/Github Repository/Polya-Urns-Simulations")
 
@@ -70,13 +71,13 @@ navbarPage("Polya Urns", id="nav",
                   column(5, numericInput("w_0", "Initial number of women (white balls)", 1, min=0)), 
                   column(5, numericInput("m_0", "Initial number of men (maroon balls)", 1, min=0))),
                 
-                # Third section: Replacement 
-                h3("Replacement Scheme"),
+                # Third section: Replacement/addition 
+                h3("Addition Scheme"),
                 h4("Note: draws are with replacement."),
                 h4("If a woman is drawn:"),
                 
                 #options for stochastic replacement -- only appear when selected
-                fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic replacement"="none", "Stochastic replacement (dependent)" = "balanced", "Stochastic replacement (independent)"= "unbalanced"), selected="none"))),
+                fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (dependent)" = "balanced", "Stochastic addition (independent)"= "unbalanced"), selected="none"))),
                 conditionalPanel(condition = "input.woman_stochastic!= 'none'",
                      fluidRow(                       
                        column(12, radioButtons("woman_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of women in urn"="urn", "\\(X = \\) share of women in selected candidates"="selected"), selected="none"))),
@@ -118,7 +119,7 @@ navbarPage("Polya Urns", id="nav",
     
     
                 h4("If a man is drawn:"),
-                fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic replacement"="none", "Stochastic replacement (dependent)" = "balanced", "Stochastic replacement (independent)"= "unbalanced"), selected="none"))),
+                fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (dependent)" = "balanced", "Stochastic addition (independent)"= "unbalanced"), selected="none"))),
                 conditionalPanel(condition = "input.man_stochastic!= 'none'",
                      fluidRow(                       
                        column(12, radioButtons("man_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of women in urn"="urn", "\\(X = \\) share of women in selected candidates"="selected"), selected="none"))),
@@ -171,7 +172,8 @@ navbarPage("Polya Urns", id="nav",
                                  column(6, numericInput("quota", "Select only women until they make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)),
                                  column(6, numericInput("quota_start", "Start after", value=10, min=0, step=1))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
-                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority"="majority", "Stop after X draws"="temp"))))
+                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority in urn"="majority","Stop if women majority among selected"="majority_selected", "Stop after X draws"="temp")),
+                         column(6, numericInput("aa_start", "Start after", value=10, min=0, step=1))))
                 ), 
                 fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)))),
                 
@@ -357,11 +359,12 @@ server <- function(input, output){
                      ifelse(input$intervention=="quota"& (previous_share_selected > input$quota | end %in% 1) & n > input$quota_start,1, 
                           ifelse(stopintervention=="continue", 0, 
                             ifelse(stopintervention=="majority" & (previous_share>=0.5 | end %in% 1), 1, 
-                              ifelse(stopintervention=="temp" & n > input$stopafter, 1, 0)))))
-            
+                              ifelse(stopintervention=="majority_selected" & (previous_share_selected >=0.5 | end %in% 1)& n > input$aa_start, 1,
+                              ifelse(stopintervention=="temp" & n > input$stopafter, 1, 0))))))
+             
             # Probability of woman selected
-            prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0)),(1-(1-previous_share)^2) , 
-                                 ifelse((input$intervention=="atleast_stochastic" & (end %in% 0)),previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
+            prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0) & n > input$aa_start),(1-(1-previous_share)^2) , 
+                                 ifelse((input$intervention=="atleast_stochastic" & (end %in% 0) & n > input$aa_start),previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
                                     ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start, 1, previous_share)))
             
             # Random draws done ahead of time for the case of balanced replacement
@@ -373,14 +376,14 @@ server <- function(input, output){
             rank <-1
             
             # Draw, replace, remove balls for each AA case
-            if (input$intervention=="none" | end %in% 1 | (n < input$quota_start & input$intervention=="quota")){
+            if (input$intervention=="none" | end %in% 1 | (n < input$quota_start & input$intervention=="quota") | (n < input$aa_start & input$intervention%in% c("atleast", "atleast_stochastic")  )){
               ball_drawn <- sample(urn, 1)
               ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
               ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
               ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
               ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
             }
-            if (input$intervention=="atleast" & !(end %in% 1)){
+            if (input$intervention=="atleast" & !(end %in% 1) & n > input$aa_start){
               ball_drawn <- sample(urn, 2, replace=TRUE)
               rank <- ifelse("w" %in% ball_drawn, min(which(ball_drawn=="w")), 1)
               ball_drawn <- ifelse("w" %in% ball_drawn, "w", "m")
@@ -389,7 +392,7 @@ server <- function(input, output){
               ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
               ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
             }
-            if (input$intervention=="atleast_stochastic" & !(end %in% 1)){
+            if (input$intervention=="atleast_stochastic" & !(end %in% 1) & n > input$aa_start){
               ball_drawn <- sample(urn, 2, replace=TRUE)
               rank <- ifelse("w" %in% ball_drawn, min(which(ball_drawn=="w")), 1)
               ball_drawn <- ifelse( min(which(ball_drawn=="w"))==1, "w", ifelse(min(which(ball_drawn=="w"))==2, sample(ball_drawn, 1, prob=c(1-input$prob_atleast, input$prob_atleast)), "m"))
@@ -553,11 +556,11 @@ server <- function(input, output){
       outputlist <- list_output()
       paths_ratio <- outputlist$paths_ratio
       hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
-      colnames(hist_data) <- "Share of women after trials"
+      colnames(hist_data) <- "Share of women in urn after trials"
       
       # Plot
       hist <- ggplot(hist_data) + 
-        geom_histogram(aes(x=`Share of women after trials`), bins=sqrt(input$N))+
+        geom_histogram(aes(x=`Share of women in urn after trials`), bins=sqrt(input$N))+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
           panel.grid.major = element_blank(),
@@ -565,10 +568,10 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(title ="Distribution of final share of women")
+        labs(title ="Distribution of final share of women in the urn")
       
-      plot_ly(x=~hist_data$`Share of women after trials`, type="histogram",  nbinsx = sqrt(input$I)) %>%
-        layout(xaxis=list(title = "Share of women after trials", range=c(0,1)))
+      plot_ly(x=~hist_data$`Share of women in urn after trials`, type="histogram",  nbinsx = sqrt(input$I)) %>%
+        layout(xaxis=list(title = "Share of women in the urn after trials", range=c(0,1)))
     })
     
   })
@@ -584,11 +587,11 @@ server <- function(input, output){
       outputlist <- list_output()
       paths_ratio <- outputlist$paths_ratio
       hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
-      colnames(hist_data) <- "Share of women after trials"
+      colnames(hist_data) <- "Share of women in urn after trials"
       
       # Plot
       density <- ggplot(hist_data) + 
-        geom_density(aes(x=`Share of women after trials`))+
+        geom_density(aes(x=`Share of women in urn after trials`))+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
           panel.grid.major = element_blank(),
@@ -598,8 +601,8 @@ server <- function(input, output){
         ) + 
         labs(title ="Distribution of final share of women")
       
-      plot_ly(x = ~density(hist_data$`Share of women after trials`)$x, y = ~density(hist_data$`Share of women after trials`)$y, type = 'scatter', mode = 'lines')  %>%
-        layout(xaxis=list(title = "Share of women after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified")
+      plot_ly(x = ~density(hist_data$`Share of women in urn after trials`)$x, y = ~density(hist_data$`Share of women in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
+        layout(xaxis=list(title = "Share of women in the urn after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified")
       
     })
     
@@ -616,12 +619,12 @@ server <- function(input, output){
       outputlist <- list_output()
       paths_ratio <- outputlist$paths_ratio
       hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
-      colnames(hist_data) <- "Share of women after trials"
-      hist_data <- arrange(hist_data, `Share of women after trials`)  
+      colnames(hist_data) <- "Share of women in urn after trials"
+      hist_data <- arrange(hist_data, `Share of women in urn after trials`)  
       
       # Plot
       cdf <- ggplot(hist_data) + 
-        stat_ecdf(aes(x=`Share of women after trials`), geom="step")+
+        stat_ecdf(aes(x=`Share of women in urn after trials`), geom="step")+
         geom_vline(xintercept=0.5, color="red", alpha=0.5)+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
@@ -630,7 +633,7 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(y="Fraction of urns", title ="CDF of final share of women")
+        labs(y="Fraction of urns", title ="CDF of final share of women in the urn")
       
       ggplotly(cdf) %>% layout(hovermode="x unified")
       
@@ -662,13 +665,13 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(title ="Share of women over time, average highlighted", x="Draw")
+        labs(title ="Share of women in urn over time, average highlighted", x="Draw")
       
       
       
       ggplotly(r) %>% style(hoverinfo = "skip", traces = 1) %>%
         style(hovertemplate = paste('Draw: %{x:.0f}',
-                                    '<br>Average share of women: %{y:.4f}<br>'), traces = 2) %>%
+                                    '<br>Average share of women in urn: %{y:.4f}<br>'), traces = 2) %>%
         layout(hovermode="x unified)")
     })
     
@@ -720,21 +723,21 @@ server <- function(input, output){
       paths_m_n <- outputlist$paths_m_n
       
       # Prepare the rays
-      w_n_long <- pivot_longer(paths_w_n, cols=starts_with("Urn"), names_to="Urn")
-      colnames(w_n_long)[2] <- "W"
+      w_n_long <- mutate(paths_w_n, draw = row_number()) %>% pivot_longer(cols=starts_with("Urn"), names_to="Urn")
+      colnames(w_n_long)[3] <- "W"
       m_n_long <- pivot_longer(paths_m_n, cols=starts_with("Urn"), names_to="Urn")
       colnames(m_n_long)[2] <- "M"
       
       ray_data <- cbind(w_n_long, m_n_long$M)
-      colnames(ray_data)[3] <- "M"  
+      colnames(ray_data)[4] <- "M"  
       
       # Get the graph limits
       limits<-c(ifelse(input$graph_auto=="auto", min(input$w_0, input$m_0), input$graph_origin), ifelse(input$graph_auto=="auto", input$N + max(input$w_0, input$m_0), input$graph_dim))
       
       # Plot
       rays <- ggplot(ray_data) +
-        geom_line(aes(x=W, y=M, group=Urn),size = 0.1, alpha=min(1, 50/input$I)) +
         stat_density_2d(aes(x=W, y=M, fill=..density.., alpha = sqrt(..density..)), geom = "raster", contour = FALSE) +
+        geom_line(aes(x=W, y=M, group=Urn, text=paste("Draw:", as.character(draw))),color="black", size = 0.1, alpha=min(1, 50/input$I)) +
         scale_fill_distiller(palette= "Spectral", direction=-1) +
         theme(
           panel.grid.major = element_blank(),
@@ -747,7 +750,7 @@ server <- function(input, output){
       rays <- if(input$graph_auto=="auto") rays + scale_x_continuous() + scale_y_continuous() else rays + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
       
       
-      ggplotly(rays)
+      ggplotly(rays, tooltip=c("x", "y", "text", "Urn"))
       
     })
     
@@ -781,8 +784,8 @@ server <- function(input, output){
       limits<-c(ifelse(input$graph_auto=="auto", min(input$w_0, input$m_0), input$graph_origin), ifelse(input$graph_auto=="auto", input$N + max(input$w_0, input$m_0), input$graph_dim))
       
       # Plot
-      stock <- ggplot(stock_data) +
-        geom_line(aes(x=W, y=M, group=Urn),size = 0.1, alpha=min(1, 50/input$I)) +
+      stock <- ggplot() +
+        geom_line(data=stock_data, aes(x=W, y=M, group=Urn),size = 0.1, alpha=min(1, 50/input$I)) +
         geom_line(data=average, aes(x=mean_w, y=mean_m),color="blue") +
         theme(
           panel.grid.major = element_blank(),
@@ -790,15 +793,13 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")) + 
         labs(x="Number of women selected", y="Number of men selected",title = "Average highlighted in blue")
+     
+       stock <- if(input$graph_auto=="auto") stock + scale_x_continuous() + scale_y_continuous() else stock + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
       
-      stock <- if(input$graph_auto=="auto") stock + scale_x_continuous() + scale_y_continuous() else stock + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
       
-      
-      ggplotly(stock)%>% style(hoverinfo = "skip", traces = 1) %>%
-        style(hovertemplate = paste('%{x:.3f}',
-                                    '<br>%{y:.3f}<br>'), traces = 2) %>%
+      ggplotly(stock) %>%
         layout(hovermode="x unified)")
-      
+
       
     })
     
