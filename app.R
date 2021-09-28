@@ -11,9 +11,6 @@
 ##################################################
 
 
-#Set working directory
-#setwd("C:/Users/laura/OneDrive/Desktop/Laura's computer/Documents/My Own Documents/School Work/PhD RA Work/Underrepresentation Polya Urns/Github Repository/Polya-Urns-Simulations")
-
 ## Set up renv for package version control
 if (!require("remotes"))
   install.packages("remotes")
@@ -230,7 +227,7 @@ navbarPage("Polya Urns", id="nav",
               ))
    )
   # Set the default tab to be the Simulations tab
-   , selected ="Simulations"))
+   , selected ="About"))
 
 ##############################################################
 #                          Server
