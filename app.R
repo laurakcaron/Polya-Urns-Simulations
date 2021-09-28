@@ -2,7 +2,7 @@
 #              Polya Urns Simulations
 #              Laura Caron
 #              Columbia University
-#         This version: September 25, 2021
+#         This version: September 28, 2021
 ##################################################
 
 ##################################################
@@ -170,7 +170,7 @@ navbarPage("Polya Urns", id="nav",
                      fluidRow(column(12, numericInput("prob_atleast", "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
                 conditionalPanel(condition="input.intervention=='quota'", 
                                  column(6, numericInput("quota", "Select only women until they make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)),
-                                 column(6, numericInput("quota_start", "Start after", value=10, min=0, step=1))),
+                                 column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
                          radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority in urn"="majority","Stop if women majority among selected"="majority_selected", "Stop after X draws"="temp")),
                          column(6, numericInput("aa_start", "Start after", value=10, min=0, step=1))))
@@ -461,27 +461,27 @@ server <- function(input, output){
 
       # Save the urn functions for probability later
       w_w_function_t <- if(input$woman_depends=="none"){
-        paste0("Bern(", p_w_w, ")")
+        paste0("X \\sim Bern(", p_w_w, ")")
       }
       else if(input$w_w_function=="linear"){
-        paste0("Bern(1-", input$w_w_b, "*share_w^", input$w_w_a, ")")
+        paste0("X \\sim Bern(1-", input$w_w_b, "*share_w^", input$w_w_a, ")")
       }
       else if(input$w_w_function=="inverse"){
-        paste0("Bern(\\frac{1}{1+", input$w_w_b, "*(share_w)^", input$w_w_a, " } )")
+        paste0("X \\sim Bern(\\frac{1}{1+", input$w_w_b, "*(share_w)^", input$w_w_a, " } )")
       }
       else if(input$w_w_function=="inverseexp"){
-        paste0("Bern(\\frac{1}{1+", input$w_w_b, "*\\exp(", input$w_w_c, "*share_w)} )")
+        paste0("X \\sim Bern(\\frac{1}{1+", input$w_w_b, "*\\exp(", input$w_w_c, "*share_w)} )")
       }
       
       m_w_function_t <- if(input$woman_depends=="none" & (input$woman_stochastic=="balanced" | input$woman_stochastic=="none")){
-        paste0("1-Bern(", p_w_w, ")")
+        paste0("1-X")
       }
       else if(input$woman_depends=="none" & input$woman_stochastic=="unbalanced") {
         paste0("Bern(", p_m_w, ")")
       }
       else if(input$woman_depends=="urn") {
         if (input$woman_stochastic=="balanced") {
-          paste0("1-",w_w_function_t)
+          paste0("1-X")
           
         }
         else if(input$m_w_function=="linear") {
@@ -497,27 +497,27 @@ server <- function(input, output){
       
       
       w_m_function_t <- if(input$man_depends=="none"){
-        paste0("Bern(", p_w_m, ")")
+        paste0("Y \\sim Bern(", p_w_m, ")")
       }
       else if(input$w_m_function=="linear"){
-        paste0("Bern(1-", input$w_m_b, "*share_w^", input$w_m_a, ")")
+        paste0("Y \\sim Bern(1-", input$w_m_b, "*share_w^", input$w_m_a, ")")
       }
       else if(input$w_m_function=="inverse"){
-        paste0("Bern(\\frac{1}{1+", input$w_m_b, "*(share_w)^", input$w_m_a, " } )")
+        paste0("Y \\sim Bern(\\frac{1}{1+", input$w_m_b, "*(share_w)^", input$w_m_a, " } )")
       }
       else if(input$w_m_function=="inverseexp"){
-        paste0("Bern(\\frac{1}{1+", input$w_m_b, "*\\exp(", input$w_m_c, "*share_w)} )")
+        paste0("Y \\sim Bern(\\frac{1}{1+", input$w_m_b, "*\\exp(", input$w_m_c, "*share_w)} )")
       }
       
       m_m_function_t <- if(input$man_depends=="none" & input$man_stochastic=="balanced"){
-        paste0("1-Bern(", p_w_m, ")")
+        paste0("1-Y")
       }
       else if(input$man_depends=="none" & input$man_stochastic=="unbalanced") {
-        paste0("Bern(", p_m_m, ")")
+        paste0("Y \\sim Bern(", p_m_m, ")")
       }
       else if(input$man_depends=="urn") {
         if (input$man_stochastic=="balanced") {
-          paste0("1-",w_m_function_t)
+          paste0("1-Y")
           
         }
         else if(input$m_m_function=="linear") {
