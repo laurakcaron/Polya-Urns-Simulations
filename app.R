@@ -74,7 +74,7 @@ navbarPage("Polya Urns", id="nav",
                 h4("If a woman is drawn:"),
                 
                 #options for stochastic replacement -- only appear when selected
-                fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (dependent)" = "balanced", "Stochastic addition (independent)"= "unbalanced"), selected="none"))),
+                fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
                 conditionalPanel(condition = "input.woman_stochastic!= 'none'",
                      fluidRow(                       
                        column(12, radioButtons("woman_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of women in urn"="urn", "\\(X = \\) share of women in selected candidates"="selected"), selected="none"))),
@@ -116,7 +116,7 @@ navbarPage("Polya Urns", id="nav",
     
     
                 h4("If a man is drawn:"),
-                fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (dependent)" = "balanced", "Stochastic addition (independent)"= "unbalanced"), selected="none"))),
+                fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
                 conditionalPanel(condition = "input.man_stochastic!= 'none'",
                      fluidRow(                       
                        column(12, radioButtons("man_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of women in urn"="urn", "\\(X = \\) share of women in selected candidates"="selected"), selected="none"))),
@@ -170,7 +170,7 @@ navbarPage("Polya Urns", id="nav",
                                  column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
                          radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority in urn"="majority","Stop if women majority among selected"="majority_selected", "Stop after X draws"="temp")),
-                         column(6, numericInput("aa_start", "Start after", value=10, min=0, step=1))))
+                         column(6, numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=10, min=0, step=1))))
                 ), 
                 fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)))),
                 
@@ -902,40 +902,41 @@ server <- function(input, output){
   output$help <-renderUI({
     input$rerun
     
-    isolate({
+  isolate({
       outputlist <- list_output()
       parameters <- outputlist$parameters
       withMathJax(
         HTML(paste0(
           h2("About the Urn Simulator"),
-          p("Laura Caron, Columbia University. Updated September 2021."),
+          p("Updated September 2021."), 
+          p("This simulator accompanies the paper \"Women, Men, and Polya Urns. Underrepresentation at Equal Talent in the Absence of Discrimination\" by Laura Caron, Alessandra Casella, and Victoria Mooers at Columbia University."),
           p("Note: you need to press \"re-run\" simulation in order to refresh the results. Some graphs may be slow to appear."),
           h3("Simulation Parameters"),
           p("You may choose the number of rounds from each urn and the number of urns to be simulated. You may also change the seed for the random number generator in order to get different results."),
           h3("Initial Urn Contents"), 
           p("Input the initial number of each color ball in the urn, \\(w_0\\) and \\(m_0\\)."),
-          h3("Replacement Scheme"), 
-          p("Here you may specify the replacement matrix in the form:
+          h3("Addition Scheme"), 
+          p("All urns perform draws with replacement. To specify draws without replacement, choose a negative value for the number of women or men to be added after each draw. You may specify the ball addition matrix in the form:
   $$\\begin{pmatrix} w_w & m_w \\\\ w_m & m_m \\end{pmatrix} $$
   
   where \\(m_w\\) represents the number of men added when a woman is drawn, and so on."),
-          h3("Stochastic replacement options"), 
+          h3("Stochastic addition options"), 
           
-          HTML(paste0("Stochastic replacement is currently:<b>", if(input$woman_stochastic!="none") " enabled " else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic!="none") " enabled " else " disabled ", "</b> when a man is drawn. <br></br>", 
-                      "The stochastic replacement may be either independent or dependent. In the dependent variety, balls are always added to the urn in each draw, regardless of the state of any random variables. The 2 \\(\\times\\) 2 case where \\(x\\) balls are added in each round can be written in terms of 2 Bernoulli random variables:
+          HTML(paste0("Stochastic addition is currently:<b>", if(input$woman_stochastic!="none") " enabled " else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic!="none") " enabled " else " disabled ", "</b> when a man is drawn. <br></br>", 
+                      "The stochastic addition may be either correlated or uncorrelated. In the correlated variety, balls are always added to the urn in each draw, regardless of the state of any random variables. The 2 \\(\\times\\) 2 case where \\(x\\) balls are added in each round can be written in terms of 2 Bernoulli random variables:
 
 $$
 
 \\begin{pmatrix}
-w_w \\times Bern(p) & m_w (1-Bern(p)) \\\\
-w_m \\times Bern(q) & m_m (1-Bern(q))
+w_w \\times X \\sim Bern(p) & m_w (1-X) \\\\
+w_m \\times Y \\sim Bern(q) & m_m (1-Y)
 \\end{pmatrix}
 
 $$", 
                       "In that case, when a white ball is drawn, \\(p\\) gives the probability that \\(w_w\\) white balls are added. Otherwise, \\(m_w\\) maroon balls are added. <br></br>",
-                      "<br></br> Dependent stochastic replacement is currently: <b>", if(input$woman_stochastic=="balanced") " enabled" else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic=="balanced") " enabled " else " disabled ", "</b>when a man is drawn. <br></br>", 
+                      "<br></br> Correlated stochastic addition is currently: <b>", if(input$woman_stochastic=="balanced") " enabled" else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic=="balanced") " enabled " else " disabled ", "</b>when a man is drawn. <br></br>", 
                       
-                      "The case with indepndence is written in terms of four Bernoulli random variables:
+                      "The case with uncorrelated addition is written in terms of four Bernoulli random variables:
 
 $$
 
@@ -946,7 +947,7 @@ w_m \\times Bern(p_{w_m}) & m_m \\times Bern(p_{m_m})
 
 $$",
                       
-                      "Stochastic replacement may depend on the urn contents. In this case, the idea is that, e.g., the probability \\(p_{w_w}\\) is a decreasing function of the share of white balls in the earn. As a probability, this function should be bounded between 0 and 1 for shares of white balls between 0 and 1.
+"Stochastic addition may depend on the urn contents. In this case, the idea is that, e.g., the probability \\(p_{w_w}\\) is a decreasing function of the share of white balls in the earn. As a probability, this function should be bounded between 0 and 1 for shares of white balls between 0 and 1.
 
 The most direct of such functions would be:
   $$p_{w_w} = 1-share_w^a $$
@@ -959,7 +960,13 @@ Another possiblity:
   $$p_{w_w} = \\frac{1}{1+b \\exp(c*share_w)}$$
   with parameters \\(b,c \\in(0,\\infty) \\).
 
-As above, this may be done in the dependent or indepdendent case. "
+As above, this may be done in the correlated or uncorrelated case. ", 
+h3("Affirmative Action"), 
+p("The app allows simulation of various affirmative action policies. The first type is one where two balls are drawn from the urn, representing the best and second-best candidates. If the best candidate is a woman, they are selected. If not, the second-best candidate is considered and is selected if they are a woman (surely, in the determinisitc case, or with a certain probability, in the stochastic case). Otherwise, the best man candidate is selected."), 
+p("The second type of affirmative action adds one woman to the urn in every round, regardless of draw and addition."), 
+p("The third type is a hiring quota, where only women are selected until the stopping conditions are met. We continue drawing until a woman is selected."), 
+h4("Stopping conditions"), 
+p("The affirmative action may continue forever, stop when women become the majority in the sample (urn), stop when women become the majority among those selected, or stop after a certain number of draws. The hiring quota may be stopped when women make up a certain percentage of those selected.")
                       
                       
                       
