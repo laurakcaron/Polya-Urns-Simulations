@@ -5,7 +5,7 @@ account: lkc38
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4444081
-bundleId: 5071623
+bundleId: 5082468
 url: https://lkc38.shinyapps.io/Polya-Urns/
-when: 1632590276.81909
-lastSyncTime: 1632590276.81909
+when: 1632865400.64458
+lastSyncTime: 1632865400.64458

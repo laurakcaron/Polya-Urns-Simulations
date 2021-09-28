@@ -170,7 +170,7 @@ navbarPage("Polya Urns", id="nav",
                                  column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
                          radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority in urn"="majority","Stop if women majority among selected"="majority_selected", "Stop after X draws"="temp")),
-                         column(6, numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=10, min=0, step=1))))
+                         column(6, numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))))
                 ), 
                 fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)))),
                 
@@ -227,7 +227,7 @@ navbarPage("Polya Urns", id="nav",
               ))
    )
   # Set the default tab to be the Simulations tab
-   , selected ="About"))
+   , selected ="Simulations"))
 
 ##############################################################
 #                          Server
