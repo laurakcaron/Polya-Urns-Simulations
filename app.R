@@ -162,7 +162,7 @@ navbarPage("Polya Urns", id="nav",
     
                 # Fourth section: Interventions
                 h3("Interventions"),
-                fluidRow(column(12, radioButtons("intervention", "Affirmative Action", selected="none", choices=c("None"="none", "Draw two, if at least one is a woman, select a woman (deterministic)"="atleast","Draw two, if at least one is a woman, select a woman with probability"="atleast_stochastic","Draw one and replace accordingly, plus always replace one woman each round"="alwayswoman", "Hiring quota"="quota")))),
+                fluidRow(column(12, radioButtons("intervention", "Affirmative Action", selected="none", choices=c("None"="none", "Draw two, if at least one is a woman, select a woman (deterministic)"="atleast","Draw two, if at least one is a woman, select a woman with probability"="atleast_stochastic","Draw one and add accordingly, plus always add one woman each round"="alwayswoman", "Hiring quota"="quota")))),
                 conditionalPanel(condition="input.intervention=='atleast_stochastic'", 
                      fluidRow(column(12, numericInput("prob_atleast", "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
                 conditionalPanel(condition="input.intervention=='quota'", 
