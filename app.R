@@ -227,7 +227,7 @@ navbarPage("Polya Urns", id="nav",
               ))
    )
   # Set the default tab to be the Simulations tab
-   , selected ="Simulations"))
+   , selected ="About"))
 
 ##############################################################
 #                          Server
@@ -934,7 +934,7 @@ w_m \\times Y \\sim Bern(q) & m_m (1-Y)
 
 $$", 
                       "In that case, when a white ball is drawn, \\(p\\) gives the probability that \\(w_w\\) white balls are added. Otherwise, \\(m_w\\) maroon balls are added. <br></br>",
-                      "<br></br> Correlated stochastic addition is currently: <b>", if(input$woman_stochastic=="balanced") " enabled" else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic=="balanced") " enabled " else " disabled ", "</b>when a man is drawn. <br></br>", 
+                      "Correlated stochastic addition is currently: <b>", if(input$woman_stochastic=="balanced") " enabled" else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic=="balanced") " enabled " else " disabled ", "</b>when a man is drawn. <br></br>", 
                       
                       "The case with uncorrelated addition is written in terms of four Bernoulli random variables:
 
