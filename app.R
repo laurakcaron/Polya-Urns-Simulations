@@ -57,7 +57,7 @@ navbarPage("Polya Urns", id="nav",
                 # First section: Parameters
                 h3("Simulation Parameters"),
                 fluidRow(
-                  column(6, numericInput("I", "Number of urns to simulate", 50, min=1, step=5)),
+                  column(6, numericInput("I", "Number of urns to simulate", 100, min=1, step=5)),
                   column(6, numericInput("N", "Number of draws from each urn", 100, min=1, step=10))),
                 fluidRow(
                   column(12, numericInput("seed", "Seed", 1234, min=0))),
@@ -65,8 +65,8 @@ navbarPage("Polya Urns", id="nav",
                 # Second section: Initial state
                 h3("Initial Urn Contents"),
                 fluidRow(
-                  column(5, numericInput("w_0", "Initial number of women (white balls)", 1, min=0)), 
-                  column(5, numericInput("m_0", "Initial number of men (maroon balls)", 1, min=0))),
+                  column(5, numericInput("w_0", "Initial number of women (white balls)", 10, min=0)), 
+                  column(5, numericInput("m_0", "Initial number of men (maroon balls)", 40, min=0))),
                 
                 # Third section: Replacement/addition 
                 h3("Addition Scheme"),
