@@ -1,0 +1,144 @@
+File Manifest for ICPSR 37118
+
+American Economic Association. Committee on the Status of Women in the
+Economics Profession. Committee on the Status of Women in the Economics
+Profession (CSWEP) Annual Survey of U.S. Economics Departments, United
+States, 1994-2020. ICPSR37118-v5. Ann Arbor, MI: Inter-university
+Consortium for Political and Social Research [distributor], 2021-11-23.
+http://doi.org/10.3886/ICPSR37118.v5
+
+Details on the version history can be found below the file listings.
+
+
+Study-level Documentation
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    37118-descriptioncitation.pdf       -       -         -       2021-11-23  -
+
+    37118-related_literature.txt        -       -         -       daily       -
+
+    37118-manifest.txt                  -       -         -       daily       -
+
+    37118-Questionnaire-2003_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  8deeefda4477fa8d9177f0e55f6c38cd
+
+    37118-Questionnaire-2003_CSWEP_PhD.pdf -       -         -       2021-11-23  909ff84bbff0d82cc56b6aeb3c92cece
+
+    37118-Questionnaire-2004_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  e44a163f60eb326c91ddbb51b8323fe5
+
+    37118-Questionnaire-2004_CSWEP_PhD.pdf -       -         -       2021-11-23  834eeb501e362c417ada6c7baee67da9
+
+    37118-Questionnaire-2005_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  32d4718c232066d0a574fd6d0c278e21
+
+    37118-Questionnaire-2005_CSWEP_PhD.pdf -       -         -       2021-11-23  9ee7f63e57accc3b0ba734624d969706
+
+    37118-Questionnaire-2006_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  04eddd7822acc5499555596f4a6c5ce0
+
+    37118-Questionnaire-2006_CSWEP_PhD.pdf -       -         -       2021-11-23  488445643222bec5d291ceecd3a64cb2
+
+    37118-Questionnaire-2007_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  7202aec2046332d92f2bfd3f1d8a7e40
+
+    37118-Questionnaire-2007_CSWEP_PhD.pdf -       -         -       2021-11-23  d52951c8d273dec56c033d536321e22e
+
+    37118-Questionnaire-2008_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  fd74561e52f83f3a5dcd280f7b493fb9
+
+    37118-Questionnaire-2008_CSWEP_PhD.pdf -       -         -       2021-11-23  4b98af2cc47b6a13d67ebabb0f84121c
+
+    37118-Questionnaire-2009_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  c65a81ee310ec2e1d4742ef9e01b592d
+
+    37118-Questionnaire-2009_CSWEP_PhD.pdf -       -         -       2021-11-23  cabc76dba52f67816ce774b38d7d51e0
+
+    37118-Questionnaire-2010_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  1c303052d4eb25f6f9423aba92cf1697
+
+    37118-Questionnaire-2010_CSWEP_PhD.pdf -       -         -       2021-11-23  f09fcf4e7a1efb3a5189d50598b1847e
+
+    37118-Questionnaire-2011_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  f2219eb6ec3d6e101e63e88f14778b4a
+
+    37118-Questionnaire-2011_CSWEP_PhD.pdf -       -         -       2021-11-23  1ea6f56599018072497262b45074d886
+
+    37118-Questionnaire-2012_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  8972a165b9ca30e24cecd93243927d28
+
+    37118-Questionnaire-2012_CSWEP_PhD.pdf -       -         -       2021-11-23  1119c111aedbfe9d5bc8960d91c78d93
+
+    37118-Questionnaire-2013_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  8f002e9a762fa8fefb5c49b96eb08bdc
+
+    37118-Questionnaire-2013_CSWEP_PhD.pdf -       -         -       2021-11-23  ce1a20fb097ed03b38544369fbec61a0
+
+    37118-Questionnaire-2014_2015_UAQ.pdf -       -         -       2021-11-23  2f2fbdf8dfde55552d5a4d0859be6b65
+
+    37118-Questionnaire-2014_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  b16d96892a212114121a3c946197a7ec
+
+    37118-Questionnaire-2014_CSWEP_PhD.pdf -       -         -       2021-11-23  9e4f08ffe6a95ed0f8133fb0a35710cf
+
+    37118-Questionnaire-2015_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  b259eedfec555b087e604f69c763738c
+
+    37118-Questionnaire-2015_CSWEP_PhD.pdf -       -         -       2021-11-23  4e91c70151cf00cbef9c4843b055ab2b
+
+    37118-Questionnaire-2016_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  45342b58aca3dfc4ab1ce026af504595
+
+    37118-Questionnaire-2016_CSWEP_PhD.pdf -       -         -       2021-11-23  0e0d23e2314c8a2d1a302c7629fb8c6e
+
+    37118-Questionnaire-2016_UAQ.pdf    -       -         -       2021-11-23  09f517eac3308f2239ba24968c219fcb
+
+    37118-Questionnaire-2017_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  d185c95031042c07f89927a9850c975b
+
+    37118-Questionnaire-2017_CSWEP_PhD.pdf -       -         -       2021-11-23  8306173553e60c2653c4072f6bbbab51
+
+    37118-Questionnaire-2018_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  503149435b9757a649cb419c2f46e580
+
+    37118-Questionnaire-2018_CSWEP_PhD.pdf -       -         -       2021-11-23  9b310df043ab69cd9c1bcbb069281275
+
+    37118-Questionnaire-2019_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  02dd4ac7c185b06f1076b202453b7af0
+
+    37118-Questionnaire-2019_CSWEP_PhD.pdf -       -         -       2021-11-23  520606837a085d64d86d3c72222b781c
+
+    37118-Questionnaire-2020_CSWEP_Non_PhD.pdf -       -         -       2021-11-23  cd61d7f5d0ad97c5edda8b2d6d0e21ba
+
+    37118-Questionnaire-2020_CSWEP_PhD.pdf -       -         -       2021-11-23  1132d9e3225f0a2f1bdeb0174f5710bf
+
+    37118-Report-2018.pdf               -       -         -       2021-11-23  8a9965ed24a713963343dc3ed1ca43de
+
+    37118-Report-2019.pdf               -       -         -       2021-11-23  80267b24c3d43eecbc03fcbc0edcf282
+
+    37118-Report-2020.pdf               -       -         -       2021-11-23  d05b11d5186f251221ef523f3c1a6222
+
+
+DS0001 PhD Restricted-Use Data
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    37118-0001-Codebook-ICPSR.pdf       -       -         -       2021-11-23  6d0b9d2793c622f8d33c8fdd21ef951b
+
+    37118-0001-Documentation-readme.pdf -       -         -       2021-11-23  8dbc3aa64443ddbce18d592001c865dc
+
+
+DS0002 Non-PhD Restricted-Use Data
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    37118-0002-Codebook-ICPSR.pdf       -       -         -       2021-11-23  e992335829e7fb51c62099345c7a348c
+
+    37118-0002-Documentation-readme.pdf -       -         -       2021-11-23  2d7bba20c0277fa51251286da27b2442
+
+
+DS0003 Public-Use Aggregate Data
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    37118-0003-Documentation-readme.pdf -       -         -       2021-11-23  b510af155e30d3abad3083e65b80f2b9
+
+    37118-0003-Zipped_package.zip       -       -         -       2021-11-23  87156de2fb77044e62af02bd9b7845de
+
+
+Version History
+
+2021-11-23 Updated to add 2019 and 2020 data/documentation; updated title
+accordingly.  2020-02-26 <p>Updated to add 2018 data and changed
+organization of data so there are now three datasets with 2 restricted.
+Updated title and PI.</p>  2019-02-04 This study was updated to move the
+zip folder of aggregate data to Dataset 2.  2018-09-13 Updated to add
+documentation and zip folder of aggregate data.
