@@ -52,6 +52,7 @@ cswep <- cswep %>%
   mutate(rownum = row_number(), 
          female = ifelse(rownum <= 12 & rownum >= 2, 1, 0)) %>%
   filter(rownum >= 2) %>%
+  filter(!is.na(`2020`)) %>%
   select(-rownum)
 
 cswep[,2:29] <- sapply(cswep[,2:29], as.numeric) %>% as.data.frame()
@@ -66,3 +67,7 @@ colnames(cswep)[1] <- "Rank"
 save(bachelor, file="Data/clean_nsf2021_bachelor.Rdata")
 save(doctoral, file="Data/clean_nsf2021_doctoral.Rdata")
 save(cswep, file="Data/clean_cswep.Rdata")
+
+write_csv(bachelor, file="Data/clean_nsf2021_bachelor.csv")
+write_csv(doctoral, file="Data/clean_nsf2021_doctoral.csv")
+write_csv(cswep, file="Data/clean_cswep.csv")
