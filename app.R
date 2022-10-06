@@ -633,7 +633,7 @@ server <- function(input, output){
       # Plot
       cdf <- ggplot(hist_data) + 
         stat_ecdf(aes(x=`Share of women in urn after trials`), geom="step")+
-        geom_vline(xintercept=0.5, color="red", alpha=0.5)+
+        geom_vline(xintercept=0.5, color="chartreuse3", linetype="dashed", alpha=0.5)+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
           panel.grid.major = element_blank(),
