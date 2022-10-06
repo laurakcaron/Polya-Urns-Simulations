@@ -2,7 +2,7 @@
 #              Polya Urns Simulations
 #              Laura Caron
 #              Columbia University
-#         This version: September 28, 2021
+#         This version: October 6, 2022
 ##################################################
 
 ##################################################
@@ -14,7 +14,6 @@
 ## Set up renv for package version control
 if (!require("remotes"))
   install.packages("remotes")
-
 
 #library(renv)
 renv::restore()
@@ -28,7 +27,6 @@ library(scales)
 library(shiny)
 library(shinythemes)
 library(rsconnect)
-
 
 ##################################################
 #                      UI
@@ -226,6 +224,19 @@ navbarPage("Polya Urns", id="nav",
                 )
               ))
    )
+  
+  # Data page
+ # tabPanel("Data Tools",           
+  #         sidebarLayout( 
+  #           sidebarPanel(
+  #             h3("Data Analysis"),
+  #             fluidRow(
+  #               column(9, selectInput("datasource", "Data Source", choices=c("NSF")))
+  #             )
+  #           ),
+  #           mainPanel()
+  #           ))
+             
   # Set the default tab to be the Simulations tab
    , selected ="Simulations"))
 
@@ -567,8 +578,8 @@ server <- function(input, output){
         ) + 
         labs(title ="Distribution of final share of women in the urn")
       
-      plot_ly(x=~hist_data$`Share of women in urn after trials`, type="histogram",  nbinsx = sqrt(input$I)) %>%
-        layout(xaxis=list(title = "Share of women in the urn after trials", range=c(0,1)))
+      plot_ly(x=~hist_data$`Share of women in urn after trials`, type="histogram",  histfunc="count" ,nbinsx = sqrt(input$I)) %>%
+        layout(xaxis=list(title = "Share of women in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16)))
     })
     
   })
@@ -655,6 +666,7 @@ server <- function(input, output){
       r <- ggplot() + 
         geom_line(data=ratio, aes(x=draw-1, y=value, group=name), color="lightgray") +
         geom_line(aes(x=rep(0:(input$N)), y=average_ratio), color="blue") +
+        geom_hline(aes(yintercept=0.5), color="chartreuse3",linetype = "dashed" ) +
         scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
           panel.grid.major = element_blank(),
@@ -662,7 +674,7 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(title ="Share of women in urn over time, average highlighted", x="Draw")
+        labs(title ="Share of women in urn over time, average highlighted", x="Draw", y="Women's share in the urn")
       
       
       
@@ -690,6 +702,7 @@ server <- function(input, output){
       r <- ggplot() + 
         geom_line(data=prob_w_n, aes(x=draw, y=value, group=name), color="lightgray") +
         geom_line(aes(x=rep(1:(input$N)), y=average_prob_w), color="blue") +
+        geom_hline(aes(yintercept=0.5), color="chartreuse3",linetype = "dashed" ) +
         scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
           panel.grid.major = element_blank(),
@@ -697,7 +710,7 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(title ="Probability of selecting a woman, average highlighted")
+        labs(title ="Probability of selecting a woman, average highlighted", y="Probability of selecting a woman", x="Draw")
       
       ggplotly(r) %>% style(hoverinfo = "skip", traces = 1) %>%
         style(hovertemplate = paste('Draw: %{x:.0f}',
@@ -735,6 +748,7 @@ server <- function(input, output){
       rays <- ggplot(ray_data) +
         stat_density_2d(aes(x=W, y=M, fill=..density.., alpha = sqrt(..density..)), geom = "raster", contour = FALSE) +
         geom_line(aes(x=W, y=M, group=Urn, text=paste("Draw:", as.character(draw))),color="black", size = 0.1, alpha=min(1, 50/input$I)) +
+        geom_abline(aes(slope=1, intercept=0), color="chartreuse3", linetype="dashed") +
         scale_fill_distiller(palette= "Spectral", direction=-1) +
         theme(
           panel.grid.major = element_blank(),
@@ -784,6 +798,7 @@ server <- function(input, output){
       stock <- ggplot() +
         geom_line(data=stock_data, aes(x=W, y=M, group=Urn),size = 0.1, alpha=min(1, 50/input$I)) +
         geom_line(data=average, aes(x=mean_w, y=mean_m),color="blue") +
+        geom_abline(aes(slope=1, intercept=0), color="chartreuse3", linetype="dashed") +
         theme(
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
