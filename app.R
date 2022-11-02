@@ -63,24 +63,24 @@ navbarPage("Polya Urns", id="nav",
                 # Second section: Initial state
                 h3("Initial Urn Contents"),
                 fluidRow(
-                  column(5, numericInput("w_0", "Initial number of women (white balls)", 10, min=0)), 
-                  column(5, numericInput("m_0", "Initial number of men (maroon balls)", 40, min=0))),
+                  column(5, numericInput("w_0", "Initial number of white balls", 10, min=0)), 
+                  column(5, numericInput("m_0", "Initial number of maroon balls", 40, min=0))),
                 
                 # Third section: Replacement/addition 
                 h3("Addition Scheme"),
                 h4("Note: draws are with replacement."),
-                h4("If a woman is drawn:"),
+                h4("If a white ball is drawn:"),
                 
                 #options for stochastic replacement -- only appear when selected
                 fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
                 conditionalPanel(condition = "input.woman_stochastic!= 'none'",
                      fluidRow(                       
-                       column(12, radioButtons("woman_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of women in urn"="urn", "\\(X = \\) share of women in selected candidates"="selected"), selected="none"))),
+                       column(12, radioButtons("woman_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of white balls in urn"="urn", "\\(X = \\) share of white balls in selected candidates"="selected"), selected="none"))),
                      fluidRow(
                        conditionalPanel(condition="input.woman_depends=='none'",
-                                        column(5, numericInput("p_w_w", "Probability of women added", 1, step=0.1))),
+                                        column(5, numericInput("p_w_w", "Probability of white ball added", 1, step=0.1))),
                        conditionalPanel(condition="input.woman_depends!='none'",
-                                        column(5, radioButtons("w_w_function", label="Probability of women added", choices=c("\\(p_{w_w} = c-bX^a\\)"="linear","\\(p_{w_w} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_w} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
+                                        column(5, radioButtons("w_w_function", label="Probability of white ball added", choices=c("\\(p_{w_w} = c-bX^a\\)"="linear","\\(p_{w_w} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_w} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
                      ),
                      fluidRow(
                        conditionalPanel(condition="input.w_w_function!='inverseexp'&input.woman_depends!='none'", 
@@ -94,9 +94,9 @@ navbarPage("Polya Urns", id="nav",
                      conditionalPanel(condition="input.woman_stochastic=='unbalanced'",
                                       fluidRow(
                                         conditionalPanel(condition="input.woman_depends=='none'",
-                                                         column(5, numericInput("p_m_w", "Probability of men added", 1, step=0.1))),
+                                                         column(5, numericInput("p_m_w", "Probability of maroon ball added", 1, step=0.1))),
                                         conditionalPanel(condition="input.woman_depends!='none'",
-                                                         column(5, radioButtons("m_w_function", label="Probability of men added", choices=c("\\(p_{m_w} = c-b(1-X)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
+                                                         column(5, radioButtons("m_w_function", label="Probability of maroon ball added", choices=c("\\(p_{m_w} = c-b(1-X)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
                                       )),
                      fluidRow(
                        conditionalPanel(condition="input.m_w_function!='inverseexp'&input.woman_depends!='none' & input.woman_stochastic=='unbalanced'", 
@@ -108,21 +108,21 @@ navbarPage("Polya Urns", id="nav",
                                         column(5, numericInput("m_w_c", "\\(c\\)", 1, step=0.1)))  )            
     ),
                 fluidRow(
-                  column(5, numericInput("w_w", "Number of women added", 1)), 
-                  column(5, numericInput("m_w", "Number of men added", 0))
+                  column(5, numericInput("w_w", "Number of white balls added", 1)), 
+                  column(5, numericInput("m_w", "Number of maroon balls added", 0))
                 ),
     
     
-                h4("If a man is drawn:"),
+                h4("If a maroon ball is drawn:"),
                 fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
                 conditionalPanel(condition = "input.man_stochastic!= 'none'",
                      fluidRow(                       
-                       column(12, radioButtons("man_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of women in urn"="urn", "\\(X = \\) share of women in selected candidates"="selected"), selected="none"))),
+                       column(12, radioButtons("man_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of white balls in urn"="urn", "\\(X = \\) share of white balls in selected candidates"="selected"), selected="none"))),
                      fluidRow(
                        conditionalPanel(condition="input.man_depends=='none'",
-                                        column(5, numericInput("p_w_m", "Probability of women added", 1, step=0.1))),
+                                        column(5, numericInput("p_w_m", "Probability of white balls added", 1, step=0.1))),
                        conditionalPanel(condition="input.man_depends!='none'",
-                                        column(5, radioButtons("w_m_function", label="Probability of women added", choices=c("\\(p_{w_m} = c-bX^a\\)"="linear","\\(p_{w_m} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_m} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
+                                        column(5, radioButtons("w_m_function", label="Probability of white balls added", choices=c("\\(p_{w_m} = c-bX^a\\)"="linear","\\(p_{w_m} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_m} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
                      ),
                      fluidRow(
                        conditionalPanel(condition="input.w_m_function!='inverseexp'&input.man_depends!='none'", 
@@ -136,9 +136,9 @@ navbarPage("Polya Urns", id="nav",
                      conditionalPanel(condition="input.man_stochastic=='unbalanced'",
                                       fluidRow(
                                         conditionalPanel(condition="input.man_depends=='none'",
-                                                         column(5, numericInput("p_m_m", "Probability of men added", 1, step=0.1))),
+                                                         column(5, numericInput("p_m_m", "Probability of maroon balls added", 1, step=0.1))),
                                         conditionalPanel(condition="input.man_depends!='none'",
-                                                         column(5, radioButtons("m_m_function", label="Probability of men added", choices=c("\\(p_{m_m} = 1-b(1-X)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
+                                                         column(5, radioButtons("m_m_function", label="Probability of maroon balls added", choices=c("\\(p_{m_m} = 1-b(1-X)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
                                       )),
                      fluidRow(
                        conditionalPanel(condition="input.m_m_function!='inverseexp'&input.man_depends==true & input.man_stochastic=='unbalanced'", 
@@ -150,8 +150,8 @@ navbarPage("Polya Urns", id="nav",
                                         column(5, numericInput("m_m_c", "\\(c\\)", 1, step=0.1)))  )            
                 ),
                 fluidRow(
-                  column(5, numericInput("w_m", "Number of women added", 0)), 
-                  column(5, numericInput("m_m", "Number of men added", 1))
+                  column(5, numericInput("w_m", "Number of white balls added", 0)), 
+                  column(5, numericInput("m_m", "Number of maroon balls added", 1))
                 ),
                 
                #options for replacement that depends on stock of selected candidates -- only appear when selected
@@ -167,7 +167,7 @@ navbarPage("Polya Urns", id="nav",
                                  column(6, numericInput("quota", "Select only women until they make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)),
                                  column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
-                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if women majority in urn"="majority","Stop if women majority among selected"="majority_selected", "Stop after X draws"="temp")),
+                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls majority in urn"="majority","Stop if white balls majority among selected for this urn"="majority_selected", "Stop after X draws"="temp")),
                          column(6, numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))))
                 ), 
                 fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)))),
@@ -190,7 +190,7 @@ navbarPage("Polya Urns", id="nav",
               mainPanel(
                 tabsetPanel(
                   # First tab
-                  tabPanel("Distribution of Share of Women", 
+                  tabPanel("Distribution of Share of White Balls", 
                            # histogram and ratio over time
                            fluidRow(column(6,plotlyOutput("histogram", height="50%")),
                                     column(6, plotlyOutput("ratio_over_time", height="50%"))),
@@ -564,7 +564,7 @@ server <- function(input, output){
       outputlist <- list_output()
       paths_ratio <- outputlist$paths_ratio
       hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
-      colnames(hist_data) <- "Share of women in urn after trials"
+      colnames(hist_data) <- "Share of white balls in urn after trials"
       
       # Plot
       hist <- ggplot(hist_data) + 
@@ -576,10 +576,10 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(title ="Distribution of final share of women in the urn")
+        labs(title ="Distribution of final share of white balls in the urn")
       
-      plot_ly(x=~hist_data$`Share of women in urn after trials`, type="histogram",  histfunc="count" ,nbinsx = sqrt(input$I)) %>%
-        layout(xaxis=list(title = "Share of women in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16)))
+      plot_ly(x=~hist_data$`Share of white balls in urn after trials`, type="histogram",  histfunc="count" ,nbinsx = sqrt(input$I)) %>%
+        layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16)))
     })
     
   })
@@ -595,11 +595,11 @@ server <- function(input, output){
       outputlist <- list_output()
       paths_ratio <- outputlist$paths_ratio
       hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
-      colnames(hist_data) <- "Share of women in urn after trials"
+      colnames(hist_data) <- "Share of white balls in urn after trials"
       
       # Plot
       density <- ggplot(hist_data) + 
-        geom_density(aes(x=`Share of women in urn after trials`))+
+        geom_density(aes(x=`Share of white balls in urn after trials`))+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
           panel.grid.major = element_blank(),
@@ -607,10 +607,10 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(title ="Distribution of final share of women")
+        labs(title ="Distribution of final share of white balls")
       
-      plot_ly(x = ~density(hist_data$`Share of women in urn after trials`)$x, y = ~density(hist_data$`Share of women in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
-        layout(xaxis=list(title = "Share of women in the urn after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified")
+      plot_ly(x = ~density(hist_data$`Share of white balls in urn after trials`)$x, y = ~density(hist_data$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
+        layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified")
       
     })
     
@@ -627,12 +627,12 @@ server <- function(input, output){
       outputlist <- list_output()
       paths_ratio <- outputlist$paths_ratio
       hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
-      colnames(hist_data) <- "Share of women in urn after trials"
-      hist_data <- arrange(hist_data, `Share of women in urn after trials`)  
+      colnames(hist_data) <- "Share of white balls in urn after trials"
+      hist_data <- arrange(hist_data, `Share of white balls in urn after trials`)  
       
       # Plot
       cdf <- ggplot(hist_data) + 
-        stat_ecdf(aes(x=`Share of women in urn after trials`), geom="step")+
+        stat_ecdf(aes(x=`Share of white balls in urn after trials`), geom="step")+
         geom_vline(xintercept=0.5, color="chartreuse3", linetype="dashed", alpha=0.5)+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
@@ -641,7 +641,7 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(y="Fraction of urns", title ="CDF of final share of women in the urn")
+        labs(y="Fraction of urns", title ="CDF of final share of white balls in the urn")
       
       ggplotly(cdf) %>% layout(hovermode="x unified")
       
@@ -674,13 +674,13 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(title ="Share of women in urn over time, average highlighted", x="Draw", y="Women's share in the urn")
+        labs(title ="Share of white balls in urn over time, average highlighted", x="Draw", y="White balls' share in the urn")
       
       
       
       ggplotly(r) %>% style(hoverinfo = "skip", traces = 1) %>%
         style(hovertemplate = paste('Draw: %{x:.0f}',
-                                    '<br>Average share of women in urn: %{y:.4f}<br>'), traces = 2) %>%
+                                    '<br>Average share of white balls in urn: %{y:.4f}<br>'), traces = 2) %>%
         layout(hovermode="x unified)")
     })
     
@@ -710,11 +710,11 @@ server <- function(input, output){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")
         ) + 
-        labs(title ="Probability of selecting a woman, average highlighted", y="Probability of selecting a woman", x="Draw")
+        labs(title ="Probability of selecting a white ball, average highlighted", y="Probability of selecting a white ball", x="Draw")
       
       ggplotly(r) %>% style(hoverinfo = "skip", traces = 1) %>%
         style(hovertemplate = paste('Draw: %{x:.0f}',
-                                    '<br>Average P(select woman): %{y:.4f}<br>'), traces = 2) %>%
+                                    '<br>Average P(select white ball): %{y:.4f}<br>'), traces = 2) %>%
         layout(hovermode="x unified)")
     })
     
@@ -755,7 +755,7 @@ server <- function(input, output){
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")) + 
-        labs(x="Number of women", y="Number of men",title = "Evolution of urn contents")
+        labs(x="Number of white balls", y="Number of maroon balls",title = "Evolution of urn contents")
       
       
       rays <- if(input$graph_auto=="auto") rays + scale_x_continuous() + scale_y_continuous() else rays + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
@@ -804,7 +804,7 @@ server <- function(input, output){
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")) + 
-        labs(x="Number of women selected", y="Number of men selected",title = "Average highlighted in blue")
+        labs(x="Number of white balls selected", y="Number of maroon balls selected",title = "Average highlighted in blue")
      
        stock <- if(input$graph_auto=="auto") stock + scale_x_continuous() + scale_y_continuous() else stock + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
       
