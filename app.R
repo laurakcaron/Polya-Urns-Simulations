@@ -2,7 +2,7 @@
 #              Polya Urns Simulations
 #              Laura Caron
 #              Columbia University
-#         This version: October 6, 2022
+#         This version: November 2, 2022
 ##################################################
 
 ##################################################
@@ -315,14 +315,14 @@ server <- function(input, output){
       # Add progress bar during the simulations
       withProgress(message = 'Running simluation', value = 0, {
         # Main simulation loop
-        for (i in 1:I){
           
-          # Reset the urn to initial state
-          urn <- c(rep("w", w_0),rep("m", m_0))
+          # Reset the urns to initial state
+          # Each column is one urn, one row for each ball 
+          urn <- matrix(rep(c(rep("w", w_0),rep("m", m_0)), I), ncol = I, byrow=FALSE)
           
           # Initialize some vectors
-          w_n <- w_0
-          m_n <- m_0
+          w_n <- rep(w_0, I)
+          m_n <- rep(m_0, I)
           prob_w_n <- NULL
           prob_w_w_replace_n <- NULL
           prob_w_m_replace_n <- NULL
@@ -334,41 +334,76 @@ server <- function(input, output){
           
           for (n in 1:(N)){
             # Save the previous number of women and men and share
-            previous_w <- sum(urn=="w")
-            previous_m <- sum(urn=="m")
+            previous_w <- colSums(urn=="w", na.rm=T)
+            previous_m <- colSums(urn=="m", na.rm=T)
             previous_share <- previous_w/(previous_w+previous_m)
-            previous_share_selected = ifelse(n == 1, previous_share, selected_w[n-1]/(selected_w[n-1] + selected_m[n-1]))
+            previous_share_selected = if(n == 1) previous_share else selected_w[n-1,]/(selected_w[n-1,] + selected_m[n-1,])
             
             # Set probability of drawing woman when it depends on urn contents
             if(input$woman_depends=="urn"){
-              p_w_w <- ifelse(input$w_w_function=="linear", input$w_w_c-input$w_w_b * previous_share^input$w_w_a, ifelse(input$w_w_function=="inverse", 1/(1+input$w_w_b*previous_share^input$w_w_a) , ifelse(input$w_w_function=="inverseexp", 1/(1+input$w_w_b*exp(input$w_w_c * previous_share)), NA)))
-              p_m_w <- ifelse(input$woman_stochastic=="balanced", 1-p_w_w, ifelse(input$m_w_function=="linear", input$m_w_c-input$m_w_b * (1-previous_share)^input$m_w_a, ifelse(input$m_w_function=="inverse", 1/(1+input$m_w_b*(1-previous_share)^input$m_w_a) , ifelse(input$m_w_function=="inverseexp", 1/(1+input$m_w_b*exp(input$m_w_c * (1-previous_share)) ), NA))))
+              p_w_w <- if(input$w_w_function=="linear"){input$w_w_c-input$w_w_b * previous_share^input$w_w_a
+                } else if(input$w_w_function=="inverse"){1/(1+input$w_w_b*previous_share^input$w_w_a) 
+                } else if(input$w_w_function=="inverseexp"){1/(1+input$w_w_b*exp(input$w_w_c * previous_share))
+                } else NA
+              p_m_w <- if(input$woman_stochastic=="balanced"){1-p_w_w
+                } else if(input$m_w_function=="linear"){input$m_w_c-input$m_w_b * (1-previous_share)^input$m_w_a
+                } else if(input$m_w_function=="inverse"){1/(1+input$m_w_b*(1-previous_share)^input$m_w_a)
+                } else if(input$m_w_function=="inverseexp"){1/(1+input$m_w_b*exp(input$m_w_c * (1-previous_share)) )
+                } else NA
               
             }
             
             if(input$man_depends=="urn"){
-              p_w_m <- ifelse(input$w_m_function=="linear", input$w_m_c-input$w_m_b * previous_share^input$w_m_a, ifelse(input$w_m_function=="inverse", 1/(1+input$w_m_b*previous_share^input$w_m_a) , ifelse(input$w_m_function=="inverseexp", 1/(1+input$w_m_b*exp(input$w_m_c * previous_share)), NA)))
-              p_m_m <- ifelse(input$man_stochastic=="balanced", 1-p_w_m, ifelse(input$m_m_function=="linear", input$m_m_c-input$m_m_b * (1-previous_share)^input$m_m_a, ifelse(input$m_m_function=="inverse", 1/(1+input$m_m_b*(1-previous_share)^input$m_m_a) , ifelse(input$m_m_function=="inverseexp", 1/(1+input$m_m_b*exp(input$m_m_c * (1-previous_share)) ), NA))))
+              p_w_m <- if(input$w_m_function=="linear"){ input$w_m_c-input$w_m_b * previous_share^input$w_m_a 
+                          } else if(input$w_m_function=="inverse") {1/(1+input$w_m_b*previous_share^input$w_m_a) 
+                          } else if(input$w_m_function=="inverseexp") {1/(1+input$w_m_b*exp(input$w_m_c * previous_share))
+                          }  else NA 
+                
+              p_m_m <- if(input$man_stochastic=="balanced") {1-p_w_m
+                          } else if(input$m_m_function=="linear"){input$m_m_c-input$m_m_b * (1-previous_share)^input$m_m_a
+                          } else if(input$m_m_function=="inverse"){ 1/(1+input$m_m_b*(1-previous_share)^input$m_m_a)
+                          } else if(input$m_m_function=="inverseexp") {1/(1+input$m_m_b*exp(input$m_m_c * (1-previous_share)) )
+                          } else NA
               
             }
             if(input$woman_depends=="selected"){
-              p_w_w <- ifelse(input$w_w_function=="linear", input$w_w_c-input$w_w_b * previous_share_selected^input$w_w_a, ifelse(input$w_w_function=="inverse", 1/(1+input$w_w_b*previous_share_selected^input$w_w_a) , ifelse(input$w_w_function=="inverseexp", 1/(1+input$w_w_b*exp(input$w_w_c * previous_share_selected)), NA)))
-              p_m_w <- ifelse(input$woman_stochastic=="balanced", 1-p_w_w, ifelse(input$m_w_function=="linear", input$m_w_c-input$m_w_b * (1-previous_share_selected)^input$m_w_a, ifelse(input$m_w_function=="inverse", 1/(1+input$m_w_b*(1-previous_share_selected)^input$m_w_a) , ifelse(input$m_w_function=="inverseexp", 1/(1+input$m_w_b*exp(input$m_w_c * (1-previous_share_selected)) ), NA))))
+              p_w_w <- if(input$w_w_function=="linear"){input$w_w_c-input$w_w_b * previous_share_selected^input$w_w_a
+                          } else if(input$w_w_function=="inverse") {1/(1+input$w_w_b*previous_share_selected^input$w_w_a)
+                          } else if(input$w_w_function=="inverseexp") {1/(1+input$w_w_b*exp(input$w_w_c * previous_share_selected))
+                          } else NA
+              p_m_w <- if(input$woman_stochastic=="balanced"){1-p_w_w
+                          } else if (input$m_w_function=="linear"){ input$m_w_c-input$m_w_b * (1-previous_share_selected)^input$m_w_a
+                          } else if (input$m_w_function=="inverse"){ 1/(1+input$m_w_b*(1-previous_share_selected)^input$m_w_a)
+                          } else if (input$m_w_function=="inverseexp") {1/(1+input$m_w_b*exp(input$m_w_c * (1-previous_share_selected)) )
+                          } else NA
               
             }
             
             if(input$man_depends=="selected"){
-              p_w_m <- ifelse(input$w_m_function=="linear", input$w_m_c-input$w_m_b * previous_share_selected^input$w_m_a, ifelse(input$w_m_function=="inverse", 1/(1+input$w_m_b*previous_share_selected^input$w_m_a) , ifelse(input$w_m_function=="inverseexp", 1/(1+input$w_m_b*exp(input$w_m_c * previous_share_selected)), NA)))
-              p_m_m <- ifelse(input$man_stochastic=="balanced", 1-p_w_m, ifelse(input$m_m_function=="linear", input$m_m_c-input$m_m_b * (1-previous_share_selected)^input$m_m_a, ifelse(input$m_m_function=="inverse", 1/(1+input$m_m_b*(1-previous_share_selected)^input$m_m_a) , ifelse(input$m_m_function=="inverseexp", 1/(1+input$m_m_b*exp(input$m_m_c * (1-previous_share_selected)) ), NA))))
+              p_w_m <- if(input$w_m_function=="linear"){input$w_m_c-input$w_m_b * previous_share_selected^input$w_m_a
+                          } else if(input$w_m_function=="inverse") { 1/(1+input$w_m_b*previous_share_selected^input$w_m_a) 
+                          } else if(input$w_m_function=="inverseexp") {1/(1+input$w_m_b*exp(input$w_m_c * previous_share_selected))
+                          } else NA
+              p_m_m <- if(input$man_stochastic=="balanced") {1-p_w_m
+                          } else if(input$m_m_function=="linear") {input$m_m_c-input$m_m_b * (1-previous_share_selected)^input$m_m_a
+                          } else if(input$m_m_function=="inverse") {1/(1+input$m_m_b*(1-previous_share_selected)^input$m_m_a) 
+                          } else if(input$m_m_function=="inverseexp") {1/(1+input$m_m_b*exp(input$m_m_c * (1-previous_share_selected)) )
+                          } else NA
               
             }
+            
+            p_w_w <- if(length(p_w_w)==1) rep(p_w_w, I) else p_w_w
+            p_w_m <- if(length(p_w_m)==1) rep(p_w_m, I) else p_w_m
+            p_m_w <- if(length(p_m_w)==1) rep(p_m_w, I) else p_m_w
+            p_m_m <- if(length(p_m_m)==1) rep(p_m_m, I) else p_m_m
+            
             # Conditions for ending of affirmative action
-            end <- ifelse(input$intervention=="none", NA, 
+            end <- ifelse(input$intervention=="none" & !is.na(previous_share), NA, 
                      ifelse(input$intervention=="quota"& (previous_share_selected > input$quota | end %in% 1) & n > input$quota_start,1, 
-                          ifelse(stopintervention=="continue", 0, 
+                          ifelse(stopintervention=="continue" & !is.na(previous_share), 0, 
                             ifelse(stopintervention=="majority" & (previous_share>=0.5 | end %in% 1), 1, 
                               ifelse(stopintervention=="majority_selected" & (previous_share_selected >=0.5 | end %in% 1)& n > input$aa_start, 1,
-                              ifelse(stopintervention=="temp" & n > input$stopafter, 1, 0))))))
+                              ifelse(stopintervention=="temp" & n > input$stopafter & !is.na(previous_share), 1, 0))))))
              
             # Probability of woman selected
             prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0) & n > input$aa_start),(1-(1-previous_share)^2) , 
@@ -376,95 +411,181 @@ server <- function(input, output){
                                     ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start, 1, previous_share)))
             
             # Random draws done ahead of time for the case of balanced replacement
-            r_w_w <- rbinom(1,1,p_w_w)
-            r_w_m <- rbinom(1,1,p_w_m)
-            r_m_w <- ifelse(input$woman_stochastic=="balanced", 1-r_w_w, rbinom(1,1,p_m_w))
-            r_m_m <- ifelse(input$man_stochastic=="balanced", 1-r_w_m, rbinom(1,1,p_m_m))
+            r_w_w <- sapply(seq(1:I), function(x) rbinom(1,1,p_w_w[x]))
+            r_w_m <- sapply(seq(1:I), function(x) rbinom(1,1,p_w_m[x]))
+            r_m_w <- if(input$woman_stochastic=="balanced") 1-r_w_w else sapply(seq(1:I), function(x) rbinom(1,1,p_m_w[x]))
+            r_m_m <- if(input$man_stochastic=="balanced") 1-r_w_m else sapply(seq(1:I), function(x) rbinom(1,1,p_m_m[x]))
             
-            rank <-1
-            
+            rank <- rep(1, I)
+            ####
             # Draw, replace, remove balls for each AA case
-            if (input$intervention=="none" | end %in% 1 | (n < input$quota_start & input$intervention=="quota") | (n < input$aa_start & input$intervention%in% c("atleast", "atleast_stochastic")  )){
-              ball_drawn <- sample(urn, 1)
-              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
-              ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
-              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
-              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            
+            if (1==1){
+            #if (input$intervention=="none" | (n < input$quota_start & input$intervention=="quota") | (n < input$aa_start & input$intervention%in% c("atleast", "atleast_stochastic")  )){
+              ball_drawn <- apply(urn,2, function(x) sample(na.omit(x),1) )
+              #ball_drawn <- ifelse(end %in% 1, NA, ball_drawn)
+              
+              ball_replaced <- sapply(seq(1:I), function(x){
+                rball <- if(ball_drawn[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
+                if(is_empty(rball)) 0 else rball
+            })
+              
+              ball_removed <- sapply(seq(1:I), function(x){
+                mball <- if(ball_drawn[x] == "w") c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
+                if(is_empty(mball)) 0 else mball
+              })
+              }
+                                     
+            if (input$intervention=="atleast" & n > input$aa_start){
+              ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),2, replace =TRUE) )
+              
+              rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1) )
+              ball_drawn_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, "w", "m") )
+              ball_replaced_aa <- sapply(seq(1:I), function(x){
+                rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
+                if(is_empty(rball)) 0 else rball
+              })
+              
+              ball_removed_aa <- sapply(seq(1:I), function(x){
+                mball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
+                if(is_empty(mball)) 0 else mball
+              })
             }
-            if (input$intervention=="atleast" & !(end %in% 1) & n > input$aa_start){
-              ball_drawn <- sample(urn, 2, replace=TRUE)
-              rank <- ifelse("w" %in% ball_drawn, min(which(ball_drawn=="w")), 1)
-              ball_drawn <- ifelse("w" %in% ball_drawn, "w", "m")
-              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
-              ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
-              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
-              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
-            }
-            if (input$intervention=="atleast_stochastic" & !(end %in% 1) & n > input$aa_start){
-              ball_drawn <- sample(urn, 2, replace=TRUE)
-              rank <- ifelse("w" %in% ball_drawn, min(which(ball_drawn=="w")), 1)
-              ball_drawn <- ifelse( min(which(ball_drawn=="w"))==1, "w", ifelse(min(which(ball_drawn=="w"))==2, sample(ball_drawn, 1, prob=c(1-input$prob_atleast, input$prob_atleast)), "m"))
-              rank <- ifelse("m" %in% ball_drawn, 1, rank)
-              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
-              ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
-              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
-              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            if (input$intervention=="atleast_stochastic" & n > input$aa_start){
+              ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),2, replace =TRUE) )
+              
+              rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1) )
+              
+              ball_drawn_aa <- apply(ball_drawn_aa, 2, function(x) ifelse( min(which(x=="w"))==1, "w", ifelse(min(which(x=="w"))==2, sample(x, 1, prob=c(1-input$prob_atleast, input$prob_atleast)), "m")))
+              
+              #rank_aa <- sapply(ball_drawn_aa, function(x) ifelse("m" %in% x,1, rank_aa) )
+
+              ball_replaced_aa <- sapply(seq(1:I), function(x){
+                rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
+                if(is_empty(rball)) 0 else rball
+              })
+              
+              ball_removed_aa <- sapply(seq(1:I), function(x){
+                mball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
+                if(is_empty(mball)) 0 else mball
+              })
             }        
-            if (input$intervention=="alwayswoman" & !(end %in% 1)){
-              ball_drawn <- sample(urn, 1)
-              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
-              #add one woman to the count
-              ball_replaced <- if(is_empty(ball_replaced)) "w" else c(ball_replaced, "w")
-              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
-              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            if (input$intervention=="alwayswoman" ){
+              ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),1) )
+              
+              rank_aa <- 1
+              ball_replaced_aa <- sapply(seq(1:I), function(x){
+                rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
+                #add one woman to the count
+                if(is_empty(rball)) "w" else c(rball, "w")
+              })
+              ball_removed_aa <- sapply(seq(1:I), function(x){
+                mball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
+                if(is_empty(mball)) 0 else mball
+              })
             }        
-            if (input$intervention=="quota"& !(end %in% 1) & n>input$quota_start){
-              ball_drawn <- sample(urn, length(urn))
-              rank <- min(which(ball_drawn=="w"))
-              ball_drawn <- ball_drawn[rank]
-              ball_replaced <- if(ball_drawn == "w") c(rep("w", w_w_added*r_w_w), rep("m", m_w_added*r_m_w)) else c(rep("w", w_m_added*r_w_m), rep("m", m_m_added*r_m_m))
-              ball_replaced <- if(is_empty(ball_replaced)) 0 else ball_replaced
-              ball_removed <- if(ball_drawn == "w") c(rep("w", w_w_removed*r_w_w), rep("m", m_w_removed*r_m_w)) else c(rep("w", w_m_removed*r_w_m), rep("m", m_m_removed*r_m_m))
-              ball_removed <- if(is_empty(ball_removed)) 0 else ball_removed
+            if (input$intervention=="quota" & n>input$quota_start){
+              ball_drawn_aa  <- apply(urn,2, function(x) sample(x,nrow(urn)) )
+              rank_aa <- apply(ball_drawn_aa, 2, function(x) min(which(x=="w")) )
+              ball_drawn_aa <- sapply(seq(1:ncol(urn)), function(x) ball_drawn_aa[rank_aa[x],x])
+             
+              
+              ball_replaced_aa <- sapply(seq(1:I), function(x){
+                rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
+                if(is_empty(rball)) 0 else rball
+              })
+              
+              ball_removed_aa <- sapply(seq(1:I), function(x){
+                mball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
+                if(is_empty(mball)) 0 else mball
+              })
+              
             
             }
             
+            # For urns undergoing AA, use those draws instead 
+            print("d")
+            
+            if (input$intervention != "none"){
+            ball_drawn <- ifelse(end %in% 0, ball_drawn_aa, ball_drawn)
+            ball_replaced_aa <- if(!("list" %in% class(ball_replaced_aa))) sapply(ball_replaced_aa, list) else ball_replaced_aa
+            ball_replaced <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_replaced_aa[[x]] else ball_replaced[x])
+
+            ball_removed_aa <- if(!("list" %in% class(ball_removed_aa))) sapply(ball_removed_aa, list) else ball_removed_aa
+            ball_removed <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_removed_aa[[x]] else ball_removed[x])
+            
+            rank <- ifelse(end %in% 0, rank_aa, rank)
+            }
             # Save results 
             
-            new_w <- previous_w + sum(ball_replaced=="w") - sum(ball_removed=="w")
+            new_w <- sapply(seq(1:I), function(x) previous_w[x] + sum(ball_replaced[[x]]=="w") - sum(ball_removed[[x]]=="w"))
             new_w <- ifelse(new_w <0, 0, new_w)
-            new_m <- previous_m + sum(ball_replaced=="m") - sum(ball_removed=="m")
+            new_m <- sapply(seq(1:I), function(x) previous_m[x] + sum(ball_replaced[[x]]=="m") - sum(ball_removed[[x]]=="m"))
             new_m <- ifelse(new_m<0, 0 , new_m)
-            urn <- c(rep("w", new_w), rep("m", new_m))
-            selected <- c(selected, ball_drawn)
-            selected_rank <- if(n > 1) c(selected_rank, rank) else rank
-            selected_w <- if(n > 1) c(selected_w, selected_w[n-1]+as.numeric(ball_drawn=="w")) else as.numeric(ball_drawn=="w")
-            selected_m <- if(n > 1) c(selected_m, selected_m[n-1]+as.numeric(ball_drawn=="m")) else as.numeric(ball_drawn=="m")
+            urn_l <- lapply(seq(1:I), function(x) matrix(c(rep("w", new_w[x]), rep("m", new_m[x])), ncol=1) )
+            urn <- matrix(nrow= max(unlist(lapply(urn_l, nrow))), ncol=I)
+            for (i in 1:I) {
+              urn[1:length(urn_l[[i]]),i] <- urn_l[[i]]
+            }
             
-            w_n <- c(w_n, new_w)
-            m_n <- c(m_n, new_m)
-            prob_w_n <- c(prob_w_n, prob_w_selected)
-            prob_w_w_replace_n<- c(prob_w_w_replace_n, p_w_w)
-            prob_w_m_replace_n<- c(prob_w_m_replace_n, p_w_m)
+            selected <- rbind(selected, ball_drawn)
+            selected_rank <- if(n > 1) rbind(selected_rank, rank) else rank
+            selected_w <- rbind(selected_w, sapply(seq(1:I), function(x) sum(selected[, x]=="w")))
+            selected_m <- rbind(selected_m, sapply(seq(1:I), function(x) sum(selected[, x]=="m")))
+
+            w_n <- rbind(w_n, new_w)
+            m_n <- rbind(m_n, new_m)
+            prob_w_n <- rbind(prob_w_n, prob_w_selected)
+            prob_w_w_replace_n<- rbind(prob_w_w_replace_n, p_w_w)
+            prob_w_m_replace_n<- rbind(prob_w_m_replace_n, p_w_m)
             
-          }
+
+            incProgress(1/N, detail = paste("Percent completed", n*100/N, "%"))
+            
+            }
+            
           # Output all the results 
-          eval(parse(text=paste0("paths_w_n$Urn", i, "<- w_n" )))
-          eval(parse(text=paste0("paths_m_n$Urn", i, "<- m_n" )))
-          paths_ratio[1:(N+1), i] <- w_n/ (m_n + w_n)
-          eval(parse(text=paste0("paths_prob_w_n$Urn", i, "<- prob_w_n" )))
-          eval(parse(text=paste0("paths_prob_w_w_replace_n$Urn", i, "<- prob_w_w_replace_n" )))
-          eval(parse(text=paste0("paths_prob_w_m_replace_n$Urn", i, "<- prob_w_m_replace_n" )))
-          eval(parse(text=paste0("paths_selected$Urn", i, "<- selected" )))
-          eval(parse(text=paste0("paths_selected_rank$Urn", i, "<- selected_rank" )))
-          eval(parse(text=paste0("paths_selected_w$Urn", i, "<- selected_w" )))
-          eval(parse(text=paste0("paths_selected_m$Urn", i, "<- selected_m" )))
+            
+          paths_w_n <- w_n
+          colnames(paths_w_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_w_n) <- NULL
           
+          paths_m_n <- m_n
+          colnames(paths_m_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_m_n) <- NULL
           
-          incProgress(1/I, detail = paste("Percent completed", i*100/I, "%"))
+          paths_ratio <- sapply(seq(1:I), function(x) w_n[,x]/ (m_n[,x] + w_n[,x]))
           
-        }
-        
+          paths_prob_w_n <- prob_w_n
+          colnames(paths_prob_w_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_prob_w_n) <- NULL
+          
+          paths_prob_w_w_replace_n <- prob_w_w_replace_n
+          colnames(paths_prob_w_w_replace_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_prob_w_w_replace_n) <- NULL
+
+          paths_prob_w_m_replace_n <- prob_w_m_replace_n
+          colnames(paths_prob_w_m_replace_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_prob_w_m_replace_n) <- NULL     
+          
+          paths_selected <- selected
+          colnames(paths_selected) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_selected) <- NULL    
+
+          paths_selected_rank <- selected_rank
+          colnames(paths_selected_rank) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_selected_rank) <- NULL  
+          
+          paths_selected_w <- selected_w
+          colnames(paths_selected_w) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_selected_w) <- NULL     
+          
+          paths_selected_m <- selected_m
+          colnames(paths_selected_m) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_selected_m) <- NULL            
+
+          
+
       })  
 
       # Save the urn functions for probability later
@@ -693,8 +814,8 @@ server <- function(input, output){
     isolate({
       # Get and prepare the data
       outputlist <- list_output()
-      paths_prob_w_n <- outputlist$paths_prob_w_n
-      paths_prob_w_n <- paths_prob_w_n %>% as.data.frame %>% mutate(draw=row_number()) 
+      paths_prob_w_n <- outputlist$paths_prob_w_n %>% as.data.frame
+      paths_prob_w_n <- paths_prob_w_n  %>% mutate(draw=row_number()) 
       prob_w_n <- paths_prob_w_n %>% pivot_longer(-draw)
       average_prob_w <- paths_prob_w_n %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
       
@@ -729,8 +850,8 @@ server <- function(input, output){
       
       # Get and prepare data
       outputlist <- list_output()
-      paths_w_n <- outputlist$paths_w_n
-      paths_m_n <- outputlist$paths_m_n
+      paths_w_n <- outputlist$paths_w_n %>% as.data.frame
+      paths_m_n <- outputlist$paths_m_n %>% as.data.frame
       
       # Prepare the rays
       w_n_long <- mutate(paths_w_n, draw = row_number()) %>% pivot_longer(cols=starts_with("Urn"), names_to="Urn")
@@ -776,9 +897,9 @@ server <- function(input, output){
       
       # Get and prepare data
       outputlist <- list_output()
-      paths_selected <- outputlist$paths_selected
-      paths_selected_w <- outputlist$paths_selected_w
-      paths_selected_m <- outputlist$paths_selected_m
+      paths_selected <- outputlist$paths_selected %>% as.data.frame
+      paths_selected_w <- outputlist$paths_selected_w %>% as.data.frame
+      paths_selected_m <- outputlist$paths_selected_m %>% as.data.frame
       
       
       # Prepare the rays
