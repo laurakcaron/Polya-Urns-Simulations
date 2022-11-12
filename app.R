@@ -167,10 +167,12 @@ navbarPage("Polya Urns", id="nav",
                                  column(6, numericInput("quota", "Select only women until they make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)),
                                  column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
-                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls majority in urn"="majority","Stop if white balls majority among selected for this urn"="majority_selected", "Stop after X draws"="temp")),
+                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls more than __ in urn"="majority","Stop if white balls more than __ among selected for this urn"="majority_selected", "Stop after X draws"="temp", "Stop if white balls more than __ in average urn" = "avg", "Stop if white balls more than __ in average selected candidates"="avg_selected")),
                          column(6, numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))))
                 ), 
-                fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)))),
+                fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)),
+                                    conditionalPanel(condition="(input.stopintervention=='avg' | input.stopintervention=='majority') & input.intervention!='none'", numericInput("cutoff", "Use AA until white balls make up __ of the urn", value=0.5, min=0, max=1, step=0.1)),
+                                conditionalPanel(condition="(input.stopintervention=='avg_selected' | input.stopintervention=='majority_selected') & input.intervention!='none'", numericInput("cutoff", "Use AA until white balls make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)))),
                 
                 # Fifth section: Graph options
                 h3("Graph options"), 
@@ -217,9 +219,11 @@ navbarPage("Polya Urns", id="nav",
                            
                   ),
                   # Fourth tab
-                  tabPanel("About the Urn",
+                  tabPanel("About the Urn & AA",
                            # Replacement matrix
-                           uiOutput("matrix")
+                           uiOutput("matrix"),
+                           # End of AA 
+                           fluidRow(column(9, plotlyOutput("hist_firstend", height="50%")))
                   )
                 )
               ))
@@ -331,6 +335,7 @@ server <- function(input, output){
           selected_m <- NULL
           selected_rank <- NULL
           end <- NA 
+          firstend <- rep(NA, I)
           
           for (n in 1:(N)){
             # Save the previous number of women and men and share
@@ -338,6 +343,9 @@ server <- function(input, output){
             previous_m <- colSums(urn=="m", na.rm=T)
             previous_share <- previous_w/(previous_w+previous_m)
             previous_share_selected = if(n == 1) previous_share else selected_w[n-1,]/(selected_w[n-1,] + selected_m[n-1,])
+            
+            previous_share_avg <- mean(previous_share)
+            previous_share_selected_avg <- mean(previous_share_selected)
             
             # Set probability of drawing woman when it depends on urn contents
             if(input$woman_depends=="urn"){
@@ -401,10 +409,14 @@ server <- function(input, output){
             end <- ifelse(input$intervention=="none" & !is.na(previous_share), NA, 
                      ifelse(input$intervention=="quota"& (previous_share_selected > input$quota | end %in% 1) & n > input$quota_start,1, 
                           ifelse(stopintervention=="continue" & !is.na(previous_share), 0, 
-                            ifelse(stopintervention=="majority" & (previous_share>=0.5 | end %in% 1), 1, 
-                              ifelse(stopintervention=="majority_selected" & (previous_share_selected >=0.5 | end %in% 1)& n > input$aa_start, 1,
-                              ifelse(stopintervention=="temp" & n > input$stopafter & !is.na(previous_share), 1, 0))))))
+                            ifelse(stopintervention=="majority" & (previous_share>=input$cutoff | end %in% 1), 1, 
+                              ifelse(stopintervention=="majority_selected" & (previous_share_selected >=input$cutoff | end %in% 1)& n > input$aa_start, 1,
+                              ifelse(stopintervention=="temp" & n > input$stopafter & !is.na(previous_share), 1, 
+                                ifelse(stopintervention=="avg" & (previous_share_avg>=input$cutoff | end %in% 1 ), 1, 
+                                  ifelse(stopintervention=="avg_selected" & (previous_share_selected_avg >= input$cutoff | end %in% 1), 1, 0))))))))
              
+            firstend <- ifelse(is.na(firstend) & end*((stopintervention=="majority"  | stopintervention=="majority_selected" | stopintervention=="avg" | stopintervention=="avg_selected" )), n , firstend)
+            
             # Probability of woman selected
             prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0) & n > input$aa_start),(1-(1-previous_share)^2) , 
                                  ifelse((input$intervention=="atleast_stochastic" & (end %in% 0) & n > input$aa_start),previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
@@ -506,7 +518,7 @@ server <- function(input, output){
             # For urns undergoing AA, use those draws instead 
             print("d")
             
-            if (input$intervention != "none"){
+            if (input$intervention != "none" & n > input$aa_start){
             ball_drawn <- ifelse(end %in% 0, ball_drawn_aa, ball_drawn)
             ball_replaced_aa <- if(!("list" %in% class(ball_replaced_aa))) sapply(ball_replaced_aa, list) else ball_replaced_aa
             ball_replaced <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_replaced_aa[[x]] else ball_replaced[x])
@@ -667,7 +679,7 @@ server <- function(input, output){
                          "w_w_removed"=w_w_removed, "w_m_removed"=w_m_removed, "m_w_removed"=m_w_removed, "m_m_removed"=m_m_removed, 
                          "w_w_function" = w_w_function_t, "w_m_function"=w_m_function_t, "m_w_function"=m_w_function_t, "m_m_function"=m_m_function_t)
       # Create a list with all the outputs
-      outputlist <- list(paths_ratio=paths_ratio, paths_w_n=paths_w_n, paths_m_n=paths_m_n, paths_prob_w_w_replace_n=paths_prob_w_w_replace_n, paths_prob_w_m_replace_n=paths_prob_w_m_replace_n, paths_prob_w_n=paths_prob_w_n, paths_selected=paths_selected, paths_selected_rank=paths_selected_rank, paths_selected_w=paths_selected_w, paths_selected_m=paths_selected_m, parameters=parameters)
+      outputlist <- list(paths_ratio=paths_ratio, paths_w_n=paths_w_n, paths_m_n=paths_m_n, paths_prob_w_w_replace_n=paths_prob_w_w_replace_n, paths_prob_w_m_replace_n=paths_prob_w_m_replace_n, paths_prob_w_n=paths_prob_w_n, paths_selected=paths_selected, paths_selected_rank=paths_selected_rank, paths_selected_w=paths_selected_w, paths_selected_m=paths_selected_m, parameters=parameters, firstend=firstend)
       return(outputlist)
       
     })
@@ -993,6 +1005,33 @@ server <- function(input, output){
     })
     
   })
+  
+  ### Histogram of end of AA 
+  output$hist_firstend <- renderPlotly({
+    
+    input$rerun
+    
+    isolate({
+      # Get and prepare data
+      outputlist <- list_output()
+      m <- mean(outputlist$firstend, na.rm=T)
+      num_end <- sum(!is.na(outputlist$firstend))
+      # Plot
+      p <- plot_ly(x =~outputlist$firstend,type="histogram", name="Freq.") %>%
+        layout(xaxis=list(title = paste("When AA ended (ended in", num_end, "out of", input$I, "urns)"), range=c(0,input$N)), yaxis=list(title="Frequency"))%>%
+        layout(hovermode="x unified)")
+      
+      if (!is.na(m)){
+       p<- p %>%  add_segments(x=m, y=0, xend=m, yend=100, line=list(color="red", width = 4), name="Mean") %>%
+         style(hovertemplate = paste('Mean: %{x:.1f}'), traces = 2)
+       
+      }
+      
+      p
+      
+    })
+    
+  })  
   
   ### Dynamic graph title
   output$distribution_title<- renderText({
