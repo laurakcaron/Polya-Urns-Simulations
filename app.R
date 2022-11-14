@@ -167,7 +167,7 @@ navbarPage("Polya Urns", id="nav",
                                  column(6, numericInput("quota", "Select only women until they make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)),
                                  column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
-                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls more than __ in urn"="majority","Stop if white balls more than __ among selected for this urn"="majority_selected", "Stop after X draws"="temp", "Stop if white balls more than __ in average urn" = "avg", "Stop if white balls more than __ in average selected candidates"="avg_selected")),
+                         radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls more than __ in each urn"="majority","Stop if white balls more than __ among selected for each urn"="majority_selected", "Stop after X draws"="temp", "Stop if white balls more than __ in average urn" = "avg", "Stop if white balls more than __ in average selected candidates"="avg_selected")),
                          column(6, numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))))
                 ), 
                 fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)),
