@@ -512,12 +512,11 @@ server <- function(input, output){
                 if(is_empty(mball)) 0 else mball
               })
               
-            
             }
+
+            
             
             # For urns undergoing AA, use those draws instead 
-            print("d")
-            
             if (input$intervention != "none" & n > input$aa_start){
             ball_drawn <- ifelse(end %in% 0, ball_drawn_aa, ball_drawn)
             ball_replaced_aa <- if(!("list" %in% class(ball_replaced_aa))) sapply(ball_replaced_aa, list) else ball_replaced_aa
@@ -552,7 +551,7 @@ server <- function(input, output){
             prob_w_m_replace_n<- rbind(prob_w_m_replace_n, p_w_m)
             
 
-            incProgress(1/N, detail = paste("Percent completed", n*100/N, "%"))
+            incProgress(1/N, detail = paste("Percent completed", round(n*100/N, 1), "%"))
             
             }
             
@@ -711,8 +710,9 @@ server <- function(input, output){
         ) + 
         labs(title ="Distribution of final share of white balls in the urn")
       
-      plot_ly(x=~hist_data$`Share of white balls in urn after trials`, type="histogram",  histfunc="count" ,nbinsx = sqrt(input$I)) %>%
-        layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16)))
+      plot_ly(x=~hist_data$`Share of white balls in urn after trials`, type="histogram",  histfunc="count" ,nbinsx = sqrt(input$I),
+              hovertemplate = paste('%{y:.0f} urns have white ball <br>share','%{x} <extra></extra>')) %>%
+        layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16))) 
     })
     
   })
@@ -743,7 +743,7 @@ server <- function(input, output){
         labs(title ="Distribution of final share of white balls")
       
       plot_ly(x = ~density(hist_data$`Share of white balls in urn after trials`)$x, y = ~density(hist_data$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
-        layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified")
+        layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified)")
       
     })
     
@@ -762,10 +762,11 @@ server <- function(input, output){
       hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
       colnames(hist_data) <- "Share of white balls in urn after trials"
       hist_data <- arrange(hist_data, `Share of white balls in urn after trials`)  
+      text1 <- 
       
       # Plot
       cdf <- ggplot(hist_data) + 
-        stat_ecdf(aes(x=`Share of white balls in urn after trials`), geom="step")+
+        stat_ecdf(aes(x=`Share of white balls in urn after trials`, text=paste0(..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step")+
         geom_vline(xintercept=0.5, color="chartreuse3", linetype="dashed", alpha=0.5)+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
@@ -776,7 +777,12 @@ server <- function(input, output){
         ) + 
         labs(y="Fraction of urns", title ="CDF of final share of white balls in the urn")
       
-      ggplotly(cdf) %>% layout(hovermode="x unified")
+      ggplotly(cdf, tooltip="text") %>% layout(hovermode="x unified)", 
+                               yaxis = list(hoverformat = '.2f'), 
+                               xaxis = list(hoverformat = '.2f')) 
+      #%>%
+        #style(hovertemplate = paste('y: %{y:.2f}','<br>Share of white balls: %{x:.4f}<br>'), traces = 1) %>%
+        #style(hoverinfo="skip", traces = 2)
       
     })
     
@@ -794,12 +800,14 @@ server <- function(input, output){
       paths_ratio <- paths_ratio %>% as.data.frame %>% mutate(draw=row_number()) 
       ratio <- paths_ratio %>% pivot_longer(-draw)
       average_ratio <- paths_ratio %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
+      text1 <- paste0('After draw ', paths_ratio$draw -1,', avg. urn has<br>',round(average_ratio, digits=4)* 100, '% white balls')
       
       # Plot
       r <- ggplot() + 
         geom_line(data=ratio, aes(x=draw-1, y=value, group=name), color="lightgray") +
+        geom_point(aes(x=rep(0:(input$N)), y=average_ratio, text=text1), size=0.1, color="blue") +
         geom_line(aes(x=rep(0:(input$N)), y=average_ratio), color="blue") +
-        geom_hline(aes(yintercept=0.5), color="chartreuse3",linetype = "dashed" ) +
+        geom_hline(aes(yintercept=0.5), color="chartreuse3",linetype = "dashed") +
         scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
           panel.grid.major = element_blank(),
@@ -811,10 +819,9 @@ server <- function(input, output){
       
       
       
-      ggplotly(r) %>% style(hoverinfo = "skip", traces = 1) %>%
-        style(hovertemplate = paste('Draw: %{x:.0f}',
-                                    '<br>Average share of white balls in urn: %{y:.4f}<br>'), traces = 2) %>%
+      ggplotly(r, tooltip="text") %>%
         layout(hovermode="x unified)")
+       
     })
     
   })
@@ -845,9 +852,9 @@ server <- function(input, output){
         ) + 
         labs(title ="Probability of selecting a white ball, average highlighted", y="Probability of selecting a white ball", x="Draw")
       
-      ggplotly(r) %>% style(hoverinfo = "skip", traces = 1) %>%
-        style(hovertemplate = paste('Draw: %{x:.0f}',
-                                    '<br>Average P(select white ball): %{y:.4f}<br>'), traces = 2) %>%
+      ggplotly(r) %>% style(hoverinfo = "skip", traces = c(1,3)) %>%
+        style(hovertemplate = paste('At draw %{x:.0f},',
+                                    '<br>avg. Prob(select white ball) = %{y:.2%}<br><extra></extra>'), traces = 2) %>%
         layout(hovermode="x unified)")
     })
     
@@ -943,7 +950,9 @@ server <- function(input, output){
       
       
       ggplotly(stock) %>%
-        layout(hovermode="x unified)")
+        layout(hovermode="x unified)") %>%
+        style(hovertemplate=paste('Avg. white: %{y} <br>', 'Avg. maroon: %{x} <extra></extra>'), traces=2) %>%
+        style(hoverinfo="skip", traces=c(1,3))
 
       
     })
@@ -976,8 +985,8 @@ server <- function(input, output){
         labs(x="Draw", y="Share of selected that are the best candidate")
       
       ggplotly(stock) %>% style(hoverinfo = "skip", traces = 1) %>%
-        style(hovertemplate = paste('Draw: %{x:.0f}',
-                                    '<br>%{y:.4f}<br>'), traces = 2) %>%
+        style(hovertemplate = paste('After draw %{x:.0f},',
+                                    '<br>%{y:.0%} are the best candidate<br><extra></extra>'), traces = 2) %>%
         layout(hovermode="x unified)")
       
       
@@ -998,7 +1007,8 @@ server <- function(input, output){
       
       # Plot
       plot_ly(x =~paths_selected_rank$share_best,type="histogram",  nbinsx = sqrt(input$I))  %>%
-        layout(xaxis=list(title = "Share of selected that are the best candidate after trials", range=c(0,1)), yaxis=list(title="Density"))
+        layout(xaxis=list(title = "Share of selected that are the best candidate after trials", range=c(0,1)), yaxis=list(title="Frequency")) %>%
+        style(hovertemplate = paste('%{y:.0f} urns have <br>best candidate share','%{x} <extra></extra>'), hovermode='x unified)') 
       
       
       
@@ -1019,7 +1029,8 @@ server <- function(input, output){
       # Plot
       p <- plot_ly(x =~outputlist$firstend,type="histogram", name="Freq.") %>%
         layout(xaxis=list(title = paste("When AA ended (ended in", num_end, "out of", input$I, "urns)"), range=c(0,input$N)), yaxis=list(title="Frequency"))%>%
-        layout(hovermode="x unified)")
+        layout(hovermode="x unified)") %>%
+        style(hovertemplate = paste('%{y:.0f} urns have ended<br>AA after','%{x} draws<extra></extra>')) 
       
       if (!is.na(m)){
        p<- p %>%  add_segments(x=m, y=0, xend=m, yend=100, line=list(color="red", width = 4), name="Mean") %>%
