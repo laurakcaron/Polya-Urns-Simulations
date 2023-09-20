@@ -2,7 +2,7 @@
 #              Polya Urns Simulations
 #              Laura Caron
 #              Columbia University
-#         This version: November 2, 2022
+#         This version: September 8, 2023
 ##################################################
 
 ##################################################
@@ -27,6 +27,8 @@ library(scales)
 library(shiny)
 library(shinythemes)
 library(rsconnect)
+library(shinyMatrix)
+
 
 ##################################################
 #                      UI
@@ -48,6 +50,13 @@ navbarPage("Polya Urns", id="nav",
               # Sidebar for simulation parameters
               
               sidebarPanel(
+                    # Additional formatting 
+                    tags$head(
+                      tags$style(
+                        HTML(".vue-input td {background-color: white; border: 1px solid #dce4ec !important;}
+                              .vue-input th {border: 0px !important; text-align:center;}
+                              .vue-input td {border-radius:4px !important;}")
+                      )),
                 
                 # enable Latex input
                 withMathJax(),
@@ -68,97 +77,116 @@ navbarPage("Polya Urns", id="nav",
                 
                 # Third section: Replacement/addition 
                 h3("Addition Scheme"),
-                h4("Note: draws are with replacement."),
-                h4("If a white ball is drawn:"),
-                
-                #options for stochastic replacement -- only appear when selected
-                fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
-                conditionalPanel(condition = "input.woman_stochastic!= 'none'",
-                     fluidRow(                       
-                       column(12, radioButtons("woman_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of white balls in urn"="urn", "\\(X = \\) share of white balls in selected candidates"="selected"), selected="none"))),
-                     fluidRow(
-                       conditionalPanel(condition="input.woman_depends=='none'",
-                                        column(5, numericInput("p_w_w", "Probability of white ball added", 1, step=0.1))),
-                       conditionalPanel(condition="input.woman_depends!='none'",
-                                        column(5, radioButtons("w_w_function", label="Probability of white ball added", choices=c("\\(p_{w_w} = c-bX^a\\)"="linear","\\(p_{w_w} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_w} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
-                     ),
-                     fluidRow(
-                       conditionalPanel(condition="input.w_w_function!='inverseexp'&input.woman_depends!='none'", 
-                                        column(4, numericInput("w_w_a", "\\(a\\)", 1, step = 0.1)), 
-                                        column(4, numericInput("w_w_b", "\\(b\\)", 1, step=0.1)),
-                                        column(4, numericInput("w_w_c", "\\(c\\)", 1, step=0.1))), 
-                       conditionalPanel(condition="input.w_w_function=='inverseexp'", 
-                                        column(5, numericInput("w_w_b", "\\(b\\)", 1, step=0.1)), 
-                                        column(5, numericInput("w_w_c", "\\(c\\)", 1, step=0.1)))  ) ,
-                     
-                     conditionalPanel(condition="input.woman_stochastic=='unbalanced'",
-                                      fluidRow(
-                                        conditionalPanel(condition="input.woman_depends=='none'",
-                                                         column(5, numericInput("p_m_w", "Probability of maroon ball added", 1, step=0.1))),
-                                        conditionalPanel(condition="input.woman_depends!='none'",
-                                                         column(5, radioButtons("m_w_function", label="Probability of maroon ball added", choices=c("\\(p_{m_w} = c-b(1-X)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
-                                      )),
-                     fluidRow(
-                       conditionalPanel(condition="input.m_w_function!='inverseexp'&input.woman_depends!='none' & input.woman_stochastic=='unbalanced'", 
-                                        column(4, numericInput("m_w_a", "\\(a\\)", 1, step = 0.1)), 
-                                        column(4, numericInput("m_w_b", "\\(b\\)", 1, step=0.1)),
-                                        column(4, numericInput("m_w_c", "\\(c\\)", 1, step=0.1))), 
-                       conditionalPanel(condition="input.m_w_function=='inverseexp'", 
-                                        column(5, numericInput("m_w_b", "\\(b\\)", 1, step=0.1)), 
-                                        column(5, numericInput("m_w_c", "\\(c\\)", 1, step=0.1)))  )            
-    ),
                 fluidRow(
-                  column(5, numericInput("w_w", "Number of white balls added", 1)), 
-                  column(5, numericInput("m_w", "Number of maroon balls added", 0))
-                ),
-    
-    
-                h4("If a maroon ball is drawn:"),
-                fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
-                conditionalPanel(condition = "input.man_stochastic!= 'none'",
-                     fluidRow(                       
-                       column(12, radioButtons("man_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of white balls in urn"="urn", "\\(X = \\) share of white balls in selected candidates"="selected"), selected="none"))),
-                     fluidRow(
-                       conditionalPanel(condition="input.man_depends=='none'",
-                                        column(5, numericInput("p_w_m", "Probability of white balls added", 1, step=0.1))),
-                       conditionalPanel(condition="input.man_depends!='none'",
-                                        column(5, radioButtons("w_m_function", label="Probability of white balls added", choices=c("\\(p_{w_m} = c-bX^a\\)"="linear","\\(p_{w_m} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_m} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
-                     ),
-                     fluidRow(
-                       conditionalPanel(condition="input.w_m_function!='inverseexp'&input.man_depends!='none'", 
-                                        column(4, numericInput("w_m_a", "\\(a\\)", 1, step = 0.1)), 
-                                        column(4, numericInput("w_m_b", "\\(b\\)", 1, step=0.1)),
-                                        column(4, numericInput("w_m_c", "\\(c\\)", 1, step=0.1))), 
-                       conditionalPanel(condition="input.w_m_function=='inverseexp'", 
-                                        column(5, numericInput("w_m_b", "\\(b\\)", 1, step=0.1)), 
-                                        column(5, numericInput("w_m_c", "\\(c\\)", 1, step=0.1)))  ) ,
-                     
-                     conditionalPanel(condition="input.man_stochastic=='unbalanced'",
-                                      fluidRow(
-                                        conditionalPanel(condition="input.man_depends=='none'",
-                                                         column(5, numericInput("p_m_m", "Probability of maroon balls added", 1, step=0.1))),
-                                        conditionalPanel(condition="input.man_depends!='none'",
-                                                         column(5, radioButtons("m_m_function", label="Probability of maroon balls added", choices=c("\\(p_{m_m} = 1-b(1-X)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
-                                      )),
-                     fluidRow(
-                       conditionalPanel(condition="input.m_m_function!='inverseexp'&input.man_depends==true & input.man_stochastic=='unbalanced'", 
-                                        column(4, numericInput("m_m_a", "\\(a\\)", 1, step = 0.1)), 
-                                        column(4, numericInput("m_m_b", "\\(b\\)", 1, step=0.1)),
-                                        column(4, numericInput("m_m_c", "\\(c\\)", 1, step=0.1))), 
-                       conditionalPanel(condition="input.m_m_function=='inverseexp'", 
-                                        column(5, numericInput("m_m_b", "\\(b\\)", 1, step=0.1)), 
-                                        column(5, numericInput("m_m_c", "\\(c\\)", 1, step=0.1)))  )            
-                ),
-                fluidRow(
-                  column(5, numericInput("w_m", "Number of white balls added", 0)), 
-                  column(5, numericInput("m_m", "Number of maroon balls added", 1))
-                ),
+                  column(12, radioButtons("multidraw", label=NULL, choices=c("Single draw"="single", "Multiple draws"="multi")))),
                 
-               #options for replacement that depends on stock of selected candidates -- only appear when selected
-    
-    
+                # Single draw options
+                conditionalPanel(condition = "input.multidraw=='single'",
+                  div(
+                    p("Note: the original ball is replaced and addition follows the rules below."),
+                    h4("If a white ball is drawn:"),
+                    
+                    #options for stochastic replacement -- only appear when selected
+                    fluidRow(column(12, radioButtons("woman_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
+                    conditionalPanel(condition = "input.woman_stochastic!= 'none'",
+                         fluidRow(                       
+                           column(12, radioButtons("woman_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of white balls in urn"="urn", "\\(X = \\) share of white balls in selected candidates"="selected"), selected="none"))),
+                         fluidRow(
+                           conditionalPanel(condition="input.woman_depends=='none'",
+                                            column(5, numericInput("p_w_w", "Probability of white ball added", 1, step=0.1))),
+                           conditionalPanel(condition="input.woman_depends!='none'",
+                                            column(5, radioButtons("w_w_function", label="Probability of white ball added", choices=c("\\(p_{w_w} = c-bX^a\\)"="linear","\\(p_{w_w} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_w} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
+                         ),
+                         fluidRow(
+                           conditionalPanel(condition="input.w_w_function!='inverseexp'&input.woman_depends!='none'", 
+                                            column(4, numericInput("w_w_a", "\\(a\\)", 1, step = 0.1)), 
+                                            column(4, numericInput("w_w_b", "\\(b\\)", 1, step=0.1)),
+                                            column(4, numericInput("w_w_c", "\\(c\\)", 1, step=0.1))), 
+                           conditionalPanel(condition="input.w_w_function=='inverseexp'", 
+                                            column(5, numericInput("w_w_b", "\\(b\\)", 1, step=0.1)), 
+                                            column(5, numericInput("w_w_c", "\\(c\\)", 1, step=0.1)))  ) ,
+                         
+                         conditionalPanel(condition="input.woman_stochastic=='unbalanced'",
+                                          fluidRow(
+                                            conditionalPanel(condition="input.woman_depends=='none'",
+                                                             column(5, numericInput("p_m_w", "Probability of maroon ball added", 1, step=0.1))),
+                                            conditionalPanel(condition="input.woman_depends!='none'",
+                                                             column(5, radioButtons("m_w_function", label="Probability of maroon ball added", choices=c("\\(p_{m_w} = c-b(1-X)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
+                                          )),
+                         fluidRow(
+                           conditionalPanel(condition="input.m_w_function!='inverseexp'&input.woman_depends!='none' & input.woman_stochastic=='unbalanced'", 
+                                            column(4, numericInput("m_w_a", "\\(a\\)", 1, step = 0.1)), 
+                                            column(4, numericInput("m_w_b", "\\(b\\)", 1, step=0.1)),
+                                            column(4, numericInput("m_w_c", "\\(c\\)", 1, step=0.1))), 
+                           conditionalPanel(condition="input.m_w_function=='inverseexp'", 
+                                            column(5, numericInput("m_w_b", "\\(b\\)", 1, step=0.1)), 
+                                            column(5, numericInput("m_w_c", "\\(c\\)", 1, step=0.1)))  )            
+        ),
+                    fluidRow(
+                      column(5, numericInput("w_w", "Number of white balls added", 1)), 
+                      column(5, numericInput("m_w", "Number of maroon balls added", 0))
+                    ),
+        
+        
+                    h4("If a maroon ball is drawn:"),
+                    fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
+                    conditionalPanel(condition = "input.man_stochastic!= 'none'",
+                         fluidRow(                       
+                           column(12, radioButtons("man_depends", label="Depends on", choices=c("None"="none", "\\(X = \\) share of white balls in urn"="urn", "\\(X = \\) share of white balls in selected candidates"="selected"), selected="none"))),
+                         fluidRow(
+                           conditionalPanel(condition="input.man_depends=='none'",
+                                            column(5, numericInput("p_w_m", "Probability of white balls added", 1, step=0.1))),
+                           conditionalPanel(condition="input.man_depends!='none'",
+                                            column(5, radioButtons("w_m_function", label="Probability of white balls added", choices=c("\\(p_{w_m} = c-bX^a\\)"="linear","\\(p_{w_m} = \\frac{1}{1+bX^a}\\)"="inverse", "\\(p_{w_m} = \\frac{1}{1+b*\\exp(cX)}\\)"="inverseexp"))))
+                         ),
+                         fluidRow(
+                           conditionalPanel(condition="input.w_m_function!='inverseexp'&input.man_depends!='none'", 
+                                            column(4, numericInput("w_m_a", "\\(a\\)", 1, step = 0.1)), 
+                                            column(4, numericInput("w_m_b", "\\(b\\)", 1, step=0.1)),
+                                            column(4, numericInput("w_m_c", "\\(c\\)", 1, step=0.1))), 
+                           conditionalPanel(condition="input.w_m_function=='inverseexp'", 
+                                            column(5, numericInput("w_m_b", "\\(b\\)", 1, step=0.1)), 
+                                            column(5, numericInput("w_m_c", "\\(c\\)", 1, step=0.1)))  ) ,
+                         
+                         conditionalPanel(condition="input.man_stochastic=='unbalanced'",
+                                          fluidRow(
+                                            conditionalPanel(condition="input.man_depends=='none'",
+                                                             column(5, numericInput("p_m_m", "Probability of maroon balls added", 1, step=0.1))),
+                                            conditionalPanel(condition="input.man_depends!='none'",
+                                                             column(5, radioButtons("m_m_function", label="Probability of maroon balls added", choices=c("\\(p_{m_m} = 1-b(1-X)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
+                                          )),
+                         fluidRow(
+                           conditionalPanel(condition="input.m_m_function!='inverseexp'&input.man_depends==true & input.man_stochastic=='unbalanced'", 
+                                            column(4, numericInput("m_m_a", "\\(a\\)", 1, step = 0.1)), 
+                                            column(4, numericInput("m_m_b", "\\(b\\)", 1, step=0.1)),
+                                            column(4, numericInput("m_m_c", "\\(c\\)", 1, step=0.1))), 
+                           conditionalPanel(condition="input.m_m_function=='inverseexp'", 
+                                            column(5, numericInput("m_m_b", "\\(b\\)", 1, step=0.1)), 
+                                            column(5, numericInput("m_m_c", "\\(c\\)", 1, step=0.1)))  )            
+                    ),
+                    fluidRow(
+                      column(5, numericInput("w_m", "Number of white balls added", 0)), 
+                      column(5, numericInput("m_m", "Number of maroon balls added", 1))
+                    )
+                  )),
+                  # Multiple draws
+                conditionalPanel(condition = "input.multidraw=='multi'", div(
+                    fluidRow(
+                      column(6, numericInput("num_draws", "Number of draws", 1, step=1, min=1))
+                    ),
+                    h4("If __ is drawn,"),
+                    fluidRow(
+                      column(12, uiOutput("matrixIn")))
+                  )),
+                # Fourth section: Exit
+                h3("Exit Options"),
+                fluidRow(column(12, checkboxInput("exit_selected", "Balls exit from pool of selected (oldest first)", value=F))),
+                conditionalPanel(condition="input.exit_selected==true", 
+                                 fluidRow(column(12, numericInput("prob_exit", "Probability of exit in each round", value=0.01, min=0, max=1, step=0.1)))),
     
                 # Fourth section: Interventions
+                # Only show for single draw 
+                conditionalPanel("input.multidraw=='single'", div(
                 h3("Interventions"),
                 fluidRow(column(12, radioButtons("intervention", "Affirmative Action", selected="none", choices=c("None"="none", "Draw two, if at least one is a woman, select a woman (deterministic)"="atleast","Draw two, if at least one is a woman, select a woman with probability"="atleast_stochastic","Draw one and add accordingly, plus always add one woman each round"="alwayswoman", "Hiring quota"="quota")))),
                 conditionalPanel(condition="input.intervention=='atleast_stochastic'", 
@@ -173,7 +201,7 @@ navbarPage("Polya Urns", id="nav",
                 fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)),
                                     conditionalPanel(condition="(input.stopintervention=='avg' | input.stopintervention=='majority') & input.intervention!='none'", numericInput("cutoff", "Use AA until white balls make up __ of the urn", value=0.5, min=0, max=1, step=0.1)),
                                 conditionalPanel(condition="(input.stopintervention=='avg_selected' | input.stopintervention=='majority_selected') & input.intervention!='none'", numericInput("cutoff", "Use AA until white balls make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)))),
-                
+                )),
                 # Fifth section: Graph options
                 h3("Graph options"), 
                 fluidRow(column(12,
@@ -194,10 +222,10 @@ navbarPage("Polya Urns", id="nav",
                   # First tab
                   tabPanel("Distribution of Share of White Balls", 
                            # histogram and ratio over time
-                           fluidRow(column(6,plotlyOutput("histogram", height="50%")),
-                                    column(6, plotlyOutput("ratio_over_time", height="50%"))),
+                           fluidRow(column(6,plotlyOutput("ratio_over_time", height="50%")),
+                                    column(6, plotlyOutput("ratio_s_over_time", height="50%"))),
                            # density plot and cdf
-                           fluidRow(column(6, plotlyOutput("density", height="50%")),
+                           fluidRow(column(6, plotlyOutput("histogram", height="50%")),
                                     column(6, plotlyOutput("cdf", height="50%")))),
                   # Second tab 
                   tabPanel("Urn Paths Over Time", 
@@ -252,6 +280,18 @@ navbarPage("Polya Urns", id="nav",
 
 
 server <- function(input, output){
+  # Matrix size for multidraws 
+  output$matrixIn <- renderUI({
+    possibledraws <- combn(c(rep("W", input$num_draws), rep("M", input$num_draws)), input$num_draws) 
+    possibledraws <- apply(possibledraws, 2, function(x) paste(sort(x,decreasing=T), collapse = "")) %>% unique()
+    defaultvalueW <- str_count(possibledraws, "W")
+    defaultvalueM <- str_count(possibledraws, "M")
+    defaultmat <-  matrix(cbind(defaultvalueW, defaultvalueM) , nrow=length(possibledraws), ncol=2, dimnames=list(possibledraws, c("Add||W", "Add||M")))
+    
+    matrixInput("multi_matrix", rows = list(names=TRUE), cols=list(names=TRUE, multiheader=TRUE),value=defaultmat)
+  })
+  
+  
   list_output<- reactive ({
     
     # Trigger to rerun
@@ -418,9 +458,12 @@ server <- function(input, output){
             firstend <- ifelse(is.na(firstend) & end*((stopintervention=="majority"  | stopintervention=="majority_selected" | stopintervention=="avg" | stopintervention=="avg_selected" )), n , firstend)
             
             # Probability of woman selected
-            prob_w_selected <- ifelse((input$intervention=="atleast" & (end %in% 0) & n > input$aa_start),(1-(1-previous_share)^2) , 
-                                 ifelse((input$intervention=="atleast_stochastic" & (end %in% 0) & n > input$aa_start),previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
-                                    ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start, 1, previous_share)))
+              ### CHECK: WITH OR WITHOUT REPLACEMENT 
+            prob_w_selected <- ifelse(input$multidraw=="multi" & !(end %in% 0), 1-(1-previous_share)^input$num_draws, 
+                                 ifelse(input$intervention=="atleast" & (end %in% 0) & n > input$aa_start, 1-(1-previous_share)^2, 
+                                  ifelse(input$intervention=="atleast_stochastic" & (end %in% 0) & n > input$aa_start, previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
+                                    ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start,1, previous_share))))
+              
             
             # Random draws done ahead of time for the case of balanced replacement
             r_w_w <- sapply(seq(1:I), function(x) rbinom(1,1,p_w_w[x]))
@@ -428,11 +471,14 @@ server <- function(input, output){
             r_m_w <- if(input$woman_stochastic=="balanced") 1-r_w_w else sapply(seq(1:I), function(x) rbinom(1,1,p_m_w[x]))
             r_m_m <- if(input$man_stochastic=="balanced") 1-r_w_m else sapply(seq(1:I), function(x) rbinom(1,1,p_m_m[x]))
             
+            r_exit <- if(input$exit_selected==T) sapply(seq(1:I), function(x) rbinom(1,1,input$prob_exit)) else NULL
+            
             rank <- rep(1, I)
             ####
             # Draw, replace, remove balls for each AA case
             
-            if (1==1){
+            ## SINGLE DRAW OPTIONS          
+            if (input$multidraw=="single" & 1==1){
             #if (input$intervention=="none" | (n < input$quota_start & input$intervention=="quota") | (n < input$aa_start & input$intervention%in% c("atleast", "atleast_stochastic")  )){
               ball_drawn <- apply(urn,2, function(x) sample(na.omit(x),1) )
               #ball_drawn <- ifelse(end %in% 1, NA, ball_drawn)
@@ -446,9 +492,9 @@ server <- function(input, output){
                 mball <- if(ball_drawn[x] == "w") c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
                 if(is_empty(mball)) 0 else mball
               })
-              }
-                                     
-            if (input$intervention=="atleast" & n > input$aa_start){
+            }
+            
+            if (input$multidraw=="single" & input$intervention=="atleast" & n > input$aa_start){
               ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),2, replace =TRUE) )
               
               rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1) )
@@ -463,7 +509,7 @@ server <- function(input, output){
                 if(is_empty(mball)) 0 else mball
               })
             }
-            if (input$intervention=="atleast_stochastic" & n > input$aa_start){
+            if (input$multidraw=="single" & input$intervention=="atleast_stochastic" & n > input$aa_start){
               ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),2, replace =TRUE) )
               
               rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1) )
@@ -482,7 +528,7 @@ server <- function(input, output){
                 if(is_empty(mball)) 0 else mball
               })
             }        
-            if (input$intervention=="alwayswoman" ){
+            if (input$multidraw=="single" & input$intervention=="alwayswoman" ){
               ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),1) )
               
               rank_aa <- 1
@@ -496,7 +542,7 @@ server <- function(input, output){
                 if(is_empty(mball)) 0 else mball
               })
             }        
-            if (input$intervention=="quota" & n>input$quota_start){
+            if (input$multidraw=="single" & input$intervention=="quota" & n>input$quota_start){
               ball_drawn_aa  <- apply(urn,2, function(x) sample(x,nrow(urn)) )
               rank_aa <- apply(ball_drawn_aa, 2, function(x) min(which(x=="w")) )
               ball_drawn_aa <- sapply(seq(1:ncol(urn)), function(x) ball_drawn_aa[rank_aa[x],x])
@@ -513,11 +559,28 @@ server <- function(input, output){
               })
               
             }
-
             
+            ## MULTIPLE DRAW OPTIONS
+            if (input$multidraw=="multi"){
+              ball_drawn <- sapply(seq(1:I), function(x) sample(na.omit(urn[,x]),input$num_draws) )
+
+              ball_replaced <- lapply(seq(1:I), function(x){
+                total_W = ifelse(input$num_draws ==1,str_count(ball_drawn[,x], "w"), str_count(paste(ball_drawn[,x], collapse=""), "w")) 
+                total_M = ifelse(input$num_draws ==1,str_count(ball_drawn[,x], "m"), str_count(paste(ball_drawn[,x], collapse=""), "m")) 
+                # total W is the matrix row index for the input replacement matrix
+                rball <- c(rep("w", as.numeric(input$multi_matrix[total_M+1, 1])), rep("m", as.numeric(input$multi_matrix[total_M+1, 2])))
+                if(is_empty(rball)) 0 else rball
+              })
+              
+              # Not currently used--removals not allowed for multiple draw 
+              ball_removed <- lapply(seq(1:I), function(x){
+                mball <- if(ball_drawn[,x] == "w") c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
+                if(is_empty(mball)) 0 else mball
+              })
+            }
             
             # For urns undergoing AA, use those draws instead 
-            if (input$intervention != "none" & n > input$aa_start){
+            if (input$multidraw=="single" & input$intervention != "none" & n > input$aa_start){
             ball_drawn <- ifelse(end %in% 0, ball_drawn_aa, ball_drawn)
             ball_replaced_aa <- if(!("list" %in% class(ball_replaced_aa))) sapply(ball_replaced_aa, list) else ball_replaced_aa
             ball_replaced <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_replaced_aa[[x]] else ball_replaced[x])
@@ -526,13 +589,27 @@ server <- function(input, output){
             ball_removed <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_removed_aa[[x]] else ball_removed[x])
             
             rank <- ifelse(end %in% 0, rank_aa, rank)
-            }
-            # Save results 
             
+            }
+            
+            # For urns with exit, incorporate that 
+            if (input$exit_selected == T & n > 1) {
+              list.selected <- split(t(selected), seq(nrow(t(selected)))) 
+              list.selected <- lapply(list.selected, function(x) x[!is.na(x)])
+              ball_exit_selected <- sapply(seq(1:I), function(x) if(r_exit[x] == 1) list.selected[[x]][1] else NA ) %>% unlist
+              list.selected <- sapply(seq(1:I), function(x) if(r_exit[x] == 1) {
+                if(length(list.selected[[x]])==0) NA else list.selected[[x]][-1] }
+                else list.selected[[x]] )
+              list.selected <- lapply(list.selected, function(x) if(length(x) < n) c(x, rep(NA, n-length(x)-1)) else x)
+              selected <- list.selected %>% unlist() %>% matrix(nrow=n-1, ncol = I)
+            }  
+            
+            # Save results 
             new_w <- sapply(seq(1:I), function(x) previous_w[x] + sum(ball_replaced[[x]]=="w") - sum(ball_removed[[x]]=="w"))
             new_w <- ifelse(new_w <0, 0, new_w)
             new_m <- sapply(seq(1:I), function(x) previous_m[x] + sum(ball_replaced[[x]]=="m") - sum(ball_removed[[x]]=="m"))
             new_m <- ifelse(new_m<0, 0 , new_m)
+            
             urn_l <- lapply(seq(1:I), function(x) matrix(c(rep("w", new_w[x]), rep("m", new_m[x])), ncol=1) )
             urn <- matrix(nrow= max(unlist(lapply(urn_l, nrow))), ncol=I)
             for (i in 1:I) {
@@ -699,8 +776,11 @@ server <- function(input, output){
       colnames(hist_data) <- "Share of white balls in urn after trials"
       
       # Plot
+      bin.width <- 1/(sqrt(input$N))
+
       hist <- ggplot(hist_data) + 
-        geom_histogram(aes(x=`Share of women in urn after trials`), bins=sqrt(input$N))+
+        geom_histogram(aes(x=`Share of white balls in urn after trials`), bins=sqrt(input$N), fill="gray")+
+        geom_density(aes(x=`Share of white balls in urn after trials`, y =after_stat(count*bin.width)), color="#18bc9c")+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
           panel.grid.major = element_blank(),
@@ -709,10 +789,17 @@ server <- function(input, output){
           axis.line = element_line(colour = "black")
         ) + 
         labs(title ="Distribution of final share of white balls in the urn")
+     
+      g <- ggplotly(hist) %>%
+        layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16)))
       
-      plot_ly(x=~hist_data$`Share of white balls in urn after trials`, type="histogram",  histfunc="count" ,nbinsx = sqrt(input$I),
-              hovertemplate = paste('%{y:.0f} urns have white ball <br>share','%{x} <extra></extra>')) %>%
-        layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16))) 
+      text_y <- paste(g$x$data[[1]]$y, 'urns have white ball <br>share', round(g$x$data[[1]]$x, 2), "-", round(g$x$data[[1]]$x+g$x$data[[1]]$width,2))
+                      
+      g %>% style(text=text_y, traces =1) %>%
+        layout(hovermode="x") %>%
+        style(text=NA, hoverInfo="skip", traces=2)
+      
+      
     })
     
   })
@@ -762,8 +849,7 @@ server <- function(input, output){
       hist_data <- as.data.frame(paths_ratio[nrow(paths_ratio),])
       colnames(hist_data) <- "Share of white balls in urn after trials"
       hist_data <- arrange(hist_data, `Share of white balls in urn after trials`)  
-      text1 <- 
-      
+
       # Plot
       cdf <- ggplot(hist_data) + 
         stat_ecdf(aes(x=`Share of white balls in urn after trials`, text=paste0(..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step")+
@@ -773,7 +859,8 @@ server <- function(input, output){
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
-          axis.line = element_line(colour = "black")
+          axis.line = element_line(colour = "black"),
+          plot.title = element_text(size=12)
         ) + 
         labs(y="Fraction of urns", title ="CDF of final share of white balls in the urn")
       
@@ -813,15 +900,57 @@ server <- function(input, output){
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
-          axis.line = element_line(colour = "black")
-        ) + 
-        labs(title ="Share of white balls in urn over time, average highlighted", x="Draw", y="White balls' share in the urn")
+          axis.line = element_line(colour = "black"),
+          plot.title = element_text(size=12)) + 
+        labs(title ="Share of white balls in urn over time, average highlighted", x="Draw", y="White balls' share in the urn ($r_t$)")
       
       
       
       ggplotly(r, tooltip="text") %>%
         layout(hovermode="x unified)")
        
+    })
+    
+  })
+  
+  ### Share of women in stock over time plot
+  output$ratio_s_over_time <- renderPlotly({
+    input$rerun
+    
+    isolate({
+      
+      # Get and prepare data
+      outputlist <- list_output()
+      paths_selected_w <- outputlist$paths_selected_w
+      paths_selected_m <- outputlist$paths_selected_m
+      paths_selected_ratio <- paths_selected_w/(paths_selected_w + paths_selected_m)
+      
+      paths_selected_ratio <- paths_selected_ratio %>% as.data.frame %>% mutate(draw=row_number()) 
+      ratio <- paths_selected_ratio %>% pivot_longer(-draw)
+      average_ratio <- paths_selected_ratio %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
+      text1 <- paste0('After draw ', paths_selected_ratio$draw ,', avg. pool of selected has<br>',round(average_ratio, digits=4)* 100, '% white balls')
+      
+      # Plot
+      r <- ggplot() + 
+        geom_line(data=ratio, aes(x=draw-1, y=value, group=name), color="lightgray") +
+        geom_point(aes(x=rep(1:(input$N)), y=average_ratio, text=text1), size=0.1, color="purple") +
+        geom_line(aes(x=rep(1:(input$N)), y=average_ratio), color="purple") +
+        geom_hline(aes(yintercept=0.5), color="chartreuse3",linetype = "dashed") +
+        scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          plot.title = element_text(size=12)
+        ) + 
+        labs(title ="Share of white balls among selected, average highlighted", x="Draw", y="White balls' share among selected ($\\rho_t$)")
+      
+      
+      
+      ggplotly(r, tooltip="text") %>%
+        layout(hovermode="x unified)")
+      
     })
     
   })
@@ -895,7 +1024,7 @@ server <- function(input, output){
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")) + 
-        labs(x="Number of white balls", y="Number of maroon balls",title = "Evolution of urn contents")
+        labs(x="Number of white balls", y="Number of maroon balls", title = "Evolution of urn contents")
       
       
       rays <- if(input$graph_auto=="auto") rays + scale_x_continuous() + scale_y_continuous() else rays + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
@@ -929,6 +1058,7 @@ server <- function(input, output){
       
       stock_data <- cbind(w_n_long, m_n_long$M)
       colnames(stock_data)[4] <- "M"  
+      stock_data[is.na(stock_data)]<- 0
       average <- stock_data %>% as.data.frame() %>% group_by(draw) %>% summarize(mean_w = mean(W), mean_m = mean(M))
       
       # Get the graph limits
