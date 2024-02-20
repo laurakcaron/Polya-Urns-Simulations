@@ -1280,14 +1280,13 @@
     },
     "rmarkdown": {
       "Package": "rmarkdown",
-      "Version": "2.11",
+      "Version": "2.10",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "evaluate",
         "htmltools",
-        "jquerylib",
         "jsonlite",
         "knitr",
         "methods",
@@ -1298,7 +1297,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "320017b52d05a943981272b295750388"
+      "Hash": "1fb097f233ee98968f8e5d0bcd42df6d"
     },
     "rsconnect": {
       "Package": "rsconnect",
