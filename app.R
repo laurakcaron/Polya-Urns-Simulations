@@ -357,7 +357,7 @@ server <- function(input, output){
       m_m_removed <- ifelse(input$m_m <0, -input$m_m, 0)    
       
       # Add progress bar during the simulations
-      withProgress(message = 'Running simluation', value = 0, {
+      withProgress(message = 'Running simulation', value = 0, {
         # Main simulation loop
           
           # Reset the urns to initial state
