@@ -28,6 +28,7 @@ library(shiny)
 library(shinythemes)
 library(rsconnect)
 library(shinyMatrix)
+library(shinyBS)
 
 
 ##################################################
@@ -79,6 +80,10 @@ navbarPage("Polya Urns", id="nav",
                 h3("Addition Scheme"),
                 fluidRow(
                   column(12, radioButtons("multidraw", label=NULL, choices=c("Single draw"="single", "Multiple draws"="multi")))),
+                conditionalPanel(condition = "input.multidraw=='multi'", 
+                                 fluidRow(column(12, checkboxInput("multi_interp", "Interpret multiple draw as selection intervention?", value=TRUE), 
+                                                 bsTooltip(id = "multi_interp", 
+                                                           title = "When this option is turned on, the number of M and W selected will correspond to the number replaced. When this option is turned off, the number of M and W selected will correspond to the number drawn.")))),
                 
                 # Single draw options
                 conditionalPanel(condition = "input.multidraw=='single'",
@@ -572,9 +577,13 @@ server <- function(input, output){
                 if(is_empty(rball)) 0 else rball
               })
               
+              if (input$multi_interp == TRUE){
+                rank <- apply(ball_drawn, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1 ))
+              }
+              
               # Not currently used--removals not allowed for multiple draw 
               ball_removed <- lapply(seq(1:I), function(x){
-                mball <- if(ball_drawn[,x] == "w") c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
+                mball <- if("w" %in% ball_drawn[,x]) c(rep("w", w_w_removed*r_w_w[x]), rep("m", m_w_removed*r_m_w[x])) else c(rep("w", w_m_removed*r_w_m[x]), rep("m", m_m_removed*r_m_m[x]))
                 if(is_empty(mball)) 0 else mball
               })
             }
@@ -616,7 +625,13 @@ server <- function(input, output){
               urn[1:length(urn_l[[i]]),i] <- urn_l[[i]]
             }
             
-            selected <- rbind(selected, ball_drawn)
+            # For urns with multidraw intervention interpretation, change how "selected" is defined
+            ball_selected <- ball_drawn 
+            if(input$multidraw == "multi" & input$multi_interp == T){
+              ball_selected <- ball_replaced
+            }
+            
+            selected <- rbind(selected, ball_selected)
             selected_rank <- if(n > 1) rbind(selected_rank, rank) else rank
             selected_w <- rbind(selected_w, sapply(seq(1:I), function(x) sum(selected[, x]=="w")))
             selected_m <- rbind(selected_m, sapply(seq(1:I), function(x) sum(selected[, x]=="m")))
@@ -637,7 +652,7 @@ server <- function(input, output){
           paths_w_n <- w_n
           colnames(paths_w_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
           rownames(paths_w_n) <- NULL
-          
+
           paths_m_n <- m_n
           colnames(paths_m_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
           rownames(paths_m_n) <- NULL
@@ -647,6 +662,7 @@ server <- function(input, output){
           paths_prob_w_n <- prob_w_n
           colnames(paths_prob_w_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
           rownames(paths_prob_w_n) <- NULL
+          rm(w_n,m_n)
           
           paths_prob_w_w_replace_n <- prob_w_w_replace_n
           colnames(paths_prob_w_w_replace_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
@@ -655,6 +671,7 @@ server <- function(input, output){
           paths_prob_w_m_replace_n <- prob_w_m_replace_n
           colnames(paths_prob_w_m_replace_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
           rownames(paths_prob_w_m_replace_n) <- NULL     
+          rm(prob_w_w_replace_n, prob_w_m_replace_n)
           
           paths_selected <- selected
           colnames(paths_selected) = sapply(seq(1:I), function(x) paste0("Urn", x))
@@ -671,7 +688,8 @@ server <- function(input, output){
           paths_selected_m <- selected_m
           colnames(paths_selected_m) = sapply(seq(1:I), function(x) paste0("Urn", x))
           rownames(paths_selected_m) <- NULL            
-
+        
+          rm(selected, selected_rank, selected_w, selected_m)
           
 
       })  
@@ -1081,7 +1099,7 @@ server <- function(input, output){
       
       ggplotly(stock) %>%
         layout(hovermode="x unified)") %>%
-        style(hovertemplate=paste('Avg. white: %{y} <br>', 'Avg. maroon: %{x} <extra></extra>'), traces=2) %>%
+        style(hovertemplate=paste('Avg. maroon: %{y}<br>', 'Avg. white: %{x} <extra></extra>'), traces=2) %>%
         style(hoverinfo="skip", traces=c(1,3))
 
       
