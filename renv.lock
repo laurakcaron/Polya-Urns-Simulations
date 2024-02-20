@@ -1424,6 +1424,17 @@
       ],
       "Hash": "6e3b6ae7fe02b5859e4bb277f218b8ae"
     },
+    "shinyBS": {
+      "Package": "shinyBS",
+      "Version": "0.61.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "htmltools",
+        "shiny"
+      ],
+      "Hash": "e44255f073ecdc26ba6bc2ce3fcf174d"
+    },
     "shinyMatrix": {
       "Package": "shinyMatrix",
       "Version": "0.6.0",
