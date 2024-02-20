@@ -2,3 +2,4 @@
 rsconnect/
 *.dcf
 Data/
+.Rproj.user
