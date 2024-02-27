@@ -463,7 +463,7 @@ server <- function(input, output){
                                 ifelse(stopintervention=="avg" & (previous_share_avg>=input$cutoff | end %in% 1 ), 1, 
                                   ifelse(stopintervention=="avg_selected" & (previous_share_selected_avg >= input$cutoff | end %in% 1), 1, 0))))))))
              
-            firstend <- ifelse(is.na(firstend) & end*((stopintervention=="majority"  | stopintervention=="majority_selected" | stopintervention=="avg" | stopintervention=="avg_selected" )), n , firstend)
+            firstend <- ifelse(is.na(firstend) & end*((stopintervention=="majority"  | stopintervention=="majority_selected" | stopintervention=="avg" | stopintervention=="avg_selected" | input$intervention =="quota")), n , firstend)
             
             # Probability of woman selected
               ### CHECK: WITH OR WITHOUT REPLACEMENT 
@@ -508,7 +508,7 @@ server <- function(input, output){
               
               rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1) )
               # Prob best = P(MM) + P(WW) + P(WM) 
-              prob_best <- (1-previous_share)^2 + previous_share^2 + previous_share*(1-previous_share)
+              prob_best_aa <- (1-previous_share)^2 + previous_share^2 + previous_share*(1-previous_share)
               ball_drawn_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, "w", "m") )
               ball_replaced_aa <- sapply(seq(1:I), function(x){
                 rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
@@ -558,7 +558,7 @@ server <- function(input, output){
               ball_drawn_aa  <- apply(urn,2, function(x) sample(x,nrow(urn)) )
               rank_aa <- apply(ball_drawn_aa, 2, function(x) min(which(x=="w")) )
               ball_drawn_aa <- sapply(seq(1:ncol(urn)), function(x) ball_drawn_aa[rank_aa[x],x])
-              prob_best <- previous_share
+              prob_best_aa <- previous_share
               
               ball_replaced_aa <- sapply(seq(1:I), function(x){
                 rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
@@ -576,7 +576,7 @@ server <- function(input, output){
             if (input$multidraw=="multi"){
               ball_drawn <- sapply(seq(1:I), function(x) sample(na.omit(urn[,x]),input$num_draws) ) 
               
-              if (class(ball_drawn)=="character") ball_drawn <- matrix(ball_drawn, ncol=I)
+              if ("character" %in% class(ball_drawn)) ball_drawn <- matrix(ball_drawn, ncol=I)
 
               ball_replaced <- lapply(seq(1:I), function(x){
                 total_W = ifelse(input$num_draws ==1,str_count(ball_drawn[,x], "w"), str_count(paste(ball_drawn[,x], collapse=""), "w")) 
@@ -592,7 +592,7 @@ server <- function(input, output){
                 # P(W first) = previous_share^input$ndraws
                 # P(W not first) = 1-(1-previous_share^input$ndraws)
                 # P(M only) = (1-previous_share)^2
-                prob_best <- (1-previous_share)^input$num_draws + previous_share^input$num_draws
+                prob_best <- (1-previous_share)^input$num_draws + previous_share
                 
               }
               
@@ -608,7 +608,8 @@ server <- function(input, output){
             ball_drawn <- ifelse(end %in% 0, ball_drawn_aa, ball_drawn)
             ball_replaced_aa <- if(!("list" %in% class(ball_replaced_aa))) sapply(ball_replaced_aa, list) else ball_replaced_aa
             ball_replaced <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_replaced_aa[[x]] else ball_replaced[x])
-
+            prob_best <- sapply(seq(1:I), function(x) if(end[x] %in% 0) prob_best_aa[[x]] else prob_best[x])
+            
             ball_removed_aa <- if(!("list" %in% class(ball_removed_aa))) sapply(ball_removed_aa, list) else ball_removed_aa
             ball_removed <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_removed_aa[[x]] else ball_removed[x])
             
