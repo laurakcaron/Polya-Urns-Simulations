@@ -247,6 +247,8 @@ navbarPage("Polya Urns", id="nav",
                            fluidRow(column(9, plotlyOutput("stockplot", height="50%"))),
                            # Share of women in the stock of selected candidates
                            fluidRow(column(9, plotlyOutput("stock_composition", height="50%"))),
+                           # Probability of selecting best candidate 
+                           fluidRow(column(9, plotlyOutput("prob_best", height="50%"))),
                            # Histogram of share of women in the stock of selected candidates
                            fluidRow(column(9, plotlyOutput("stock_composition_bar", height="50%")))
                            
@@ -373,6 +375,7 @@ server <- function(input, output){
           w_n <- rep(w_0, I)
           m_n <- rep(m_0, I)
           prob_w_n <- NULL
+          prob_best_n <- NULL
           prob_w_w_replace_n <- NULL
           prob_w_m_replace_n <- NULL
           selected <- NULL
@@ -479,6 +482,7 @@ server <- function(input, output){
             r_exit <- if(input$exit_selected==T) sapply(seq(1:I), function(x) rbinom(1,1,input$prob_exit)) else NULL
             
             rank <- rep(1, I)
+            prob_best <- rep(1, I)
             ####
             # Draw, replace, remove balls for each AA case
             
@@ -503,6 +507,8 @@ server <- function(input, output){
               ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),2, replace =TRUE) )
               
               rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1) )
+              # Prob best = P(MM) + P(WW) + P(WM) 
+              prob_best <- (1-previous_share)^2 + previous_share^2 + previous_share*(1-previous_share)
               ball_drawn_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, "w", "m") )
               ball_replaced_aa <- sapply(seq(1:I), function(x){
                 rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
@@ -518,7 +524,7 @@ server <- function(input, output){
               ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),2, replace =TRUE) )
               
               rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1) )
-              
+
               ball_drawn_aa <- apply(ball_drawn_aa, 2, function(x) ifelse( min(which(x=="w"))==1, "w", ifelse(min(which(x=="w"))==2, sample(x, 1, prob=c(1-input$prob_atleast, input$prob_atleast)), "m")))
               
               #rank_aa <- sapply(ball_drawn_aa, function(x) ifelse("m" %in% x,1, rank_aa) )
@@ -537,6 +543,7 @@ server <- function(input, output){
               ball_drawn_aa <- apply(urn,2, function(x) sample(na.omit(x),1) )
               
               rank_aa <- 1
+              
               ball_replaced_aa <- sapply(seq(1:I), function(x){
                 rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
                 #add one woman to the count
@@ -551,7 +558,7 @@ server <- function(input, output){
               ball_drawn_aa  <- apply(urn,2, function(x) sample(x,nrow(urn)) )
               rank_aa <- apply(ball_drawn_aa, 2, function(x) min(which(x=="w")) )
               ball_drawn_aa <- sapply(seq(1:ncol(urn)), function(x) ball_drawn_aa[rank_aa[x],x])
-             
+              prob_best <- previous_share
               
               ball_replaced_aa <- sapply(seq(1:I), function(x){
                 rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
@@ -567,7 +574,9 @@ server <- function(input, output){
             
             ## MULTIPLE DRAW OPTIONS
             if (input$multidraw=="multi"){
-              ball_drawn <- sapply(seq(1:I), function(x) sample(na.omit(urn[,x]),input$num_draws) )
+              ball_drawn <- sapply(seq(1:I), function(x) sample(na.omit(urn[,x]),input$num_draws) ) 
+              
+              if (class(ball_drawn)=="character") ball_drawn <- matrix(ball_drawn, ncol=I)
 
               ball_replaced <- lapply(seq(1:I), function(x){
                 total_W = ifelse(input$num_draws ==1,str_count(ball_drawn[,x], "w"), str_count(paste(ball_drawn[,x], collapse=""), "w")) 
@@ -579,6 +588,12 @@ server <- function(input, output){
               
               if (input$multi_interp == TRUE){
                 rank <- apply(ball_drawn, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1 ))
+                # Prob best
+                # P(W first) = previous_share^input$ndraws
+                # P(W not first) = 1-(1-previous_share^input$ndraws)
+                # P(M only) = (1-previous_share)^2
+                prob_best <- (1-previous_share)^input$num_draws + previous_share^input$num_draws
+                
               }
               
               # Not currently used--removals not allowed for multiple draw 
@@ -589,7 +604,7 @@ server <- function(input, output){
             }
             
             # For urns undergoing AA, use those draws instead 
-            if (input$multidraw=="single" & input$intervention != "none" & n > input$aa_start){
+            if (input$multidraw=="single" & input$intervention != "none" & input$intervention!="quota" & n > input$aa_start | (input$multidraw=="single" & input$intervention=="quota" & n > input$quota_start) ){
             ball_drawn <- ifelse(end %in% 0, ball_drawn_aa, ball_drawn)
             ball_replaced_aa <- if(!("list" %in% class(ball_replaced_aa))) sapply(ball_replaced_aa, list) else ball_replaced_aa
             ball_replaced <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_replaced_aa[[x]] else ball_replaced[x])
@@ -633,12 +648,21 @@ server <- function(input, output){
             
             selected <- rbind(selected, ball_selected)
             selected_rank <- if(n > 1) rbind(selected_rank, rank) else rank
+            
+            if (class(selected[1,1]) == "character"){
             selected_w <- rbind(selected_w, sapply(seq(1:I), function(x) sum(selected[, x]=="w")))
             selected_m <- rbind(selected_m, sapply(seq(1:I), function(x) sum(selected[, x]=="m")))
-
+            }
+            
+            if (class(selected[1,1]) == "list"){
+              selected_w <- rbind(selected_w, sapply(seq(1:I), function(x) sum(unlist(selected[, x]) =="w")))
+              selected_m <- rbind(selected_m, sapply(seq(1:I), function(x) sum(unlist(selected[, x])=="m")))
+            }
+            
             w_n <- rbind(w_n, new_w)
             m_n <- rbind(m_n, new_m)
             prob_w_n <- rbind(prob_w_n, prob_w_selected)
+            prob_best_n <- rbind(prob_best_n, prob_best)
             prob_w_w_replace_n<- rbind(prob_w_w_replace_n, p_w_w)
             prob_w_m_replace_n<- rbind(prob_w_m_replace_n, p_w_m)
             
@@ -664,6 +688,10 @@ server <- function(input, output){
           rownames(paths_prob_w_n) <- NULL
           rm(w_n,m_n)
           
+          paths_prob_best <- prob_best_n
+          colnames(paths_prob_best) = sapply(seq(1:I), function(x) paste0("Urn", x))
+          rownames(paths_prob_best) <- NULL
+
           paths_prob_w_w_replace_n <- prob_w_w_replace_n
           colnames(paths_prob_w_w_replace_n) = sapply(seq(1:I), function(x) paste0("Urn", x))
           rownames(paths_prob_w_w_replace_n) <- NULL
@@ -773,7 +801,7 @@ server <- function(input, output){
                          "w_w_removed"=w_w_removed, "w_m_removed"=w_m_removed, "m_w_removed"=m_w_removed, "m_m_removed"=m_m_removed, 
                          "w_w_function" = w_w_function_t, "w_m_function"=w_m_function_t, "m_w_function"=m_w_function_t, "m_m_function"=m_m_function_t)
       # Create a list with all the outputs
-      outputlist <- list(paths_ratio=paths_ratio, paths_w_n=paths_w_n, paths_m_n=paths_m_n, paths_prob_w_w_replace_n=paths_prob_w_w_replace_n, paths_prob_w_m_replace_n=paths_prob_w_m_replace_n, paths_prob_w_n=paths_prob_w_n, paths_selected=paths_selected, paths_selected_rank=paths_selected_rank, paths_selected_w=paths_selected_w, paths_selected_m=paths_selected_m, parameters=parameters, firstend=firstend)
+      outputlist <- list(paths_ratio=paths_ratio, paths_w_n=paths_w_n, paths_m_n=paths_m_n, paths_prob_w_w_replace_n=paths_prob_w_w_replace_n, paths_prob_w_m_replace_n=paths_prob_w_m_replace_n, paths_prob_w_n=paths_prob_w_n, paths_selected=paths_selected, paths_selected_rank=paths_selected_rank, paths_selected_w=paths_selected_w, paths_selected_m=paths_selected_m, parameters=parameters, firstend=firstend, paths_prob_best=paths_prob_best)
       return(outputlist)
       
     })
@@ -1110,7 +1138,6 @@ server <- function(input, output){
   
   ### Graph of share of women in the stock selected
   output$stock_composition <- renderPlotly({
-    
     input$rerun
     
     isolate({
@@ -1140,6 +1167,64 @@ server <- function(input, output){
       
     })
     
+  })
+  
+  ### Graph of share of women in the stock selected
+  output$stock_composition <- renderPlotly({
+    input$rerun
+    
+    isolate({
+      # Get and prepare data
+      outputlist <- list_output()
+      paths_selected_rank <- outputlist$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(name) %>% arrange(draw) %>% mutate(count_best=cumsum(value==1), share_best=cumsum(value==1)/draw) %>% ungroup()
+      
+      average <- paths_selected_rank %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
+      
+      # Plot
+      stock <- ggplot(paths_selected_rank) +
+        geom_line(aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I)) +
+        geom_line(data=average, aes(x=draw, y=mean_share), color="blue") +
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")) + 
+        labs(x="Draw", y="Share of selected that are the best candidate")
+      
+      ggplotly(stock) %>% style(hoverinfo = "skip", traces = 1) %>%
+        style(hovertemplate = paste('After draw %{x:.0f},',
+                                    '<br>%{y:.0%} are the best candidate<br><extra></extra>'), traces = 2) %>%
+        layout(hovermode="x unified)")
+          })
+  })
+  
+  ### Graph of probability of choosing best candidate
+  output$prob_best <- renderPlotly({
+    input$rerun
+    
+    isolate({
+      # Get and prepare data
+      outputlist <- list_output()
+      paths_prob_best <- outputlist$paths_prob_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% mutate(mean_share=mean(value)) %>% ungroup()
+    
+      # Plot
+      stock <- ggplot(paths_prob_best) +
+        geom_line(aes(x=draw, y=value, group=name),size = 0.1, alpha=min(1, 50/input$I)) +
+        geom_line(aes(x=draw, y=mean_share), color="blue") +
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")) + 
+        labs(x="Draw", y="Share of urns selecting best candidate in each round")
+      
+      ggplotly(stock) %>% style(hoverinfo = "skip", traces = 1) %>% 
+        style(hovertemplate = paste('At draw %{x:.0f},',
+                                    '<br>%{y:.0%} of urns select the best candidate<br><extra></extra>'), traces = 2) %>%
+        layout(hovermode="x unified)")
+    })
   })
   
   ### Histogram of share of women in stock selected
