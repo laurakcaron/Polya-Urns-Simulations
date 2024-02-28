@@ -243,14 +243,18 @@ navbarPage("Polya Urns", id="nav",
                   ),
                   # Third tab
                   tabPanel("Selected Candidates", 
+                           h4("Statistics on the stock (history) of those selected:"),
                            # Stock of selected women and men
-                           fluidRow(column(9, plotlyOutput("stockplot", height="50%"))),
-                           # Share of women in the stock of selected candidates
-                           fluidRow(column(9, plotlyOutput("stock_composition", height="50%"))),
+                           fluidRow(column(6, plotlyOutput("stockplot", height="50%"))),
+                           # Share of women in the stock of selected candidates and Histogram of share of women in the stock of selected candidates
+                           fluidRow(column(6, plotlyOutput("stock_composition", height="50%")),
+                                    column(6, plotlyOutput("stock_composition_bar", height="50%"))),
+                           h4("Statistics on the selection at each draw:"),
+                           # Avg. rank and share selecting the best  
+                           fluidRow(column(6, plotlyOutput("share_best", height="50%")),
+                                    column(6, plotlyOutput("avg_rank", height="50%"))),                           
                            # Probability of selecting best candidate 
-                           fluidRow(column(9, plotlyOutput("prob_best", height="50%"))),
-                           # Histogram of share of women in the stock of selected candidates
-                           fluidRow(column(9, plotlyOutput("stock_composition_bar", height="50%")))
+                           fluidRow(column(9, plotlyOutput("prob_best", height="50%")))
                            
                   ),
                   # Fourth tab
@@ -467,8 +471,8 @@ server <- function(input, output){
             
             # Probability of woman selected
               ### CHECK: WITH OR WITHOUT REPLACEMENT 
-            prob_w_selected <- ifelse(input$multidraw=="multi" & !(end %in% 0), 1-(1-previous_share)^input$num_draws, 
-                                 ifelse(input$intervention=="atleast" & (end %in% 0) & n > input$aa_start, 1-(1-previous_share)^2, 
+            prob_w_selected <- ifelse(input$multidraw=="multi" & input$multi_interp==T & !(end %in% 0),  1 - dhyper(input$num_draws, previous_m, previous_w, input$num_draws), 
+                                 ifelse(input$intervention=="atleast" & (end %in% 0) & n > input$aa_start, 1-dhyper(2, previous_m, previous_w, 2), 
                                   ifelse(input$intervention=="atleast_stochastic" & (end %in% 0) & n > input$aa_start, previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
                                     ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start,1, previous_share))))
               
@@ -508,7 +512,8 @@ server <- function(input, output){
               
               rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1) )
               # Prob best = P(MM) + P(WW) + P(WM) 
-              prob_best_aa <- (1-previous_share)^2 + previous_share^2 + previous_share*(1-previous_share)
+              # = P(MM) + P(W first) 
+              prob_best_aa <- dhyper(2, previous_m, previous_w, 2) + previous_share
               ball_drawn_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, "w", "m") )
               ball_replaced_aa <- sapply(seq(1:I), function(x){
                 rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
@@ -589,10 +594,9 @@ server <- function(input, output){
               if (input$multi_interp == TRUE){
                 rank <- apply(ball_drawn, 2, function(x) ifelse("w" %in% x, min(which(x=="w")), 1 ))
                 # Prob best
-                # P(W first) = previous_share^input$ndraws
-                # P(W not first) = 1-(1-previous_share^input$ndraws)
+                # P(W first) = previous_share
                 # P(M only) = (1-previous_share)^2
-                prob_best <- (1-previous_share)^input$num_draws + previous_share
+                prob_best <- dhyper(input$num_draws, previous_m, previous_w, input$num_draws) + previous_share
                 
               }
               
@@ -1200,6 +1204,61 @@ server <- function(input, output){
           })
   })
   
+  ## Graph of share of urns choosing best candidate
+  output$share_best <- renderPlotly({
+    input$rerun
+    
+    isolate({
+      # Get and prepare data
+      outputlist <- list_output()
+      paths_selected_rank <- outputlist$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% summarize(count_best=sum(value==1), share_best=sum(value==1)/input$I) %>% ungroup()
+      
+      # Plot
+      stock <- ggplot(paths_selected_rank) +
+        geom_line(aes(x=draw, y=share_best), color="blue") +
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")) + 
+        labs(x="Draw", y="Share of selected that are the best candidate")
+      
+      ggplotly(stock) %>%
+        style(hovertemplate = paste('At draw %{x:.0f},',
+                                    '<br>%{y:.0%} of urns select the best candidate<br><extra></extra>'), traces = 1) %>%
+        layout(hovermode="x unified)")
+    })
+  })  
+  
+  ## Graph of average rank of selected candidate
+  output$avg_rank <- renderPlotly({
+    input$rerun
+    
+    isolate({
+      # Get and prepare data
+      outputlist <- list_output()
+      paths_selected_rank <- outputlist$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% summarize(avg_rank = mean(value)) %>% ungroup()
+      
+      # Plot
+      stock <- ggplot(paths_selected_rank) +
+        geom_line(aes(x=draw, y=avg_rank), color="blue") +
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black")) + 
+        labs(x="Draw", y="Average rank of selected candidate")
+      
+      ggplotly(stock) %>%
+        style(hovertemplate = paste('At draw %{x:.0f},',
+                                    '<br>the average candidate is the %{y:.0}th draw <br><extra></extra>'), traces = 1) %>%
+        layout(hovermode="x unified)")
+    })
+  })  
+  
+  
   ### Graph of probability of choosing best candidate
   output$prob_best <- renderPlotly({
     input$rerun
@@ -1219,11 +1278,11 @@ server <- function(input, output){
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")) + 
-        labs(x="Draw", y="Share of urns selecting best candidate in each round")
+        labs(x="Draw", y="Prob of urns selecting best candidate in each round")
       
       ggplotly(stock) %>% style(hoverinfo = "skip", traces = 1) %>% 
         style(hovertemplate = paste('At draw %{x:.0f},',
-                                    '<br>%{y:.0%} of urns select the best candidate<br><extra></extra>'), traces = 2) %>%
+                                    '<br>prob. of selecting best candidate is %{y:.0%}<br><extra></extra>'), traces = 2) %>%
         layout(hovermode="x unified)")
     })
   })
