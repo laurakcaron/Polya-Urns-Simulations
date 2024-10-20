@@ -2,7 +2,7 @@
 #              Polya Urns Simulations
 #              Laura Caron
 #              Columbia University
-#         This version: September 28, 2021
+#         This version: October 20, 2024
 ##################################################
 
 ##################################################
@@ -908,7 +908,7 @@ server <- function(input, output){
       withMathJax(
         HTML(paste0(
           h2("About the Urn Simulator"),
-          p("Updated September 2021."), 
+          p("Updated October 2024."), 
           p("This simulator accompanies the paper \"Women, Men, and Polya Urns. Underrepresentation at Equal Talent in the Absence of Discrimination\" by Laura Caron, Alessandra Casella, and Victoria Mooers at Columbia University."),
           p("Note: you need to press \"re-run\" simulation in order to refresh the results. Some graphs may be slow to appear."),
           h3("Simulation Parameters"),
@@ -964,9 +964,9 @@ As above, this may be done in the correlated or uncorrelated case. ",
 h3("Affirmative Action"), 
 p("The app allows simulation of various affirmative action policies. The first type is one where two balls are drawn from the urn, representing the best and second-best candidates. If the best candidate is a woman, they are selected. If not, the second-best candidate is considered and is selected if they are a woman (surely, in the determinisitc case, or with a certain probability, in the stochastic case). Otherwise, the best man candidate is selected."), 
 p("The second type of affirmative action adds one woman to the urn in every round, regardless of draw and addition."), 
-p("The third type is a hiring quota, where only women are selected until the stopping conditions are met. We continue drawing until a woman is selected."), 
+p("The third type is a hiring quota, where only women are selected until the stopping conditions are met. When necessary, we continue drawing until a woman is selected."), 
 h4("Stopping conditions"), 
-p("The affirmative action may continue forever, stop when women become the majority in the sample (urn), stop when women become the majority among those selected, or stop after a certain number of draws. The hiring quota may be stopped when women make up a certain percentage of those selected.")
+p("The affirmative action may continue forever, stop when women become the majority in the sample (urn), stop when women become the majority among those selected, or stop after a certain number of draws. The hiring quota may be stopped when women make up a certain percentage of those selected or in the sample (urn).")
                       
                       
                       
