@@ -255,15 +255,15 @@ navbarPage("Polya Urns", id="nav",
                            h4("Statistics on the selection at each draw:"),
                            # Avg. rank and share selecting the best  
                            fluidRow(column(6, plotlyOutput("share_best", height="50%")),
-                                    column(6, plotlyOutput("avg_rank", height="50%"))),                           
+                                    column(6, plotlyOutput("avg_rank", height="50%")))                           
                            # Probability of selecting best candidate 
-                           fluidRow(column(9, plotlyOutput("prob_best", height="50%")))
+                           #fluidRow(column(9, plotlyOutput("prob_best", height="50%")))
                            
                   ),
                   # Fourth tab
                   tabPanel("About the Urn & AA",
                            # Replacement matrix
-                           uiOutput("matrix"),
+                           #uiOutput("matrix"),
                            # End of AA 
                            fluidRow(column(9, plotlyOutput("hist_firstend", height="50%")))
                   )
@@ -1468,6 +1468,13 @@ server <- function(input, output){
   $$\\begin{pmatrix} w_w & m_w \\\\ w_m & m_m \\end{pmatrix} $$
   
   where \\(m_w\\) represents the number of men added when a woman is drawn, and so on."),
+          h3("Affirmative Action"), 
+          p("The app allows simulation of various affirmative action policies. The first type is one where two balls are drawn from the urn, representing the best and second-best candidates. If the best candidate is a woman, they are selected. If not, the second-best candidate is considered and is selected if they are a woman (surely, in the determinisitc case, or with a certain probability, in the stochastic case). Otherwise, the best man candidate is selected."), 
+          p("The second type of affirmative action adds one woman to the urn in every round, regardless of draw and addition."), 
+          p("These two types can also be simulated using the multiple draw options."),
+          p("The third type is a hiring quota, where women are selected every draw or at least every 2 draws until the stopping conditions are met. When necessary, we continue drawing until a woman is selected."), 
+          h4("Stopping conditions"), 
+          p("The affirmative action may continue forever, stop when women become the majority in the sample (urn), stop when women become the majority among those selected, or stop after a certain number of draws. The hiring quota may be stopped when women make up a certain percentage of those selected or in the sample (urn)."),
           h3("Stochastic addition options"), 
           
           HTML(paste0("Stochastic addition is currently:<b>", if(input$woman_stochastic!="none") " enabled " else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic!="none") " enabled " else " disabled ", "</b> when a man is drawn. <br></br>", 
@@ -1508,14 +1515,7 @@ Another possiblity:
   $$p_{w_w} = \\frac{1}{1+b \\exp(c*share_w)}$$
   with parameters \\(b,c \\in(0,\\infty) \\).
 
-As above, this may be done in the correlated or uncorrelated case. ", 
-h3("Affirmative Action"), 
-p("The app allows simulation of various affirmative action policies. The first type is one where two balls are drawn from the urn, representing the best and second-best candidates. If the best candidate is a woman, they are selected. If not, the second-best candidate is considered and is selected if they are a woman (surely, in the determinisitc case, or with a certain probability, in the stochastic case). Otherwise, the best man candidate is selected."), 
-p("The second type of affirmative action adds one woman to the urn in every round, regardless of draw and addition."), 
-p("The third type is a hiring quota, where only women are selected until the stopping conditions are met. When necessary, we continue drawing until a woman is selected."), 
-h4("Stopping conditions"), 
-p("The affirmative action may continue forever, stop when women become the majority in the sample (urn), stop when women become the majority among those selected, or stop after a certain number of draws. The hiring quota may be stopped when women make up a certain percentage of those selected or in the sample (urn).")
-                      
+As above, this may be done in the correlated or uncorrelated case. "
                       
                       
           ))
