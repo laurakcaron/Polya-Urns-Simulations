@@ -1,0 +1,793 @@
+Field,female,Year,value
+All fields,1,2008,31115
+All fields,1,2009,31225
+All fields,1,2010,28397
+All fields,1,2011,29513
+All fields,1,2012,30859
+All fields,1,2013,32148
+All fields,1,2014,33831
+All fields,1,2015,34660
+All fields,1,2016,35026
+All fields,1,2017,35851
+All fields,1,2018,36444
+S&E,1,2008,13578
+S&E,1,2009,13689
+S&E,1,2010,13411
+S&E,1,2011,14013
+S&E,1,2012,14523
+S&E,1,2013,15237
+S&E,1,2014,16195
+S&E,1,2015,16264
+S&E,1,2016,15876
+S&E,1,2017,16151
+S&E,1,2018,16482
+Science,1,2008,11830
+Science,1,2009,11977
+Science,1,2010,11596
+Science,1,2011,12115
+Science,1,2012,12517
+Science,1,2013,13060
+Science,1,2014,13884
+Science,1,2015,13838
+Science,1,2016,13447
+Science,1,2017,13641
+Science,1,2018,13796
+Agricultural sciences,1,2008,445
+Agricultural sciences,1,2009,506
+Agricultural sciences,1,2010,455
+Agricultural sciences,1,2011,491
+Agricultural sciences,1,2012,540
+Agricultural sciences,1,2013,570
+Agricultural sciences,1,2014,593
+Agricultural sciences,1,2015,665
+Agricultural sciences,1,2016,628
+Agricultural sciences,1,2017,676
+Agricultural sciences,1,2018,639
+Biological sciences,1,2008,3707
+Biological sciences,1,2009,3894
+Biological sciences,1,2010,4007
+Biological sciences,1,2011,3987
+Biological sciences,1,2012,4152
+Biological sciences,1,2013,4167
+Biological sciences,1,2014,4375
+Biological sciences,1,2015,4179
+Biological sciences,1,2016,4136
+Biological sciences,1,2017,4180
+Biological sciences,1,2018,4308
+Computer sciences,1,2008,373
+Computer sciences,1,2009,351
+Computer sciences,1,2010,336
+Computer sciences,1,2011,311
+Computer sciences,1,2012,361
+Computer sciences,1,2013,351
+Computer sciences,1,2014,403
+Computer sciences,1,2015,439
+Computer sciences,1,2016,389
+Computer sciences,1,2017,437
+Computer sciences,1,2018,426
+"Earth, atmospheric, and ocean sciences",1,2008,244
+"Earth, atmospheric, and ocean sciences",1,2009,288
+"Earth, atmospheric, and ocean sciences",1,2010,289
+"Earth, atmospheric, and ocean sciences",1,2011,267
+"Earth, atmospheric, and ocean sciences",1,2012,319
+"Earth, atmospheric, and ocean sciences",1,2013,365
+"Earth, atmospheric, and ocean sciences",1,2014,374
+"Earth, atmospheric, and ocean sciences",1,2015,359
+"Earth, atmospheric, and ocean sciences",1,2016,373
+"Earth, atmospheric, and ocean sciences",1,2017,380
+"Earth, atmospheric, and ocean sciences",1,2018,411
+Atmospheric sciences,1,2008,21
+Atmospheric sciences,1,2009,33
+Atmospheric sciences,1,2010,34
+Atmospheric sciences,1,2011,36
+Atmospheric sciences,1,2012,49
+Atmospheric sciences,1,2013,58
+Atmospheric sciences,1,2014,41
+Atmospheric sciences,1,2015,55
+Atmospheric sciences,1,2016,51
+Atmospheric sciences,1,2017,68
+Atmospheric sciences,1,2018,66
+Earth sciences,1,2008,174
+Earth sciences,1,2009,195
+Earth sciences,1,2010,204
+Earth sciences,1,2011,186
+Earth sciences,1,2012,215
+Earth sciences,1,2013,232
+Earth sciences,1,2014,261
+Earth sciences,1,2015,249
+Earth sciences,1,2016,252
+Earth sciences,1,2017,254
+Earth sciences,1,2018,283
+Ocean sciences,1,2008,49
+Ocean sciences,1,2009,60
+Ocean sciences,1,2010,51
+Ocean sciences,1,2011,45
+Ocean sciences,1,2012,55
+Ocean sciences,1,2013,75
+Ocean sciences,1,2014,72
+Ocean sciences,1,2015,55
+Ocean sciences,1,2016,70
+Ocean sciences,1,2017,58
+Ocean sciences,1,2018,62
+Mathematics and statistics,1,2008,423
+Mathematics and statistics,1,2009,476
+Mathematics and statistics,1,2010,476
+Mathematics and statistics,1,2011,454
+Mathematics and statistics,1,2012,471
+Mathematics and statistics,1,2013,531
+Mathematics and statistics,1,2014,539
+Mathematics and statistics,1,2015,503
+Mathematics and statistics,1,2016,528
+Mathematics and statistics,1,2017,522
+Mathematics and statistics,1,2018,563
+Physical sciences,1,2008,1234
+Physical sciences,1,2009,1385
+Physical sciences,1,2010,1371
+Physical sciences,1,2011,1418
+Physical sciences,1,2012,1444
+Physical sciences,1,2013,1516
+Physical sciences,1,2014,1574
+Physical sciences,1,2015,1647
+Physical sciences,1,2016,1571
+Physical sciences,1,2017,1572
+Physical sciences,1,2018,1691
+Astronomy,1,2008,39
+Astronomy,1,2009,54
+Astronomy,1,2010,61
+Astronomy,1,2011,57
+Astronomy,1,2012,57
+Astronomy,1,2013,63
+Astronomy,1,2014,62
+Astronomy,1,2015,52
+Astronomy,1,2016,59
+Astronomy,1,2017,73
+Astronomy,1,2018,82
+Chemistry,1,2008,901
+Chemistry,1,2009,1024
+Chemistry,1,2010,994
+Chemistry,1,2011,1047
+Chemistry,1,2012,1028
+Chemistry,1,2013,1102
+Chemistry,1,2014,1150
+Chemistry,1,2015,1206
+Chemistry,1,2016,1134
+Chemistry,1,2017,1154
+Chemistry,1,2018,1193
+Physics,1,2008,280
+Physics,1,2009,293
+Physics,1,2010,305
+Physics,1,2011,302
+Physics,1,2012,350
+Physics,1,2013,335
+Physics,1,2014,331
+Physics,1,2015,367
+Physics,1,2016,354
+Physics,1,2017,320
+Physics,1,2018,402
+Other,1,2008,14
+Other,1,2009,14
+Other,1,2010,11
+Other,1,2011,12
+Other,1,2012,9
+Other,1,2013,16
+Other,1,2014,31
+Other,1,2015,22
+Other,1,2016,24
+Other,1,2017,25
+Other,1,2018,14
+Psychology,1,2008,3311
+Psychology,1,2009,2912
+Psychology,1,2010,2537
+Psychology,1,2011,2863
+Psychology,1,2012,2808
+Psychology,1,2013,3118
+Psychology,1,2014,3361
+Psychology,1,2015,3343
+Psychology,1,2016,3293
+Psychology,1,2017,3268
+Psychology,1,2018,3117
+Social sciences,1,2008,2093
+Social sciences,1,2009,2165
+Social sciences,1,2010,2125
+Social sciences,1,2011,2324
+Social sciences,1,2012,2422
+Social sciences,1,2013,2442
+Social sciences,1,2014,2665
+Social sciences,1,2015,2703
+Social sciences,1,2016,2529
+Social sciences,1,2017,2606
+Social sciences,1,2018,2641
+Anthropology,1,2008,301
+Anthropology,1,2009,315
+Anthropology,1,2010,314
+Anthropology,1,2011,358
+Anthropology,1,2012,374
+Anthropology,1,2013,389
+Anthropology,1,2014,378
+Anthropology,1,2015,353
+Anthropology,1,2016,343
+Anthropology,1,2017,364
+Anthropology,1,2018,384
+Area and ethnic studies,1,2008,143
+Area and ethnic studies,1,2009,138
+Area and ethnic studies,1,2010,131
+Area and ethnic studies,1,2011,141
+Area and ethnic studies,1,2012,161
+Area and ethnic studies,1,2013,142
+Area and ethnic studies,1,2014,187
+Area and ethnic studies,1,2015,184
+Area and ethnic studies,1,2016,174
+Area and ethnic studies,1,2017,205
+Area and ethnic studies,1,2018,200
+Economics,1,2008,408
+Economics,1,2009,419
+Economics,1,2010,380
+Economics,1,2011,406
+Economics,1,2012,421
+Economics,1,2013,436
+Economics,1,2014,415
+Economics,1,2015,466
+Economics,1,2016,450
+Economics,1,2017,452
+Economics,1,2018,427
+History of science,1,2008,17
+History of science,1,2009,7
+History of science,1,2010,14
+History of science,1,2011,8
+History of science,1,2012,7
+History of science,1,2013,18
+History of science,1,2014,18
+History of science,1,2015,16
+History of science,1,2016,19
+History of science,1,2017,17
+History of science,1,2018,17
+Linguistics,1,2008,120
+Linguistics,1,2009,152
+Linguistics,1,2010,115
+Linguistics,1,2011,142
+Linguistics,1,2012,133
+Linguistics,1,2013,140
+Linguistics,1,2014,146
+Linguistics,1,2015,149
+Linguistics,1,2016,158
+Linguistics,1,2017,137
+Linguistics,1,2018,163
+Political science and public administration,1,2008,520
+Political science and public administration,1,2009,546
+Political science and public administration,1,2010,588
+Political science and public administration,1,2011,598
+Political science and public administration,1,2012,652
+Political science and public administration,1,2013,699
+Political science and public administration,1,2014,780
+Political science and public administration,1,2015,766
+Political science and public administration,1,2016,745
+Political science and public administration,1,2017,728
+Political science and public administration,1,2018,714
+Sociology,1,2008,360
+Sociology,1,2009,380
+Sociology,1,2010,378
+Sociology,1,2011,419
+Sociology,1,2012,402
+Sociology,1,2013,367
+Sociology,1,2014,435
+Sociology,1,2015,441
+Sociology,1,2016,377
+Sociology,1,2017,423
+Sociology,1,2018,448
+Other ,1,2008,224
+Other ,1,2009,208
+Other ,1,2010,205
+Other ,1,2011,252
+Other ,1,2012,272
+Other ,1,2013,251
+Other ,1,2014,306
+Other ,1,2015,328
+Other ,1,2016,263
+Other ,1,2017,280
+Other ,1,2018,288
+Engineering,1,2008,1748
+Engineering,1,2009,1712
+Engineering,1,2010,1815
+Engineering,1,2011,1898
+Engineering,1,2012,2006
+Engineering,1,2013,2177
+Engineering,1,2014,2311
+Engineering,1,2015,2426
+Engineering,1,2016,2429
+Engineering,1,2017,2510
+Engineering,1,2018,2686
+Aerospace engineering,1,2008,24
+Aerospace engineering,1,2009,33
+Aerospace engineering,1,2010,40
+Aerospace engineering,1,2011,30
+Aerospace engineering,1,2012,40
+Aerospace engineering,1,2013,49
+Aerospace engineering,1,2014,53
+Aerospace engineering,1,2015,47
+Aerospace engineering,1,2016,49
+Aerospace engineering,1,2017,38
+Aerospace engineering,1,2018,42
+Chemical engineering,1,2008,249
+Chemical engineering,1,2009,237
+Chemical engineering,1,2010,269
+Chemical engineering,1,2011,280
+Chemical engineering,1,2012,293
+Chemical engineering,1,2013,298
+Chemical engineering,1,2014,328
+Chemical engineering,1,2015,361
+Chemical engineering,1,2016,363
+Chemical engineering,1,2017,347
+Chemical engineering,1,2018,348
+Civil engineering,1,2008,232
+Civil engineering,1,2009,214
+Civil engineering,1,2010,246
+Civil engineering,1,2011,239
+Civil engineering,1,2012,241
+Civil engineering,1,2013,298
+Civil engineering,1,2014,314
+Civil engineering,1,2015,371
+Civil engineering,1,2016,314
+Civil engineering,1,2017,393
+Civil engineering,1,2018,396
+Electrical engineering,1,2008,388
+Electrical engineering,1,2009,338
+Electrical engineering,1,2010,382
+Electrical engineering,1,2011,387
+Electrical engineering,1,2012,424
+Electrical engineering,1,2013,364
+Electrical engineering,1,2014,413
+Electrical engineering,1,2015,390
+Electrical engineering,1,2016,418
+Electrical engineering,1,2017,456
+Electrical engineering,1,2018,489
+Industrial engineering,1,2008,97
+Industrial engineering,1,2009,86
+Industrial engineering,1,2010,72
+Industrial engineering,1,2011,100
+Industrial engineering,1,2012,104
+Industrial engineering,1,2013,113
+Industrial engineering,1,2014,122
+Industrial engineering,1,2015,121
+Industrial engineering,1,2016,113
+Industrial engineering,1,2017,119
+Industrial engineering,1,2018,103
+Materials engineering,1,2008,156
+Materials engineering,1,2009,172
+Materials engineering,1,2010,166
+Materials engineering,1,2011,156
+Materials engineering,1,2012,172
+Materials engineering,1,2013,202
+Materials engineering,1,2014,197
+Materials engineering,1,2015,217
+Materials engineering,1,2016,216
+Materials engineering,1,2017,228
+Materials engineering,1,2018,251
+Mechanical engineering,1,2008,160
+Mechanical engineering,1,2009,160
+Mechanical engineering,1,2010,125
+Mechanical engineering,1,2011,162
+Mechanical engineering,1,2012,194
+Mechanical engineering,1,2013,212
+Mechanical engineering,1,2014,217
+Mechanical engineering,1,2015,223
+Mechanical engineering,1,2016,241
+Mechanical engineering,1,2017,238
+Mechanical engineering,1,2018,255
+Other ,1,2008,442
+Other ,1,2009,472
+Other ,1,2010,515
+Other ,1,2011,544
+Other ,1,2012,538
+Other ,1,2013,641
+Other ,1,2014,667
+Other ,1,2015,696
+Other ,1,2016,715
+Other ,1,2017,691
+Other ,1,2018,802
+Non-S&E,1,2008,17537
+Non-S&E,1,2009,17536
+Non-S&E,1,2010,14986
+Non-S&E,1,2011,15500
+Non-S&E,1,2012,16336
+Non-S&E,1,2013,16911
+Non-S&E,1,2014,17636
+Non-S&E,1,2015,18396
+Non-S&E,1,2016,19150
+Non-S&E,1,2017,19700
+Non-S&E,1,2018,19962
+All fields,0,2008,30601
+All fields,0,2009,30505
+All fields,0,2010,29008
+All fields,0,2011,30334
+All fields,0,2012,31322
+All fields,0,2013,32739
+All fields,0,2014,33760
+All fields,0,2015,34455
+All fields,0,2016,34810
+All fields,0,2017,35291
+All fields,0,2018,35888
+S&E,0,2008,19781
+S&E,0,2009,19595
+S&E,0,2010,19238
+S&E,0,2011,20192
+S&E,0,2012,20836
+S&E,0,2013,21691
+S&E,0,2014,22744
+S&E,0,2015,22914
+S&E,0,2016,23177
+S&E,0,2017,23377
+S&E,0,2018,23575
+Science,0,2008,13419
+Science,0,2009,13392
+Science,0,2010,13241
+Science,0,2011,13612
+Science,0,2012,13969
+Science,0,2013,14379
+Science,0,2014,14920
+Science,0,2015,14934
+Science,0,2016,15248
+Science,0,2017,15340
+Science,0,2018,15310
+Agricultural sciences,0,2008,635
+Agricultural sciences,0,2009,637
+Agricultural sciences,0,2010,527
+Agricultural sciences,0,2011,562
+Agricultural sciences,0,2012,604
+Agricultural sciences,0,2013,648
+Agricultural sciences,0,2014,635
+Agricultural sciences,0,2015,716
+Agricultural sciences,0,2016,715
+Agricultural sciences,0,2017,688
+Agricultural sciences,0,2018,706
+Biological sciences,0,2008,3612
+Biological sciences,0,2009,3535
+Biological sciences,0,2010,3564
+Biological sciences,0,2011,3609
+Biological sciences,0,2012,3665
+Biological sciences,0,2013,3658
+Biological sciences,0,2014,3832
+Biological sciences,0,2015,3711
+Biological sciences,0,2016,3722
+Biological sciences,0,2017,3823
+Biological sciences,0,2018,3788
+Computer sciences,0,2008,1323
+Computer sciences,0,2009,1223
+Computer sciences,0,2010,1225
+Computer sciences,0,2011,1251
+Computer sciences,0,2012,1329
+Computer sciences,0,2013,1458
+Computer sciences,0,2014,1532
+Computer sciences,0,2015,1512
+Computer sciences,0,2016,1547
+Computer sciences,0,2017,1497
+Computer sciences,0,2018,1548
+"Earth, atmospheric, and ocean sciences",0,2008,439
+"Earth, atmospheric, and ocean sciences",0,2009,436
+"Earth, atmospheric, and ocean sciences",0,2010,424
+"Earth, atmospheric, and ocean sciences",0,2011,420
+"Earth, atmospheric, and ocean sciences",0,2012,418
+"Earth, atmospheric, and ocean sciences",0,2013,429
+"Earth, atmospheric, and ocean sciences",0,2014,487
+"Earth, atmospheric, and ocean sciences",0,2015,468
+"Earth, atmospheric, and ocean sciences",0,2016,539
+"Earth, atmospheric, and ocean sciences",0,2017,510
+"Earth, atmospheric, and ocean sciences",0,2018,522
+Atmospheric sciences,0,2008,85
+Atmospheric sciences,0,2009,77
+Atmospheric sciences,0,2010,66
+Atmospheric sciences,0,2011,84
+Atmospheric sciences,0,2012,76
+Atmospheric sciences,0,2013,79
+Atmospheric sciences,0,2014,85
+Atmospheric sciences,0,2015,91
+Atmospheric sciences,0,2016,91
+Atmospheric sciences,0,2017,85
+Atmospheric sciences,0,2018,108
+Earth sciences,0,2008,295
+Earth sciences,0,2009,308
+Earth sciences,0,2010,292
+Earth sciences,0,2011,281
+Earth sciences,0,2012,282
+Earth sciences,0,2013,298
+Earth sciences,0,2014,345
+Earth sciences,0,2015,326
+Earth sciences,0,2016,379
+Earth sciences,0,2017,375
+Earth sciences,0,2018,365
+Ocean sciences,0,2008,59
+Ocean sciences,0,2009,51
+Ocean sciences,0,2010,66
+Ocean sciences,0,2011,55
+Ocean sciences,0,2012,60
+Ocean sciences,0,2013,52
+Ocean sciences,0,2014,57
+Ocean sciences,0,2015,51
+Ocean sciences,0,2016,69
+Ocean sciences,0,2017,50
+Ocean sciences,0,2018,49
+Mathematics and statistics,0,2008,939
+Mathematics and statistics,0,2009,1060
+Mathematics and statistics,0,2010,1118
+Mathematics and statistics,0,2011,1136
+Mathematics and statistics,0,2012,1199
+Mathematics and statistics,0,2013,1293
+Mathematics and statistics,0,2014,1325
+Mathematics and statistics,0,2015,1299
+Mathematics and statistics,0,2016,1327
+Mathematics and statistics,0,2017,1403
+Mathematics and statistics,0,2018,1450
+Physical sciences,0,2008,2971
+Physical sciences,0,2009,3031
+Physical sciences,0,2010,2955
+Physical sciences,0,2011,3142
+Physical sciences,0,2012,3145
+Physical sciences,0,2013,3187
+Physical sciences,0,2014,3373
+Physical sciences,0,2015,3324
+Physical sciences,0,2016,3507
+Physical sciences,0,2017,3514
+Physical sciences,0,2018,3513
+Astronomy,0,2008,124
+Astronomy,0,2009,89
+Astronomy,0,2010,99
+Astronomy,0,2011,109
+Astronomy,0,2012,113
+Astronomy,0,2013,111
+Astronomy,0,2014,117
+Astronomy,0,2015,101
+Astronomy,0,2016,110
+Astronomy,0,2017,123
+Astronomy,0,2018,129
+Chemistry,0,2008,1594
+Chemistry,0,2009,1628
+Chemistry,0,2010,1570
+Chemistry,0,2011,1638
+Chemistry,0,2012,1602
+Chemistry,0,2013,1628
+Chemistry,0,2014,1771
+Chemistry,0,2015,1700
+Chemistry,0,2016,1868
+Chemistry,0,2017,1836
+Chemistry,0,2018,1866
+Physics,0,2008,1227
+Physics,0,2009,1287
+Physics,0,2010,1265
+Physics,0,2011,1368
+Physics,0,2012,1402
+Physics,0,2013,1405
+Physics,0,2014,1437
+Physics,0,2015,1473
+Physics,0,2016,1479
+Physics,0,2017,1506
+Physics,0,2018,1477
+Other,0,2008,26
+Other,0,2009,27
+Other,0,2010,21
+Other,0,2011,27
+Other,0,2012,28
+Other,0,2013,43
+Other,0,2014,48
+Other,0,2015,50
+Other,0,2016,50
+Other,0,2017,49
+Other,0,2018,41
+Psychology,0,2008,1289
+Psychology,0,2009,1134
+Psychology,0,2010,1069
+Psychology,0,2011,1089
+Psychology,0,2012,1059
+Psychology,0,2013,1162
+Psychology,0,2014,1213
+Psychology,0,2015,1190
+Psychology,0,2016,1233
+Psychology,0,2017,1218
+Psychology,0,2018,1208
+Social sciences,0,2008,2211
+Social sciences,0,2009,2336
+Social sciences,0,2010,2359
+Social sciences,0,2011,2403
+Social sciences,0,2012,2550
+Social sciences,0,2013,2544
+Social sciences,0,2014,2523
+Social sciences,0,2015,2714
+Social sciences,0,2016,2658
+Social sciences,0,2017,2687
+Social sciences,0,2018,2575
+Anthropology,0,2008,190
+Anthropology,0,2009,212
+Anthropology,0,2010,220
+Anthropology,0,2011,238
+Anthropology,0,2012,211
+Anthropology,0,2013,206
+Anthropology,0,2014,228
+Anthropology,0,2015,224
+Anthropology,0,2016,248
+Anthropology,0,2017,217
+Anthropology,0,2018,189
+Area and ethnic studies,0,2008,103
+Area and ethnic studies,0,2009,88
+Area and ethnic studies,0,2010,106
+Area and ethnic studies,0,2011,116
+Area and ethnic studies,0,2012,113
+Area and ethnic studies,0,2013,130
+Area and ethnic studies,0,2014,129
+Area and ethnic studies,0,2015,125
+Area and ethnic studies,0,2016,128
+Area and ethnic studies,0,2017,118
+Area and ethnic studies,0,2018,116
+Economics,0,2008,764
+Economics,0,2009,753
+Economics,0,2010,740
+Economics,0,2011,746
+Economics,0,2012,850
+Economics,0,2013,791
+Economics,0,2014,797
+Economics,0,2015,817
+Economics,0,2016,848
+Economics,0,2017,873
+Economics,0,2018,899
+History of science,0,2008,17
+History of science,0,2009,12
+History of science,0,2010,17
+History of science,0,2011,19
+History of science,0,2012,17
+History of science,0,2013,11
+History of science,0,2014,23
+History of science,0,2015,15
+History of science,0,2016,12
+History of science,0,2017,13
+History of science,0,2018,10
+Linguistics,0,2008,95
+Linguistics,0,2009,88
+Linguistics,0,2010,88
+Linguistics,0,2011,93
+Linguistics,0,2012,116
+Linguistics,0,2013,97
+Linguistics,0,2014,94
+Linguistics,0,2015,117
+Linguistics,0,2016,101
+Linguistics,0,2017,92
+Linguistics,0,2018,95
+Political science and public administration,0,2008,584
+Political science and public administration,0,2009,698
+Political science and public administration,0,2010,724
+Political science and public administration,0,2011,716
+Political science and public administration,0,2012,750
+Political science and public administration,0,2013,808
+Political science and public administration,0,2014,757
+Political science and public administration,0,2015,856
+Political science and public administration,0,2016,773
+Political science and public administration,0,2017,829
+Political science and public administration,0,2018,775
+Sociology,0,2008,234
+Sociology,0,2009,255
+Sociology,0,2010,234
+Sociology,0,2011,252
+Sociology,0,2012,233
+Sociology,0,2013,259
+Sociology,0,2014,257
+Sociology,0,2015,292
+Sociology,0,2016,281
+Sociology,0,2017,274
+Sociology,0,2018,259
+Other ,0,2008,224
+Other ,0,2009,230
+Other ,0,2010,230
+Other ,0,2011,223
+Other ,0,2012,260
+Other ,0,2013,242
+Other ,0,2014,238
+Other ,0,2015,268
+Other ,0,2016,267
+Other ,0,2017,271
+Other ,0,2018,232
+Engineering,0,2008,6362
+Engineering,0,2009,6203
+Engineering,0,2010,5997
+Engineering,0,2011,6580
+Engineering,0,2012,6867
+Engineering,0,2013,7312
+Engineering,0,2014,7824
+Engineering,0,2015,7980
+Engineering,0,2016,7929
+Engineering,0,2017,8037
+Engineering,0,2018,8265
+Aerospace engineering,0,2008,208
+Aerospace engineering,0,2009,224
+Aerospace engineering,0,2010,188
+Aerospace engineering,0,2011,207
+Aerospace engineering,0,2012,235
+Aerospace engineering,0,2013,261
+Aerospace engineering,0,2014,283
+Aerospace engineering,0,2015,263
+Aerospace engineering,0,2016,283
+Aerospace engineering,0,2017,304
+Aerospace engineering,0,2018,305
+Chemical engineering,0,2008,701
+Chemical engineering,0,2009,649
+Chemical engineering,0,2010,660
+Chemical engineering,0,2011,671
+Chemical engineering,0,2012,676
+Chemical engineering,0,2013,703
+Chemical engineering,0,2014,841
+Chemical engineering,0,2015,836
+Chemical engineering,0,2016,818
+Chemical engineering,0,2017,822
+Chemical engineering,0,2018,863
+Civil engineering,0,2008,677
+Civil engineering,0,2009,688
+Civil engineering,0,2010,605
+Civil engineering,0,2011,655
+Civil engineering,0,2012,681
+Civil engineering,0,2013,738
+Civil engineering,0,2014,840
+Civil engineering,0,2015,859
+Civil engineering,0,2016,852
+Civil engineering,0,2017,853
+Civil engineering,0,2018,836
+Electrical engineering,0,2008,1891
+Electrical engineering,0,2009,1752
+Electrical engineering,0,2010,1787
+Electrical engineering,0,2011,1965
+Electrical engineering,0,2012,2051
+Electrical engineering,0,2013,2105
+Electrical engineering,0,2014,2229
+Electrical engineering,0,2015,2261
+Electrical engineering,0,2016,2202
+Electrical engineering,0,2017,2213
+Electrical engineering,0,2018,2231
+Industrial engineering,0,2008,249
+Industrial engineering,0,2009,247
+Industrial engineering,0,2010,218
+Industrial engineering,0,2011,219
+Industrial engineering,0,2012,244
+Industrial engineering,0,2013,276
+Industrial engineering,0,2014,278
+Industrial engineering,0,2015,233
+Industrial engineering,0,2016,262
+Industrial engineering,0,2017,261
+Industrial engineering,0,2018,294
+Materials engineering,0,2008,509
+Materials engineering,0,2009,489
+Materials engineering,0,2010,487
+Materials engineering,0,2011,495
+Materials engineering,0,2012,543
+Materials engineering,0,2013,555
+Materials engineering,0,2014,537
+Materials engineering,0,2015,593
+Materials engineering,0,2016,626
+Materials engineering,0,2017,649
+Materials engineering,0,2018,640
+Mechanical engineering,0,2008,989
+Mechanical engineering,0,2009,1026
+Mechanical engineering,0,2010,897
+Mechanical engineering,0,2011,1010
+Mechanical engineering,0,2012,1083
+Mechanical engineering,0,2013,1172
+Mechanical engineering,0,2014,1237
+Mechanical engineering,0,2015,1363
+Mechanical engineering,0,2016,1293
+Mechanical engineering,0,2017,1260
+Mechanical engineering,0,2018,1410
+Other ,0,2008,1138
+Other ,0,2009,1128
+Other ,0,2010,1155
+Other ,0,2011,1358
+Other ,0,2012,1354
+Other ,0,2013,1502
+Other ,0,2014,1579
+Other ,0,2015,1572
+Other ,0,2016,1593
+Other ,0,2017,1675
+Other ,0,2018,1686
+Non-S&E,0,2008,10820
+Non-S&E,0,2009,10910
+Non-S&E,0,2010,9770
+Non-S&E,0,2011,10142
+Non-S&E,0,2012,10486
+Non-S&E,0,2013,11048
+Non-S&E,0,2014,11016
+Non-S&E,0,2015,11541
+Non-S&E,0,2016,11633
+Non-S&E,0,2017,11914
+Non-S&E,0,2018,12313

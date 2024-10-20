@@ -1,0 +1,408 @@
+Year,All fields,S&E,All sciences,Agricultural sciences,female
+2009,1,Psychology,73164,0,1
+2009,1,Social sciences,84780,0,1
+2009,1,Engineering,12750,0,1
+2009,1,Non-S&E,672907,0,1
+2010,1,All fields,954891,0,1
+2010,1,S&E,264283,0,1
+2010,1,All sciences,250590,0,1
+2010,1,Agricultural sciences,10709,0,1
+2010,1,Biological sciences,52878,0,1
+2010,1,Computer sciences,7306,0,1
+2010,1,"Earth, atmospheric, and ocean sciences",1889,0,1
+2010,1,Mathematics and statistics,7248,0,0
+2010,1,Physical sciences,7598,0,0
+2010,1,Psychology,75336,0,0
+2010,1,Social sciences,87626,0,0
+2010,1,Engineering,13693,0,0
+2010,1,Non-S&E,690608,0,0
+2011,1,All fields,993872,0,0
+2011,1,S&E,279107,0,0
+2011,1,All sciences,264449,0,0
+2011,1,Agricultural sciences,11855,0,0
+2011,1,Biological sciences,55794,0,0
+2011,1,Computer sciences,7700,0,0
+2011,1,"Earth, atmospheric, and ocean sciences",2080,0,0
+2011,1,Mathematics and statistics,7745,0,0
+2011,1,Physical sciences,7794,0,0
+2011,1,Psychology,78167,0,0
+2011,1,Social sciences,93314,0,0
+2011,1,Engineering,14658,0,0
+2011,1,Non-S&E,714765,0,0
+2012,1,All fields,1038807,0,0
+2012,1,S&E,297677,0,0
+2012,1,All sciences,281696,0,0
+2012,1,Agricultural sciences,13444,0,0
+2012,1,Biological sciences,59216,0,0
+2012,1,Computer sciences,8751,0,0
+2012,1,"Earth, atmospheric, and ocean sciences",2295,0,0
+2012,1,Mathematics and statistics,8536,0,0
+2012,1,Physical sciences,8284,0,0
+2012,1,Psychology,84181,0,0
+2012,1,Social sciences,96989,0,0
+2012,1,Engineering,15981,0,0
+2012,1,Non-S&E,741130,0,0
+2013,1,All fields,1066182,0,0
+2013,1,S&E,309698,0,0
+2013,1,All sciences,292764,0,0
+2013,1,Agricultural sciences,14826,0,0
+2013,1,Biological sciences,61971,0,0
+2013,1,Computer sciences,9209,0,0
+2013,1,"Earth, atmospheric, and ocean sciences",2400,0,0
+2013,1,Mathematics and statistics,9297,0,0
+2013,1,Physical sciences,8347,0,0
+2013,1,Psychology,88329,0,0
+2013,1,Social sciences,98385,0,0
+2013,1,Engineering,16934,0,0
+2013,1,Non-S&E,756484,0,0
+2014,1,All fields,1081488,0,0
+2014,1,S&E,317900,0,0
+2014,1,All sciences,299274,0,0
+2014,1,Agricultural sciences,15525,0,0
+2014,1,Biological sciences,64709,0,0
+2014,1,Computer sciences,10144,0,0
+2014,1,"Earth, atmospheric, and ocean sciences",2596,0,0
+2014,1,Mathematics and statistics,9511,0,0
+2014,1,Physical sciences,8815,0,0
+2014,1,Psychology,90851,0,0
+2014,1,Social sciences,97123,0,0
+2014,1,Engineering,18626,0,0
+2014,1,Non-S&E,763588,0,0
+2015,1,All fields,1095703,0,0
+2015,1,S&E,322935,0,0
+2015,1,All sciences,302878,0,0
+2015,1,Agricultural sciences,16234,0,0
+2015,1,Biological sciences,68570,0,0
+2015,1,Computer sciences,10863,0,0
+2015,1,"Earth, atmospheric, and ocean sciences",2701,0,0
+2015,1,Mathematics and statistics,9922,0,0
+2015,1,Physical sciences,8765,0,0
+2015,1,Psychology,91688,0,0
+2015,1,Social sciences,94135,0,0
+2015,1,Engineering,20057,0,0
+2015,1,Non-S&E,772768,0,0
+2016,1,All fields,1112357,0,0
+2016,1,S&E,330883,0,0
+2016,1,All sciences,308089,0,0
+2016,1,Agricultural sciences,16934,0,0
+2016,1,Biological sciences,72065,0,0
+2016,1,Computer sciences,12222,0,0
+2016,1,"Earth, atmospheric, and ocean sciences",2793,0,0
+2016,1,Mathematics and statistics,10302,0,0
+2016,1,Physical sciences,8888,0,0
+2016,1,Psychology,92069,0,0
+2016,1,Social sciences,92816,0,0
+2016,1,Engineering,22794,0,0
+2016,1,Non-S&E,781474,0,0
+2017,1,All fields,1130489,0,0
+2017,1,S&E,338470,0,0
+2017,1,All sciences,313097,0,0
+2017,1,Agricultural sciences,17305,0,0
+2017,1,Biological sciences,74923,0,0
+2017,1,Computer sciences,13802,0,0
+2017,1,"Earth, atmospheric, and ocean sciences",2849,0,0
+2017,1,Mathematics and statistics,10753,0,0
+2017,1,Physical sciences,9357,0,0
+2017,1,Psychology,91745,0,0
+2017,1,Social sciences,92363,0,0
+2017,1,Engineering,25373,0,0
+2017,1,Non-S&E,792019,0,0
+2018,1,All fields,1148820,0,0
+2018,1,S&E,350674,0,0
+2018,1,All sciences,323074,0,0
+2018,1,Agricultural sciences,18469,0,0
+2018,1,Biological sciences,78568,0,0
+2018,1,Computer sciences,16001,0,0
+2018,1,"Earth, atmospheric, and ocean sciences",2854,0,0
+2018,1,Mathematics and statistics,11490,0,0
+2018,1,Physical sciences,9607,0,0
+2018,1,Psychology,92701,0,0
+2018,1,Social sciences,93384,0,0
+2018,1,Engineering,27600,0,0
+2018,1,Non-S&E,798146,0,0
+2008,0,All fields,673788,0,0
+2008,0,S&E,246719,0,0
+2008,0,All sciences,189732,0,0
+2008,0,Agricultural sciences,9017,0,0
+2008,0,Biological sciences,33136,0,0
+2008,0,Computer sciences,32038,0,0
+2008,0,"Earth, atmospheric, and ocean sciences",2559,0,0
+2008,0,Mathematics and statistics,8884,0,0
+2008,0,Physical sciences,10368,0,0
+2008,0,Psychology,21307,0,0
+2008,0,Social sciences,72423,0,0
+2008,0,Engineering,56987,0,0
+2008,0,Non-S&E,427069,0,0
+2009,0,All fields,691428,0,0
+2009,0,S&E,250742,0,0
+2009,0,All sciences,192892,0,0
+2009,0,Agricultural sciences,9334,0,0
+2009,0,Biological sciences,34477,0,0
+2009,0,Computer sciences,31602,0,0
+2009,0,"Earth, atmospheric, and ocean sciences",2774,0,0
+2009,0,Mathematics and statistics,9237,0,0
+2009,0,Physical sciences,10491,0,0
+2009,0,Psychology,21579,0,0
+2009,0,Social sciences,73398,0,0
+2009,0,Engineering,57850,0,0
+2009,0,Non-S&E,440686,0,0
+2010,0,All fields,713336,0,0
+2010,0,S&E,261091,0,0
+2010,0,All sciences,200385,0,0
+2010,0,Agricultural sciences,9691,0,0
+2010,0,Biological sciences,36737,0,0
+2010,0,Computer sciences,32801,0,0
+2010,0,"Earth, atmospheric, and ocean sciences",2913,0,0
+2010,0,Mathematics and statistics,9584,0,0
+2010,0,Physical sciences,10804,0,0
+2010,0,Psychology,22410,0,0
+2010,0,Social sciences,75445,0,0
+2010,0,Engineering,60706,0,0
+2010,0,Non-S&E,452245,0,0
+2011,0,All fields,740357,0,0
+2011,0,S&E,275258,0,0
+2011,0,All sciences,211817,0,0
+2011,0,Agricultural sciences,10904,0,0
+2011,0,Biological sciences,37860,0,0
+2011,0,Computer sciences,35886,0,0
+2011,0,"Earth, atmospheric, and ocean sciences",3219,0,0
+2011,0,Mathematics and statistics,10276,0,0
+2011,0,Physical sciences,11404,0,0
+2011,0,Psychology,23401,0,0
+2011,0,Social sciences,78867,0,0
+2011,0,Engineering,63441,0,0
+2011,0,Non-S&E,465099,0,0
+2012,0,All fields,772597,0,0
+2012,0,S&E,291890,0,0
+2012,0,All sciences,224608,0,0
+2012,0,Agricultural sciences,11616,0,0
+2012,0,Biological sciences,40678,0,0
+2012,0,Computer sciences,39283,0,0
+2012,0,"Earth, atmospheric, and ocean sciences",3570,0,0
+2012,0,Mathematics and statistics,11283,0,0
+2012,0,Physical sciences,12137,0,0
+2012,0,Psychology,25601,0,0
+2012,0,Social sciences,80440,0,0
+2012,0,Engineering,67282,0,0
+2012,0,Non-S&E,480707,0,0
+2013,0,All fields,794852,0,0
+2013,0,S&E,305777,0,0
+2013,0,All sciences,234899,0,0
+2013,0,Agricultural sciences,12783,0,0
+2013,0,Biological sciences,42732,0,0
+2013,0,Computer sciences,42377,0,0
+2013,0,"Earth, atmospheric, and ocean sciences",3891,0,0
+2013,0,Mathematics and statistics,12270,0,0
+2013,0,Physical sciences,12929,0,0
+2013,0,Psychology,27044,0,0
+2013,0,Social sciences,80873,0,0
+2013,0,Engineering,70878,0,0
+2013,0,Non-S&E,489075,0,0
+2014,0,All fields,809453,0,0
+2014,0,S&E,318015,0,0
+2014,0,All sciences,242691,0,0
+2014,0,Agricultural sciences,13271,0,0
+2014,0,Biological sciences,44811,0,0
+2014,0,Computer sciences,45986,0,0
+2014,0,"Earth, atmospheric, and ocean sciences",4134,0,0
+2014,0,Mathematics and statistics,12715,0,0
+2014,0,Physical sciences,13407,0,0
+2014,0,Psychology,27554,0,0
+2014,0,Social sciences,80813,0,0
+2014,0,Engineering,75324,0,0
+2014,0,Non-S&E,491438,0,0
+2015,0,All fields,820426,0,0
+2015,0,S&E,327122,0,0
+2015,0,All sciences,247273,0,0
+2015,0,Agricultural sciences,13226,0,0
+2015,0,Biological sciences,46554,0,0
+2015,0,Computer sciences,49446,0,0
+2015,0,"Earth, atmospheric, and ocean sciences",4454,0,0
+2015,0,Mathematics and statistics,13214,0,0
+2015,0,Physical sciences,13716,0,0
+2015,0,Psychology,27080,0,0
+2015,0,Social sciences,79583,0,0
+2015,0,Engineering,79849,0,0
+2015,0,Non-S&E,493304,0,0
+2016,0,All fields,829783,0,0
+2016,0,S&E,335274,0,0
+2016,0,All sciences,249092,0,0
+2016,0,Agricultural sciences,13606,0,0
+2016,0,Biological sciences,47008,0,0
+2016,0,Computer sciences,52964,0,0
+2016,0,"Earth, atmospheric, and ocean sciences",4490,0,0
+2016,0,Mathematics and statistics,13991,0,0
+2016,0,Physical sciences,13858,0,0
+2016,0,Psychology,26577,0,0
+2016,0,Social sciences,76598,0,0
+2016,0,Engineering,86182,0,0
+2016,0,Non-S&E,494509,0,0
+2017,0,All fields,842623,0,0
+2017,0,S&E,346087,0,0
+2017,0,All sciences,253533,0,0
+2017,0,Agricultural sciences,13784,0,0
+2017,0,Biological sciences,46819,0,0
+2017,0,Computer sciences,58327,0,0
+2017,0,"Earth, atmospheric, and ocean sciences",4471,0,0
+2017,0,Mathematics and statistics,15055,0,0
+2017,0,Physical sciences,14053,0,0
+2017,0,Psychology,25696,0,0
+2017,0,Social sciences,75328,0,0
+2017,0,Engineering,92554,0,0
+2017,0,Non-S&E,496536,0,0
+2018,0,All fields,852790,0,0
+2018,0,S&E,356484,0,0
+2018,0,All sciences,259756,0,0
+2018,0,Agricultural sciences,13993,0,0
+2018,0,Biological sciences,46500,0,0
+2018,0,Computer sciences,64270,0,0
+2018,0,"Earth, atmospheric, and ocean sciences",4577,0,0
+2018,0,Mathematics and statistics,15671,0,0
+2018,0,Physical sciences,14049,0,0
+2018,0,Psychology,24873,0,0
+2018,0,Social sciences,75823,0,0
+2018,0,Engineering,96728,0,0
+2018,0,Non-S&E,496306,0,0
+2008,0,All fields,57.37,0,0
+2008,0,S&E,50.28,0,0
+2008,0,All sciences,55.49,0,0
+2008,0,Agricultural sciences,51.19,0,0
+2008,0,Biological sciences,59.79,0,0
+2008,0,Computer sciences,17.69,0,0
+2008,0,"Earth, atmospheric, and ocean sciences",40.68,0,0
+2008,0,Mathematics and statistics,43.92,0,0
+2008,0,Physical sciences,41.26,0,0
+2008,0,Psychology,77.09,0,0
+2008,0,Social sciences,53.48,0,0
+2008,0,Engineering,18.48,0,0
+2008,0,Non-S&E,60.61,0,0
+2009,0,All fields,57.29,0,0
+2009,0,S&E,50.39,0,0
+2009,0,All sciences,55.64,0,0
+2009,0,Agricultural sciences,51.26,0,0
+2009,0,Biological sciences,59.71,0,0
+2009,0,Computer sciences,17.91,0,0
+2009,0,"Earth, atmospheric, and ocean sciences",38.93,0,0
+2009,0,Mathematics and statistics,43.01,0,0
+2009,0,Physical sciences,41.53,0,0
+2009,0,Psychology,77.22,0,0
+2009,0,Social sciences,53.6,0,0
+2009,0,Engineering,18.06,0,0
+2009,0,Non-S&E,60.43,0,0
+2010,0,All fields,57.24,0,0
+2010,0,S&E,50.3,0,0
+2010,0,All sciences,55.57,0,0
+2010,0,Agricultural sciences,52.5,0,0
+2010,0,Biological sciences,59.01,0,0
+2010,0,Computer sciences,18.22,0,0
+2010,0,"Earth, atmospheric, and ocean sciences",39.34,0,0
+2010,0,Mathematics and statistics,43.06,0,0
+2010,0,Physical sciences,41.29,0,0
+2010,0,Psychology,77.07,0,0
+2010,0,Social sciences,53.73,0,0
+2010,0,Engineering,18.4,0,0
+2010,0,Non-S&E,60.43,0,0
+2011,0,All fields,57.31,0,0
+2011,0,S&E,50.35,0,0
+2011,0,All sciences,55.53,0,0
+2011,0,Agricultural sciences,52.09,0,0
+2011,0,Biological sciences,59.57,0,0
+2011,0,Computer sciences,17.67,0,0
+2011,0,"Earth, atmospheric, and ocean sciences",39.25,0,0
+2011,0,Mathematics and statistics,42.98,0,0
+2011,0,Physical sciences,40.6,0,0
+2011,0,Psychology,76.96,0,0
+2011,0,Social sciences,54.2,0,0
+2011,0,Engineering,18.77,0,0
+2011,0,Non-S&E,60.58,0,0
+2012,0,All fields,57.35,0,0
+2012,0,S&E,50.49,0,0
+2012,0,All sciences,55.64,0,0
+2012,0,Agricultural sciences,53.65,0,0
+2012,0,Biological sciences,59.28,0,0
+2012,0,Computer sciences,18.22,0,0
+2012,0,"Earth, atmospheric, and ocean sciences",39.13,0,0
+2012,0,Mathematics and statistics,43.07,0,0
+2012,0,Physical sciences,40.57,0,0
+2012,0,Psychology,76.68,0,0
+2012,0,Social sciences,54.66,0,0
+2012,0,Engineering,19.19,0,0
+2012,0,Non-S&E,60.66,0,0
+2013,0,All fields,57.29,0,0
+2013,0,S&E,50.32,0,0
+2013,0,All sciences,55.48,0,0
+2013,0,Agricultural sciences,53.7,0,0
+2013,0,Biological sciences,59.19,0,0
+2013,0,Computer sciences,17.85,0,0
+2013,0,"Earth, atmospheric, and ocean sciences",38.15,0,0
+2013,0,Mathematics and statistics,43.11,0,0
+2013,0,Physical sciences,39.23,0,0
+2013,0,Psychology,76.56,0,0
+2013,0,Social sciences,54.88,0,0
+2013,0,Engineering,19.28,0,0
+2013,0,Non-S&E,60.73,0,0
+2014,0,All fields,57.19,0,0
+2014,0,S&E,49.99,0,0
+2014,0,All sciences,55.22,0,0
+2014,0,Agricultural sciences,53.91,0,0
+2014,0,Biological sciences,59.08,0,0
+2014,0,Computer sciences,18.07,0,0
+2014,0,"Earth, atmospheric, and ocean sciences",38.57,0,0
+2014,0,Mathematics and statistics,42.79,0,0
+2014,0,Physical sciences,39.67,0,0
+2014,0,Psychology,76.73,0,0
+2014,0,Social sciences,54.58,0,0
+2014,0,Engineering,19.83,0,0
+2014,0,Non-S&E,60.84,0,0
+2015,0,All fields,57.18,0,0
+2015,0,S&E,49.68,0,0
+2015,0,All sciences,55.05,0,0
+2015,0,Agricultural sciences,55.11,0,0
+2015,0,Biological sciences,59.56,0,0
+2015,0,Computer sciences,18.01,0,0
+2015,0,"Earth, atmospheric, and ocean sciences",37.75,0,0
+2015,0,Mathematics and statistics,42.89,0,0
+2015,0,Physical sciences,38.99,0,0
+2015,0,Psychology,77.2,0,0
+2015,0,Social sciences,54.19,0,0
+2015,0,Engineering,20.08,0,0
+2015,0,Non-S&E,61.04,0,0
+2016,0,All fields,57.27,0,0
+2016,0,S&E,49.67,0,0
+2016,0,All sciences,55.29,0,0
+2016,0,Agricultural sciences,55.45,0,0
+2016,0,Biological sciences,60.52,0,0
+2016,0,Computer sciences,18.75,0,0
+2016,0,"Earth, atmospheric, and ocean sciences",38.35,0,0
+2016,0,Mathematics and statistics,42.41,0,0
+2016,0,Physical sciences,39.08,0,0
+2016,0,Psychology,77.6,0,0
+2016,0,Social sciences,54.79,0,0
+2016,0,Engineering,20.92,0,0
+2016,0,Non-S&E,61.24,0,0
+2017,0,All fields,57.29,0,0
+2017,0,S&E,49.44,0,0
+2017,0,All sciences,55.26,0,0
+2017,0,Agricultural sciences,55.66,0,0
+2017,0,Biological sciences,61.54,0,0
+2017,0,Computer sciences,19.14,0,0
+2017,0,"Earth, atmospheric, and ocean sciences",38.92,0,0
+2017,0,Mathematics and statistics,41.67,0,0
+2017,0,Physical sciences,39.97,0,0
+2017,0,Psychology,78.12,0,0
+2017,0,Social sciences,55.08,0,0
+2017,0,Engineering,21.52,0,0
+2017,0,Non-S&E,61.47,0,0
+2018,0,All fields,57.39,0,0
+2018,0,S&E,49.59,0,0
+2018,0,All sciences,55.43,0,0
+2018,0,Agricultural sciences,56.89,0,0
+2018,0,Biological sciences,62.82,0,0
+2018,0,Computer sciences,19.93,0,0
+2018,0,"Earth, atmospheric, and ocean sciences",38.41,0,0
+2018,0,Mathematics and statistics,42.3,0,0
+2018,0,Physical sciences,40.61,0,0
+2018,0,Psychology,78.84,0,0
+2018,0,Social sciences,55.19,0,0
+2018,0,Engineering,22.2,0,0
+2018,0,Non-S&E,61.66,0,0

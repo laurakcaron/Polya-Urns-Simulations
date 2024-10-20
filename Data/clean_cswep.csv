@@ -1,0 +1,649 @@
+Rank,female,Year,value
+Full Professor,1,1994,80
+Full Professor,1,1995,91.5
+Full Professor,1,1996,101
+Full Professor,1,1997,102.4
+Full Professor,1,1998,82.2
+Full Professor,1,1999,85.1
+Full Professor,1,2000,94.2
+Full Professor,1,2001,103.2
+Full Professor,1,2002,109.6
+Full Professor,1,2003,108.6
+Full Professor,1,2004,120.3
+Full Professor,1,2005,124.6
+Full Professor,1,2006,126.5
+Full Professor,1,2007,133.4
+Full Professor,1,2008,142.7
+Full Professor,1,2009,148.9
+Full Professor,1,2010,173.6
+Full Professor,1,2011,177.2
+Full Professor,1,2012,193.8
+Full Professor,1,2013,168.2
+Full Professor,1,2014,182.5
+Full Professor,1,2015,190.2
+Full Professor,1,2016,202
+Full Professor,1,2017,191
+Full Professor,1,2018,219
+Full Professor,1,2019,227
+Full Professor,1,2020,234.4
+Associate Professor,1,1994,61
+Associate Professor,1,1995,81.5
+Associate Professor,1,1996,76
+Associate Professor,1,1997,79.4
+Associate Professor,1,1998,82.9
+Associate Professor,1,1999,83
+Associate Professor,1,2000,84.3
+Associate Professor,1,2001,85.6
+Associate Professor,1,2002,91.5
+Associate Professor,1,2003,106.3
+Associate Professor,1,2004,111.3
+Associate Professor,1,2005,114.8
+Associate Professor,1,2006,112
+Associate Professor,1,2007,120.6
+Associate Professor,1,2008,133.7
+Associate Professor,1,2009,129.1
+Associate Professor,1,2010,137.2
+Associate Professor,1,2011,139.8
+Associate Professor,1,2012,131.9
+Associate Professor,1,2013,136.8
+Associate Professor,1,2014,149.9
+Associate Professor,1,2015,155.9
+Associate Professor,1,2016,173.5
+Associate Professor,1,2017,157
+Associate Professor,1,2018,174
+Associate Professor,1,2019,184
+Associate Professor,1,2020,191.3
+Assistant Professor,1,1994,126.3
+Assistant Professor,1,1995,145
+Assistant Professor,1,1996,132.8
+Assistant Professor,1,1997,141.9
+Assistant Professor,1,1998,134.7
+Assistant Professor,1,1999,146.5
+Assistant Professor,1,2000,146.3
+Assistant Professor,1,2001,146.1
+Assistant Professor,1,2002,148
+Assistant Professor,1,2003,185.2
+Assistant Professor,1,2004,188.3
+Assistant Professor,1,2005,202.9
+Assistant Professor,1,2006,201.7
+Assistant Professor,1,2007,212.7
+Assistant Professor,1,2008,228.7
+Assistant Professor,1,2009,215.3
+Assistant Professor,1,2010,228.8
+Assistant Professor,1,2011,229.7
+Assistant Professor,1,2012,213.6
+Assistant Professor,1,2013,211.2
+Assistant Professor,1,2014,226.5
+Assistant Professor,1,2015,231.7
+Assistant Professor,1,2016,232
+Assistant Professor,1,2017,245.5
+Assistant Professor,1,2018,236
+Assistant Professor,1,2019,247
+Assistant Professor,1,2020,249.4
+All Tenure Track (Subtotal),1,1994,267.3
+All Tenure Track (Subtotal),1,1995,318
+All Tenure Track (Subtotal),1,1996,309.8
+All Tenure Track (Subtotal),1,1997,323.7
+All Tenure Track (Subtotal),1,1998,299.8
+All Tenure Track (Subtotal),1,1999,314.6
+All Tenure Track (Subtotal),1,2000,324.8
+All Tenure Track (Subtotal),1,2001,334.9
+All Tenure Track (Subtotal),1,2002,349.1
+All Tenure Track (Subtotal),1,2003,400
+All Tenure Track (Subtotal),1,2004,419.9
+All Tenure Track (Subtotal),1,2005,442.4
+All Tenure Track (Subtotal),1,2006,440.2
+All Tenure Track (Subtotal),1,2007,466.8
+All Tenure Track (Subtotal),1,2008,505.1
+All Tenure Track (Subtotal),1,2009,493.4
+All Tenure Track (Subtotal),1,2010,539.5
+All Tenure Track (Subtotal),1,2011,546.6
+All Tenure Track (Subtotal),1,2012,539.3
+All Tenure Track (Subtotal),1,2013,516.3
+All Tenure Track (Subtotal),1,2014,558.8
+All Tenure Track (Subtotal),1,2015,577.9
+All Tenure Track (Subtotal),1,2016,607.5
+All Tenure Track (Subtotal),1,2017,593.5
+All Tenure Track (Subtotal),1,2018,629
+All Tenure Track (Subtotal),1,2019,658
+All Tenure Track (Subtotal),1,2020,675.1
+All Non-Tenure Track,1,1994,29
+All Non-Tenure Track,1,1995,36
+All Non-Tenure Track,1,1996,36
+All Non-Tenure Track,1,1997,53.9
+All Non-Tenure Track,1,1998,61
+All Non-Tenure Track,1,1999,79.3
+All Non-Tenure Track,1,2000,120.8
+All Non-Tenure Track,1,2001,97.1
+All Non-Tenure Track,1,2002,95.9
+All Non-Tenure Track,1,2003,130.1
+All Non-Tenure Track,1,2004,149.5
+All Non-Tenure Track,1,2005,138.1
+All Non-Tenure Track,1,2006,154.9
+All Non-Tenure Track,1,2007,181.1
+All Non-Tenure Track,1,2008,182.5
+All Non-Tenure Track,1,2009,195.9
+All Non-Tenure Track,1,2010,229.3
+All Non-Tenure Track,1,2011,224.3
+All Non-Tenure Track,1,2012,214.7
+All Non-Tenure Track,1,2013,181.5
+All Non-Tenure Track,1,2014,223.3
+All Non-Tenure Track,1,2015,296.7
+All Non-Tenure Track,1,2016,311
+All Non-Tenure Track,1,2017,324
+All Non-Tenure Track,1,2018,234
+All Non-Tenure Track,1,2019,285.3
+All Non-Tenure Track,1,2020,260.7
+All Faculty,1,1994,296.3
+All Faculty,1,1995,354
+All Faculty,1,1996,345.8
+All Faculty,1,1997,377.6
+All Faculty,1,1998,360.9
+All Faculty,1,1999,393.8
+All Faculty,1,2000,445.6
+All Faculty,1,2001,432
+All Faculty,1,2002,445
+All Faculty,1,2003,530.1
+All Faculty,1,2004,569.4
+All Faculty,1,2005,580.5
+All Faculty,1,2006,595.1
+All Faculty,1,2007,647.8
+All Faculty,1,2008,687.6
+All Faculty,1,2009,689.3
+All Faculty,1,2010,768.8
+All Faculty,1,2011,771
+All Faculty,1,2012,753.9
+All Faculty,1,2013,697.8
+All Faculty,1,2014,782.2
+All Faculty,1,2015,874.6
+All Faculty,1,2016,918.5
+All Faculty,1,2017,917.5
+All Faculty,1,2018,863
+All Faculty,1,2019,943.3
+All Faculty,1,2020,935.8
+Ph.D. Granted,1,1994,180
+Ph.D. Granted,1,1995,230.5
+Ph.D. Granted,1,1996,219.2
+Ph.D. Granted,1,1997,224.2
+Ph.D. Granted,1,1998,256
+Ph.D. Granted,1,1999,261.2
+Ph.D. Granted,1,2000,273.1
+Ph.D. Granted,1,2001,283.9
+Ph.D. Granted,1,2002,246.9
+Ph.D. Granted,1,2003,288.2
+Ph.D. Granted,1,2004,312.6
+Ph.D. Granted,1,2005,322.8
+Ph.D. Granted,1,2006,334.6
+Ph.D. Granted,1,2007,368
+Ph.D. Granted,1,2008,432.4
+Ph.D. Granted,1,2009,363.2
+Ph.D. Granted,1,2010,337.3
+Ph.D. Granted,1,2011,348
+Ph.D. Granted,1,2012,351.8
+Ph.D. Granted,1,2013,391.2
+Ph.D. Granted,1,2014,356.7
+Ph.D. Granted,1,2015,403.8
+Ph.D. Granted,1,2016,372
+Ph.D. Granted,1,2017,361
+Ph.D. Granted,1,2018,370
+Ph.D. Granted,1,2019,345
+Ph.D. Granted,1,2020,374.9
+ABD,1,1994,689
+ABD,1,1995,307.5
+ABD,1,1996,756.7
+ABD,1,1997,818.7
+ABD,1,1998,787.2
+ABD,1,1999,832.9
+ABD,1,2000,834.3
+ABD,1,2001,835.8
+ABD,1,2002,938.2
+ABD,1,2003,1112.4
+ABD,1,2004,1217.1
+ABD,1,2005,1224.3
+ABD,1,2006,1220.3
+ABD,1,2007,1301
+ABD,1,2008,1276.2
+ABD,1,2009,1294.9
+ABD,1,2010,1363.9
+ABD,1,2011,1326.7
+ABD,1,2012,1312
+ABD,1,2013,1225.5
+ABD,1,2014,1345
+ABD,1,2015,1324.5
+ABD,1,2016,1428
+ABD,1,2017,1467
+ABD,1,2018,1470
+ABD,1,2019,1454
+ABD,1,2020,1465.6
+First Year,1,1994,404.5
+First Year,1,1995,464
+First Year,1,1996,454.2
+First Year,1,1997,451
+First Year,1,1998,468.9
+First Year,1,1999,476.6
+First Year,1,2000,502.6
+First Year,1,2001,551.3
+First Year,1,2002,580.6
+First Year,1,2003,618
+First Year,1,2004,585.3
+First Year,1,2005,541.3
+First Year,1,2006,532.8
+First Year,1,2007,557.4
+First Year,1,2008,602.8
+First Year,1,2009,597
+First Year,1,2010,565.5
+First Year,1,2011,541.5
+First Year,1,2012,472.5
+First Year,1,2013,478
+First Year,1,2014,504
+First Year,1,2015,498
+First Year,1,2016,516
+First Year,1,2017,491
+First Year,1,2018,475
+First Year,1,2019,541
+First Year,1,2020,459.8
+"Undergraduate Economics Majors
+Graduated",1,1994,NA
+"Undergraduate Economics Majors
+Graduated",1,1995,1778
+"Undergraduate Economics Majors
+Graduated",1,1996,2863
+"Undergraduate Economics Majors
+Graduated",1,1997,2832
+"Undergraduate Economics Majors
+Graduated",1,1998,2474
+"Undergraduate Economics Majors
+Graduated",1,1999,2386
+"Undergraduate Economics Majors
+Graduated",1,2000,3252
+"Undergraduate Economics Majors
+Graduated",1,2001,3689
+"Undergraduate Economics Majors
+Graduated",1,2002,4575
+"Undergraduate Economics Majors
+Graduated",1,2003,5164
+"Undergraduate Economics Majors
+Graduated",1,2004,5075
+"Undergraduate Economics Majors
+Graduated",1,2005,5268
+"Undergraduate Economics Majors
+Graduated",1,2006,5120
+"Undergraduate Economics Majors
+Graduated",1,2007,4889
+"Undergraduate Economics Majors
+Graduated",1,2008,4835
+"Undergraduate Economics Majors
+Graduated",1,2009,5736
+"Undergraduate Economics Majors
+Graduated",1,2010,5925
+"Undergraduate Economics Majors
+Graduated",1,2011,6084
+"Undergraduate Economics Majors
+Graduated",1,2012,6033
+"Undergraduate Economics Majors
+Graduated",1,2013,5731
+"Undergraduate Economics Majors
+Graduated",1,2014,7004
+"Undergraduate Economics Majors
+Graduated",1,2015,7753
+"Undergraduate Economics Majors
+Graduated",1,2016,7538
+"Undergraduate Economics Majors
+Graduated",1,2017,7894
+"Undergraduate Economics Majors
+Graduated",1,2018,8198
+"Undergraduate Economics Majors
+Graduated",1,2019,8342
+"Undergraduate Economics Majors
+Graduated",1,2020,8590
+Undergraduate Senior Majors*,1,1994,NA
+Undergraduate Senior Majors*,1,1995,NA
+Undergraduate Senior Majors*,1,1996,NA
+Undergraduate Senior Majors*,1,1997,NA
+Undergraduate Senior Majors*,1,1998,NA
+Undergraduate Senior Majors*,1,1999,NA
+Undergraduate Senior Majors*,1,2000,NA
+Undergraduate Senior Majors*,1,2001,NA
+Undergraduate Senior Majors*,1,2002,NA
+Undergraduate Senior Majors*,1,2003,NA
+Undergraduate Senior Majors*,1,2004,NA
+Undergraduate Senior Majors*,1,2005,NA
+Undergraduate Senior Majors*,1,2006,NA
+Undergraduate Senior Majors*,1,2007,NA
+Undergraduate Senior Majors*,1,2008,NA
+Undergraduate Senior Majors*,1,2009,5807
+Undergraduate Senior Majors*,1,2010,7143
+Undergraduate Senior Majors*,1,2011,8208
+Undergraduate Senior Majors*,1,2012,9198
+Undergraduate Senior Majors*,1,2013,5762
+Undergraduate Senior Majors*,1,2014,6682
+Undergraduate Senior Majors*,1,2015,6842
+Undergraduate Senior Majors*,1,2016,7148
+Undergraduate Senior Majors*,1,2017,7424
+Undergraduate Senior Majors*,1,2018,8413
+Undergraduate Senior Majors*,1,2019,8347
+Undergraduate Senior Majors*,1,2020,7434
+Full Professor,0,1994,1079
+Full Professor,0,1995,1409
+Full Professor,0,1996,1322
+Full Professor,0,1997,1382
+Full Professor,0,1998,1311
+Full Professor,0,1999,1357
+Full Professor,0,2000,1378
+Full Professor,0,2001,1392
+Full Professor,0,2002,1456
+Full Professor,0,2003,1443
+Full Professor,0,2004,1442
+Full Professor,0,2005,1453
+Full Professor,0,2006,1435
+Full Professor,0,2007,1474
+Full Professor,0,2008,1461
+Full Professor,0,2009,1435
+Full Professor,0,2010,1449
+Full Professor,0,2011,1377
+Full Professor,0,2012,1357
+Full Professor,0,2013,1375
+Full Professor,0,2014,1377
+Full Professor,0,2015,1382
+Full Professor,0,2016,1376
+Full Professor,0,2017,1337
+Full Professor,0,2018,1357
+Full Professor,0,2019,1372
+Full Professor,0,2020,1349
+Associate Professor,0,1994,378
+Associate Professor,0,1995,536
+Associate Professor,0,1996,495
+Associate Professor,0,1997,513
+Associate Professor,0,1998,489
+Associate Professor,0,1999,474
+Associate Professor,0,2000,463
+Associate Professor,0,2001,453
+Associate Professor,0,2002,444
+Associate Professor,0,2003,453
+Associate Professor,0,2004,445
+Associate Professor,0,2005,432
+Associate Professor,0,2006,442
+Associate Professor,0,2007,465
+Associate Professor,0,2008,477
+Associate Professor,0,2009,458
+Associate Professor,0,2010,475
+Associate Professor,0,2011,468
+Associate Professor,0,2012,457
+Associate Professor,0,2013,458
+Associate Professor,0,2014,496
+Associate Professor,0,2015,494
+Associate Professor,0,2016,512
+Associate Professor,0,2017,511
+Associate Professor,0,2018,495
+Associate Professor,0,2019,518
+Associate Professor,0,2020,504
+Assistant Professor,0,1994,381
+Assistant Professor,0,1995,494
+Assistant Professor,0,1996,455
+Assistant Professor,0,1997,447
+Assistant Professor,0,1998,424
+Assistant Professor,0,1999,430
+Assistant Professor,0,2000,451
+Assistant Professor,0,2001,473
+Assistant Professor,0,2002,479
+Assistant Professor,0,2003,508
+Assistant Professor,0,2004,501
+Assistant Professor,0,2005,490
+Assistant Professor,0,2006,504
+Assistant Professor,0,2007,561
+Assistant Professor,0,2008,571
+Assistant Professor,0,2009,548
+Assistant Professor,0,2010,588
+Assistant Professor,0,2011,544
+Assistant Professor,0,2012,563
+Assistant Professor,0,2013,549
+Assistant Professor,0,2014,555
+Assistant Professor,0,2015,590
+Assistant Professor,0,2016,600
+Assistant Professor,0,2017,616
+Assistant Professor,0,2018,589
+Assistant Professor,0,2019,571
+Assistant Professor,0,2020,555
+All Tenure Track (Subtotal),0,1994,1837
+All Tenure Track (Subtotal),0,1995,2447
+All Tenure Track (Subtotal),0,1996,2272
+All Tenure Track (Subtotal),0,1997,2352
+All Tenure Track (Subtotal),0,1998,2220
+All Tenure Track (Subtotal),0,1999,2243
+All Tenure Track (Subtotal),0,2000,2295
+All Tenure Track (Subtotal),0,2001,2323
+All Tenure Track (Subtotal),0,2002,2378
+All Tenure Track (Subtotal),0,2003,2397
+All Tenure Track (Subtotal),0,2004,2398
+All Tenure Track (Subtotal),0,2005,2358
+All Tenure Track (Subtotal),0,2006,2382
+All Tenure Track (Subtotal),0,2007,2506
+All Tenure Track (Subtotal),0,2008,2519
+All Tenure Track (Subtotal),0,2009,2426
+All Tenure Track (Subtotal),0,2010,2509
+All Tenure Track (Subtotal),0,2011,2392
+All Tenure Track (Subtotal),0,2012,2376
+All Tenure Track (Subtotal),0,2013,2368
+All Tenure Track (Subtotal),0,2014,2429
+All Tenure Track (Subtotal),0,2015,2464
+All Tenure Track (Subtotal),0,2016,2492
+All Tenure Track (Subtotal),0,2017,2466
+All Tenure Track (Subtotal),0,2018,2439
+All Tenure Track (Subtotal),0,2019,2460
+All Tenure Track (Subtotal),0,2020,2408
+All Non-Tenure Track,0,1994,69
+All Non-Tenure Track,0,1995,112
+All Non-Tenure Track,0,1996,66
+All Non-Tenure Track,0,1997,70
+All Non-Tenure Track,0,1998,139
+All Non-Tenure Track,0,1999,188
+All Non-Tenure Track,0,2000,264
+All Non-Tenure Track,0,2001,229
+All Non-Tenure Track,0,2002,195
+All Non-Tenure Track,0,2003,273
+All Non-Tenure Track,0,2004,328
+All Non-Tenure Track,0,2005,249
+All Non-Tenure Track,0,2006,310
+All Non-Tenure Track,0,2007,363
+All Non-Tenure Track,0,2008,379
+All Non-Tenure Track,0,2009,367
+All Non-Tenure Track,0,2010,466
+All Non-Tenure Track,0,2011,451
+All Non-Tenure Track,0,2012,339
+All Non-Tenure Track,0,2013,334
+All Non-Tenure Track,0,2014,367
+All Non-Tenure Track,0,2015,556
+All Non-Tenure Track,0,2016,575
+All Non-Tenure Track,0,2017,604
+All Non-Tenure Track,0,2018,400
+All Non-Tenure Track,0,2019,465
+All Non-Tenure Track,0,2020,403
+All Faculty,0,1994,1899
+All Faculty,0,1995,2548
+All Faculty,0,1996,2335
+All Faculty,0,1997,2419
+All Faculty,0,1998,2353
+All Faculty,0,1999,2439
+All Faculty,0,2000,2545
+All Faculty,0,2001,2547
+All Faculty,0,2002,2582
+All Faculty,0,2003,2663
+All Faculty,0,2004,2722
+All Faculty,0,2005,2609
+All Faculty,0,2006,2693
+All Faculty,0,2007,2854
+All Faculty,0,2008,2894
+All Faculty,0,2009,2810
+All Faculty,0,2010,2963
+All Faculty,0,2011,2849
+All Faculty,0,2012,2720
+All Faculty,0,2013,2706
+All Faculty,0,2014,2789
+All Faculty,0,2015,3030
+All Faculty,0,2016,3058
+All Faculty,0,2017,3072
+All Faculty,0,2018,2841
+All Faculty,0,2019,2923
+All Faculty,0,2020,2807
+Ph.D. Granted,0,1994,561
+Ph.D. Granted,0,1995,636
+Ph.D. Granted,0,1996,694
+Ph.D. Granted,0,1997,710
+Ph.D. Granted,0,1998,639
+Ph.D. Granted,0,1999,621
+Ph.D. Granted,0,2000,605
+Ph.D. Granted,0,2001,635
+Ph.D. Granted,0,2002,590
+Ph.D. Granted,0,2003,657
+Ph.D. Granted,0,2004,769
+Ph.D. Granted,0,2005,677
+Ph.D. Granted,0,2006,664
+Ph.D. Granted,0,2007,674
+Ph.D. Granted,0,2008,807
+Ph.D. Granted,0,2009,731
+Ph.D. Granted,0,2010,667
+Ph.D. Granted,0,2011,652
+Ph.D. Granted,0,2012,721
+Ph.D. Granted,0,2013,714
+Ph.D. Granted,0,2014,734
+Ph.D. Granted,0,2015,760
+Ph.D. Granted,0,2016,824
+Ph.D. Granted,0,2017,740
+Ph.D. Granted,0,2018,783
+Ph.D. Granted,0,2019,730
+Ph.D. Granted,0,2020,706
+ABD,0,1994,1835
+ABD,0,1995,853
+ABD,0,1996,1955
+ABD,0,1997,2095
+ABD,0,1998,2014
+ABD,0,1999,1898
+ABD,0,2000,1848
+ABD,0,2001,1809
+ABD,0,2002,2021
+ABD,0,2003,2112
+ABD,0,2004,2438
+ABD,0,2005,2356
+ABD,0,2006,2379
+ABD,0,2007,2571
+ABD,0,2008,2477
+ABD,0,2009,2536
+ABD,0,2010,2636
+ABD,0,2011,2519
+ABD,0,2012,2700
+ABD,0,2013,2592
+ABD,0,2014,2832
+ABD,0,2015,2854
+ABD,0,2016,3077
+ABD,0,2017,2978
+ABD,0,2018,3025
+ABD,0,2019,2965
+ABD,0,2020,3030
+First Year,0,1994,926
+First Year,0,1995,1120
+First Year,0,1996,1075
+First Year,0,1997,1037
+First Year,0,1998,965
+First Year,0,1999,1041
+First Year,0,2000,989
+First Year,0,2001,1094
+First Year,0,2002,1088
+First Year,0,2003,1148
+First Year,0,2004,1121
+First Year,0,2005,1135
+First Year,0,2006,1127
+First Year,0,2007,1102
+First Year,0,2008,1081
+First Year,0,2009,1185
+First Year,0,2010,1185
+First Year,0,2011,1120
+First Year,0,2012,1087
+First Year,0,2013,984
+First Year,0,2014,1081
+First Year,0,2015,1083
+First Year,0,2016,1029
+First Year,0,2017,1034
+First Year,0,2018,960
+First Year,0,2019,1018
+First Year,0,2020,821
+"Undergraduate Economics Majors
+Graduated",0,1994,NA
+"Undergraduate Economics Majors
+Graduated",0,1995,4032
+"Undergraduate Economics Majors
+Graduated",0,1996,5813
+"Undergraduate Economics Majors
+Graduated",0,1997,5882
+"Undergraduate Economics Majors
+Graduated",0,1998,5233
+"Undergraduate Economics Majors
+Graduated",0,1999,5386
+"Undergraduate Economics Majors
+Graduated",0,2000,6911
+"Undergraduate Economics Majors
+Graduated",0,2001,7592
+"Undergraduate Economics Majors
+Graduated",0,2002,9123
+"Undergraduate Economics Majors
+Graduated",0,2003,10580
+"Undergraduate Economics Majors
+Graduated",0,2004,10589
+"Undergraduate Economics Majors
+Graduated",0,2005,11350
+"Undergraduate Economics Majors
+Graduated",0,2006,11238
+"Undergraduate Economics Majors
+Graduated",0,2007,11300
+"Undergraduate Economics Majors
+Graduated",0,2008,10812
+"Undergraduate Economics Majors
+Graduated",0,2009,13195
+"Undergraduate Economics Majors
+Graduated",0,2010,13629
+"Undergraduate Economics Majors
+Graduated",0,2011,13734
+"Undergraduate Economics Majors
+Graduated",0,2012,13878
+"Undergraduate Economics Majors
+Graduated",0,2013,12123
+"Undergraduate Economics Majors
+Graduated",0,2014,13841
+"Undergraduate Economics Majors
+Graduated",0,2015,15599
+"Undergraduate Economics Majors
+Graduated",0,2016,15374
+"Undergraduate Economics Majors
+Graduated",0,2017,15324
+"Undergraduate Economics Majors
+Graduated",0,2018,15843
+"Undergraduate Economics Majors
+Graduated",0,2019,16634
+"Undergraduate Economics Majors
+Graduated",0,2020,16601
+Undergraduate Senior Majors*,0,1994,NA
+Undergraduate Senior Majors*,0,1995,NA
+Undergraduate Senior Majors*,0,1996,NA
+Undergraduate Senior Majors*,0,1997,NA
+Undergraduate Senior Majors*,0,1998,NA
+Undergraduate Senior Majors*,0,1999,NA
+Undergraduate Senior Majors*,0,2000,NA
+Undergraduate Senior Majors*,0,2001,NA
+Undergraduate Senior Majors*,0,2002,NA
+Undergraduate Senior Majors*,0,2003,NA
+Undergraduate Senior Majors*,0,2004,NA
+Undergraduate Senior Majors*,0,2005,NA
+Undergraduate Senior Majors*,0,2006,NA
+Undergraduate Senior Majors*,0,2007,NA
+Undergraduate Senior Majors*,0,2008,NA
+Undergraduate Senior Majors*,0,2009,14217
+Undergraduate Senior Majors*,0,2010,16049
+Undergraduate Senior Majors*,0,2011,17932
+Undergraduate Senior Majors*,0,2012,20002
+Undergraduate Senior Majors*,0,2013,11805
+Undergraduate Senior Majors*,0,2014,13752
+Undergraduate Senior Majors*,0,2015,13106
+Undergraduate Senior Majors*,0,2016,14000
+Undergraduate Senior Majors*,0,2017,14284
+Undergraduate Senior Majors*,0,2018,14763
+Undergraduate Senior Majors*,0,2019,16059
+Undergraduate Senior Majors*,0,2020,14239
