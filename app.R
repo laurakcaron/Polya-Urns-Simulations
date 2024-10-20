@@ -74,7 +74,7 @@ navbarPage("Polya Urns", id="nav",
                 h3("Initial Urn Contents"),
                 fluidRow(
                   column(5, numericInput("w_0", "Initial number of white balls", 10, min=0)), 
-                  column(5, numericInput("m_0", "Initial number of maroon balls", 40, min=0))),
+                  column(5, numericInput("m_0", "Initial number of mauve balls", 40, min=0))),
                 
                 # Third section: Replacement/addition 
                 h3("Addition Scheme"),
@@ -114,9 +114,9 @@ navbarPage("Polya Urns", id="nav",
                          conditionalPanel(condition="input.woman_stochastic=='unbalanced'",
                                           fluidRow(
                                             conditionalPanel(condition="input.woman_depends=='none'",
-                                                             column(5, numericInput("p_m_w", "Probability of maroon ball added", 1, step=0.1))),
+                                                             column(5, numericInput("p_m_w", "Probability of mauve ball added", 1, step=0.1))),
                                             conditionalPanel(condition="input.woman_depends!='none'",
-                                                             column(5, radioButtons("m_w_function", label="Probability of maroon ball added", choices=c("\\(p_{m_w} = c-b(1-X)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
+                                                             column(5, radioButtons("m_w_function", label="Probability of mauve ball added", choices=c("\\(p_{m_w} = c-b(1-X)^a\\)"="linear","\\(p_{m_w} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_w} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
                                           )),
                          fluidRow(
                            conditionalPanel(condition="input.m_w_function!='inverseexp'&input.woman_depends!='none' & input.woman_stochastic=='unbalanced'", 
@@ -129,11 +129,11 @@ navbarPage("Polya Urns", id="nav",
         ),
                     fluidRow(
                       column(5, numericInput("w_w", "Number of white balls added", 1)), 
-                      column(5, numericInput("m_w", "Number of maroon balls added", 0))
+                      column(5, numericInput("m_w", "Number of mauve balls added", 0))
                     ),
         
         
-                    h4("If a maroon ball is drawn:"),
+                    h4("If a mauve ball is drawn:"),
                     fluidRow(column(12, radioButtons("man_stochastic", label=NULL, choices=c("Deterministic addition"="none", "Stochastic addition (correlated)" = "balanced", "Stochastic addition (uncorrelated)"= "unbalanced"), selected="none"))),
                     conditionalPanel(condition = "input.man_stochastic!= 'none'",
                          fluidRow(                       
@@ -156,9 +156,9 @@ navbarPage("Polya Urns", id="nav",
                          conditionalPanel(condition="input.man_stochastic=='unbalanced'",
                                           fluidRow(
                                             conditionalPanel(condition="input.man_depends=='none'",
-                                                             column(5, numericInput("p_m_m", "Probability of maroon balls added", 1, step=0.1))),
+                                                             column(5, numericInput("p_m_m", "Probability of mauve balls added", 1, step=0.1))),
                                             conditionalPanel(condition="input.man_depends!='none'",
-                                                             column(5, radioButtons("m_m_function", label="Probability of maroon balls added", choices=c("\\(p_{m_m} = 1-b(1-X)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
+                                                             column(5, radioButtons("m_m_function", label="Probability of mauve balls added", choices=c("\\(p_{m_m} = 1-b(1-X)^a\\)"="linear","\\(p_{m_m} = \\frac{1}{1+b(1-X)^a}\\)"="inverse", "\\(p_{m_m} = \\frac{1}{1+b*\\exp(c(1-X))}\\)"="inverseexp"))))
                                           )),
                          fluidRow(
                            conditionalPanel(condition="input.m_m_function!='inverseexp'&input.man_depends==true & input.man_stochastic=='unbalanced'", 
@@ -171,7 +171,7 @@ navbarPage("Polya Urns", id="nav",
                     ),
                     fluidRow(
                       column(5, numericInput("w_m", "Number of white balls added", 0)), 
-                      column(5, numericInput("m_m", "Number of maroon balls added", 1))
+                      column(5, numericInput("m_m", "Number of mauve balls added", 1))
                     )
                   )),
                   # Multiple draws
@@ -197,11 +197,11 @@ navbarPage("Polya Urns", id="nav",
                 conditionalPanel(condition="input.intervention=='atleast_stochastic'", 
                      fluidRow(column(12, numericInput("prob_atleast", "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
                 conditionalPanel(condition="input.intervention=='quota'", 
-                                 column(6, numericInput("quota_per", "Select at least __ W", value=1, min=1, max=2, step=1)),
-                                 column(6, numericInput("quota_window", "every __ draws", value=1, min=1, max=2, step=1)),
-                                 column(6, numericInput("quota", "Continue until W make up __", value=0.5, min=0, max=1, step=0.1)),
-                                 column(6, radioButtons("quota_group", label="", choices=c("of selected candidates"="selected", "of urn"="urn"))),
-                                 column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
+                                 fluidRow(column(6, numericInput("quota_per", "Select at least __ W", value=1, min=1, max=2, step=1)),
+                                 column(6, numericInput("quota_window", "every __ draws", value=1, min=1, max=2, step=1))),
+                                 fluidRow(column(6, numericInput("quota", "Continue until W make up __", value=0.5, min=0, max=1, step=0.1)),
+                                 column(6, radioButtons("quota_group", label="", choices=c("of selected candidates"="selected", "of urn"="urn")))),
+                                 fluidRow(column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1)))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
                          radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls more than __ in each urn"="majority","Stop if white balls more than __ among selected for each urn"="majority_selected", "Stop after X draws"="temp", "Stop if white balls more than __ in average urn" = "avg", "Stop if white balls more than __ in average selected candidates"="avg_selected")),
                          column(6, numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))))
@@ -1144,7 +1144,7 @@ server <- function(input, output){
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")) + 
-        labs(x="Number of white balls", y="Number of maroon balls", title = "Evolution of urn contents")
+        labs(x="Number of white balls", y="Number of mauve balls", title = "Evolution of urn contents")
       
       
       rays <- if(input$graph_auto=="auto") rays + scale_x_continuous() + scale_y_continuous() else rays + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
@@ -1194,14 +1194,14 @@ server <- function(input, output){
           panel.grid.minor = element_blank(),
           panel.background = element_blank(),
           axis.line = element_line(colour = "black")) + 
-        labs(x="Number of white balls selected", y="Number of maroon balls selected",title = "Average highlighted in blue")
+        labs(x="Number of white balls selected", y="Number of mauve balls selected",title = "Average highlighted in blue")
      
        stock <- if(input$graph_auto=="auto") stock + scale_x_continuous() + scale_y_continuous() else stock + scale_x_continuous(limits=limits) + scale_y_continuous(limits=limits)
       
       
       ggplotly(stock) %>%
         layout(hovermode="x unified)") %>%
-        style(hovertemplate=paste('Avg. maroon: %{y}<br>', 'Avg. white: %{x} <extra></extra>'), traces=2) %>%
+        style(hovertemplate=paste('Avg. mauve: %{y}<br>', 'Avg. white: %{x} <extra></extra>'), traces=2) %>%
         style(hoverinfo="skip", traces=c(1,3))
 
       
@@ -1464,31 +1464,31 @@ server <- function(input, output){
           h3("Initial Urn Contents"), 
           p("Input the initial number of each color ball in the urn, \\(w_0\\) and \\(m_0\\)."),
           h3("Addition Scheme"), 
-          p("All urns perform draws with replacement. To specify draws without replacement, choose a negative value for the number of women or men to be added after each draw. You may specify the ball addition matrix in the form:
-  $$\\begin{pmatrix} w_w & m_w \\\\ w_m & m_m \\end{pmatrix} $$
+          p("At each \\(t\\), let the urn contents be represented by \\(w_t\\) white balls and \\(m_t\\) mauve balls. For the case of a single draw, you may specify the ball addition matrix in the form:
+  $$\\begin{pmatrix} d_{ww} & d_{wm} \\\\ d_{mw} & d_{mm} \\end{pmatrix} $$
   
-  where \\(m_w\\) represents the number of men added when a woman is drawn, and so on."),
+  where \\(d_{wm}\\) represents the number of M added when a W is drawn, and so on. All urns perform draws with replacement. To specify draws without replacement, choose a negative value for the number of women or men to be added after each draw. "),
           h3("Affirmative Action"), 
           p("The app allows simulation of various affirmative action policies. The first type is one where two balls are drawn from the urn, representing the best and second-best candidates. If the best candidate is a woman, they are selected. If not, the second-best candidate is considered and is selected if they are a woman (surely, in the determinisitc case, or with a certain probability, in the stochastic case). Otherwise, the best man candidate is selected."), 
           p("The second type of affirmative action adds one woman to the urn in every round, regardless of draw and addition."), 
           p("These two types can also be simulated using the multiple draw options."),
           p("The third type is a hiring quota, where women are selected every draw or at least every 2 draws until the stopping conditions are met. When necessary, we continue drawing until a woman is selected."), 
           h4("Stopping conditions"), 
-          p("The affirmative action may continue forever, stop when women become the majority in the sample (urn), stop when women become the majority among those selected, or stop after a certain number of draws. The hiring quota may be stopped when women make up a certain percentage of those selected or in the sample (urn)."),
+          p("The affirmative action may continue forever, stop when W become the majority in the sample (urn), stop when W become the majority among those selected, or stop after a certain number of draws. The hiring quota may be stopped when W make up a certain percentage of those selected or in the sample (urn)."),
           h3("Stochastic addition options"), 
           
-          HTML(paste0("Stochastic addition is currently:<b>", if(input$woman_stochastic!="none") " enabled " else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic!="none") " enabled " else " disabled ", "</b> when a man is drawn. <br></br>", 
-                      "The stochastic addition may be either correlated or uncorrelated. In the correlated variety, balls are always added to the urn in each draw, regardless of the state of any random variables. The 2 \\(\\times\\) 2 case where \\(x\\) balls are added in each round can be written in terms of 2 Bernoulli random variables:
+          HTML(paste0("Stochastic addition is currently:<b>", if(input$woman_stochastic!="none") " enabled " else " disabled", "</b> when W is drawn and <b>",if(input$man_stochastic!="none") " enabled " else " disabled ", "</b> when M is drawn. <br></br>", 
+                      "The stochastic addition may be either correlated or uncorrelated. In the correlated variety, balls are always added to the urn in each draw, regardless of the state of any random variables. The 2 \\(\\times\\) 2 case can be written in terms of 2 Bernoulli random variables:
 
 $$
 
 \\begin{pmatrix}
-w_w \\times X \\sim Bern(p) & m_w (1-X) \\\\
-w_m \\times Y \\sim Bern(q) & m_m (1-Y)
+d_{ww} \\times X \\sim Bern(p) & d_{wm} (1-X) \\\\
+d_{mw} \\times Y \\sim Bern(q) & d_{mm} (1-Y)
 \\end{pmatrix}
 
 $$", 
-                      "In that case, when a white ball is drawn, \\(p\\) gives the probability that \\(w_w\\) white balls are added. Otherwise, \\(m_w\\) maroon balls are added. <br></br>",
+                      "In that case, when a white ball is drawn, \\(p\\) gives the probability that \\(d_{ww}\\) white balls are added. Otherwise, \\(d_{wm}\\) mauve balls are added. <br></br>",
                       "Correlated stochastic addition is currently: <b>", if(input$woman_stochastic=="balanced") " enabled" else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic=="balanced") " enabled " else " disabled ", "</b>when a man is drawn. <br></br>", 
                       
                       "The case with uncorrelated addition is written in terms of four Bernoulli random variables:
@@ -1496,23 +1496,23 @@ $$",
 $$
 
 \\begin{pmatrix}
-w_w \\times Bern(p_{w_w}) & m_w \\times Bern(p_{m_w})\\\\
-w_m \\times Bern(p_{w_m}) & m_m \\times Bern(p_{m_m})
+d_{ww} \\times Bern(p_{ww}) & d_{wm} \\times Bern(p_{wm})\\\\
+d_{mw} \\times Bern(p_{mw}) & d_{mm} \\times Bern(p_{mm})
 \\end{pmatrix}
 
 $$",
                       
-"Stochastic addition may depend on the urn contents. In this case, the idea is that, e.g., the probability \\(p_{w_w}\\) is a decreasing function of the share of white balls in the earn. As a probability, this function should be bounded between 0 and 1 for shares of white balls between 0 and 1.
+"Stochastic addition may depend on the selected candidates. In this case, the idea is that, e.g., the probability \\(p_{ww}\\) is a function of the share of W among the candidates previous selected. As a probability, this function should be bounded between 0 and 1 for shares of white balls between 0 and 1.
 
 The most direct of such functions would be:
-  $$p_{w_w} = 1-share_w^a $$
-  with parameter \\(a \\in (0,\\infty) \\). We could also imagine various nonlinear functions, such as 
+  $$p_{ww} = c-b\\rho_t^a $$
+  where \\(\\rho_t = \\frac{\\hat{w}_t}{t}\\) (the share of W among selected candidates) with parameters \\(a, b, c\\). We could also imagine various nonlinear functions, such as 
 
-$$p_{w_w} = \\frac{1}{1+b share_w^a}$$
+$$p_{w_w} = \\frac{1}{1+b \\rho_t^a}$$
   with parameters \\(a,b \\in(0,\\infty) \\).
 
 Another possiblity:
-  $$p_{w_w} = \\frac{1}{1+b \\exp(c*share_w)}$$
+  $$p_{w_w} = \\frac{1}{1+b \\exp(c*\\rho_t)}$$
   with parameters \\(b,c \\in(0,\\infty) \\).
 
 As above, this may be done in the correlated or uncorrelated case. "
