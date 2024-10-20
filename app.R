@@ -197,7 +197,10 @@ navbarPage("Polya Urns", id="nav",
                 conditionalPanel(condition="input.intervention=='atleast_stochastic'", 
                      fluidRow(column(12, numericInput("prob_atleast", "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
                 conditionalPanel(condition="input.intervention=='quota'", 
-                                 column(6, numericInput("quota", "Select only women until they make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)),
+                                 column(6, numericInput("quota_per", "Select at least __ W", value=1, min=1, max=2, step=1)),
+                                 column(6, numericInput("quota_window", "every __ draws", value=1, min=1, max=2, step=1)),
+                                 column(6, numericInput("quota", "Continue until W make up __", value=0.5, min=0, max=1, step=0.1)),
+                                 column(6, radioButtons("quota_group", label="", choices=c("of selected candidates"="selected", "of urn"="urn"))),
                                  column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
                      fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
                          radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls more than __ in each urn"="majority","Stop if white balls more than __ among selected for each urn"="majority_selected", "Stop after X draws"="temp", "Stop if white balls more than __ in average urn" = "avg", "Stop if white balls more than __ in average selected candidates"="avg_selected")),
@@ -459,13 +462,14 @@ server <- function(input, output){
             
             # Conditions for ending of affirmative action
             end <- ifelse(input$intervention=="none" & !is.na(previous_share), NA, 
-                     ifelse(input$intervention=="quota"& (previous_share_selected > input$quota | end %in% 1) & n > input$quota_start,1, 
+                     ifelse(input$intervention=="quota"& input$quota_group == "selected" & (previous_share_selected > input$quota | end %in% 1) & n > input$quota_start,1, 
+                        ifelse(input$intervention=="quota"& input$quota_group == "urn" & (previous_share > input$quota | end %in% 1) & n > input$quota_start,1, 
                           ifelse(stopintervention=="continue" & !is.na(previous_share), 0, 
                             ifelse(stopintervention=="majority" & (previous_share>=input$cutoff | end %in% 1), 1, 
                               ifelse(stopintervention=="majority_selected" & (previous_share_selected >=input$cutoff | end %in% 1)& n > input$aa_start, 1,
                               ifelse(stopintervention=="temp" & n > input$stopafter & !is.na(previous_share), 1, 
                                 ifelse(stopintervention=="avg" & (previous_share_avg>=input$cutoff | end %in% 1 ), 1, 
-                                  ifelse(stopintervention=="avg_selected" & (previous_share_selected_avg >= input$cutoff | end %in% 1), 1, 0))))))))
+                                  ifelse(stopintervention=="avg_selected" & (previous_share_selected_avg >= input$cutoff | end %in% 1), 1, 0)))))))))
              
             firstend <- ifelse(is.na(firstend) & end*((stopintervention=="majority"  | stopintervention=="majority_selected" | stopintervention=="avg" | stopintervention=="avg_selected" | input$intervention =="quota")), n , firstend)
             
@@ -474,7 +478,7 @@ server <- function(input, output){
             prob_w_selected <- ifelse(input$multidraw=="multi" & input$multi_interp==T & !(end %in% 0),  1 - dhyper(input$num_draws, previous_m, previous_w, input$num_draws), 
                                  ifelse(input$intervention=="atleast" & (end %in% 0) & n > input$aa_start, 1-dhyper(2, previous_m, previous_w, 2), 
                                   ifelse(input$intervention=="atleast_stochastic" & (end %in% 0) & n > input$aa_start, previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
-                                    ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start,1, previous_share))))
+                                    ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start,1/input$quota_window, previous_share))))
               
             
             # Random draws done ahead of time for the case of balanced replacement
@@ -560,11 +564,67 @@ server <- function(input, output){
               })
             }        
             if (input$multidraw=="single" & input$intervention=="quota" & n>input$quota_start){
-              ball_drawn_aa  <- apply(urn,2, function(x) sample(x,nrow(urn)) )
-              rank_aa <- apply(ball_drawn_aa, 2, function(x) min(which(x=="w")) )
-              ball_drawn_aa <- sapply(seq(1:ncol(urn)), function(x) ball_drawn_aa[rank_aa[x],x])
-              prob_best_aa <- previous_share
               
+              # Quota with window > 1: selection strategy
+              # Need to select at least one W every k draws
+              # Select W in this round if min(rank of W) < expected rank of W if choosing M this round
+              
+              # Check if we still have free choices 
+              # Hire W every round = no free choices 
+              # Hire W every two = free choice in round 1, free choice in round 2 only if W in round 1
+              # Otherwise, count previous W in window 
+              draw_in_window <- input$quota_window - n %% input$quota_window
+              if (draw_in_window > 1) {
+              w_so_far <- apply(urn, 2, function(x) sum(x[(length(x)-(draw_in_window-2)):length(x)]=="w"))
+              }
+              else {
+              w_so_far <- rep(0, ncol(urn))
+              }
+              free_choice <-(n %% input$quota_window==input$quota_per - w_so_far )
+              free_choice <- ifelse(rep(draw_in_window, ncol(urn)) == 1 & rep(input$quota_window, ncol(urn)) > 1, T, free_choice)
+
+                # Forecast expected value
+                forecast_urn <- rbind(urn, rep("m", ncol(urn)))
+                
+                # Bootstrap if you want, but it's slow 
+                find_best_W <- function(forecast_urn){
+                  forecast_draws <- apply(forecast_urn,2, function(x) sample(x,nrow(forecast_urn)))
+                  rank <- apply(forecast_draws, 2, function(x) min(which(x=="w")) )
+                  return(rank)
+                }
+                #forecast_rank <- t(replicate(20, find_best_W(forecast_urn)))
+                #expected_rank_W <- apply(forecast_rank, 2, function(x) mean(forecast_rank[, x]))
+                
+                # Otherwise, use the formula 
+                m <- previous_m + 1
+                w <- previous_w 
+                numer <- function(s, w, m) {
+                  prod(sapply(0:max(s-2, 0), function(k) max(0, m - k))) 
+
+                  }
+                denom <- function(s, w, m) {
+                  prod(sapply(0:max(s-1, 0), function(j) w+m-j)) 
+                }
+                sum1 <- sapply(seq(1:ncol(urn)), function(x) 1 + sum( sapply(seq(1:(m[x]+1)), function(z) z*(dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z+1)) )))
+                  
+                  #(w[x]/(w[x]+m[x])) + sum(sapply(2:(m[x]+1), function(s) (w[x])*s*numer(s, w[x], m[x])/denom(s, w[x], m[x]))))
+                expected_rank_W <- sum1
+                
+                # Compare to best rank of W this round 
+                draws_aa  <- apply(urn,2, function(x) sample(x,nrow(urn)) )
+                rank_aa <- apply(draws_aa, 2, function(x) min(which(x=="w")) )
+                
+                draw_aa <- ifelse(rank_aa <= expected_rank_W, rank_aa, 1)
+                # If choice is not free, replace it with W 
+                draw_aa <- ifelse(free_choice==FALSE, rank_aa, draw_aa)
+                
+                ball_drawn_aa <- sapply(seq(1:ncol(urn)), function(x) draws_aa[draw_aa[x],x])
+              
+                rank_aa <- draw_aa
+
+              # Prob best this round = prob(W best) + free_choice*prob(choose M this round) 
+              prob_best_aa <- previous_share + sapply(seq(1:ncol(urn)), function(x) 1- dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x])))*sapply(seq(1:ncol(urn)), function(x) 1- dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x])))
+            
               ball_replaced_aa <- sapply(seq(1:I), function(x){
                 rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
                 if(is_empty(rball)) 0 else rball
@@ -639,11 +699,20 @@ server <- function(input, output){
             new_m <- sapply(seq(1:I), function(x) previous_m[x] + sum(ball_replaced[[x]]=="m") - sum(ball_removed[[x]]=="m"))
             new_m <- ifelse(new_m<0, 0 , new_m)
             
-            urn_l <- lapply(seq(1:I), function(x) matrix(c(rep("w", new_w[x]), rep("m", new_m[x])), ncol=1) )
-            urn <- matrix(nrow= max(unlist(lapply(urn_l, nrow))), ncol=I)
-            for (i in 1:I) {
-              urn[1:length(urn_l[[i]]),i] <- urn_l[[i]]
-            }
+            add_w <- sapply(seq(1:I), function(x) sum(ball_replaced[[x]]=="w") - sum(ball_removed[[x]]=="w"))
+            add_w <- ifelse(add_w <0, 0, add_w)
+            add_m <- sapply(seq(1:I), function(x) sum(ball_replaced[[x]]=="m") - sum(ball_removed[[x]]=="m"))
+            add_m <- ifelse(add_m<0, 0 , add_m)
+            
+            add <- sapply(seq(1:length(add_w)), function(x) c(rep("w", add_w[x]), rep("m", add_m[x])))
+            
+            #urn_l <- lapply(seq(1:I), function(x) matrix(c(rep("w", new_w[x]), rep("m", new_m[x])), ncol=1) )
+            #urn <- matrix(nrow= max(unlist(lapply(urn_l, nrow))), ncol=I)
+            urn <- sapply(seq(1:ncol(urn)), function(x) c(urn[,x], add[x]))
+            
+            #for (i in 1:I) {
+            #  urn[1:length(urn_l[[i]]),i] <- urn_l[[i]]
+            #}
             
             # For urns with multidraw intervention interpretation, change how "selected" is defined
             ball_selected <- ball_drawn 
