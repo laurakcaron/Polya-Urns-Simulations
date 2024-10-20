@@ -1,5 +1,5 @@
 .Rhistory
-
 rsconnect/
-rsconnect/shinyapps.io/caron/Women-Men-Polya-Urns.dcf
-
+*.dcf
+Data/
+.Rproj.user
