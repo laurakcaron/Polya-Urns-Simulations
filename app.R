@@ -610,21 +610,27 @@ server <- function(input, output){
                 denom <- function(s, w, m) {
                   prod(sapply(0:max(s-1, 0), function(j) w+m-j)) 
                 }
-                sum1 <- sapply(seq(1:ncol(urn)), function(x) 1 + sum( sapply(seq(1:(m[x]+1)), function(z) z*(dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z+1)) )))
+                sum1 <- sapply(seq(1:ncol(urn)), function(x) 1 + sum( sapply(seq(1:(m[x])), function(z) z*(dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z+1)) )))
                   
+                #
                   #(w[x]/(w[x]+m[x])) + sum(sapply(2:(m[x]+1), function(s) (w[x])*s*numer(s, w[x], m[x])/denom(s, w[x], m[x]))))
                 expected_rank_W <- sum1
                 
                 # Compare to best rank of W this round 
-                draws_aa  <- apply(urn,2, function(x) sample(x,nrow(urn)) )
-                rank_aa <- apply(draws_aa, 2, function(x) min(which(x=="w")) )
                 
+                # Draw the whole urn to get the ranking 
+                draws_aa  <- apply(urn,2, function(x) sample(x,nrow(urn)) )
+                # Find the rank of the best W 
+                rank_aa <- apply(draws_aa, 2, function(x) min(which(x=="w")) )
+                # Check if rank of best W < expected rank of W 
                 draw_aa <- ifelse(rank_aa <= expected_rank_W, rank_aa, 1)
-                # If choice is not free, replace it with W 
+                # If choice is not free, replace it with the best available W regardless
                 draw_aa <- ifelse(free_choice==FALSE, rank_aa, draw_aa)
                 
+                # Save which ball you drew 
                 ball_drawn_aa <- sapply(seq(1:ncol(urn)), function(x) draws_aa[draw_aa[x],x])
               
+                # Save the rank of that ball 
                 rank_aa <- draw_aa
 
               # Prob best this round = prob(W best) + free_choice*prob(choose M this round) 
