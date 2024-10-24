@@ -16,7 +16,7 @@ if (!require("remotes"))
   install.packages("remotes")
 
 #library(renv)
-renv::restore()
+#renv::restore()
 
 library(remotes)
 library(tidyverse)
@@ -199,16 +199,21 @@ navbarPage("Polya Urns", id="nav",
                 conditionalPanel(condition="input.intervention=='quota'", 
                                  column(6, numericInput("quota_per", "Select at least __ W", value=1, min=1, max=2, step=1)),
                                  column(6, numericInput("quota_window", "every __ draws", value=1, min=1, max=2, step=1)),
-                                 column(6, numericInput("quota", "Continue until W make up __", value=0.5, min=0, max=1, step=0.1)),
-                                 column(6, radioButtons("quota_group", label="", choices=c("of selected candidates"="selected", "of urn"="urn"))),
-                                 column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
-                     fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none' & input.intervention !='quota'",
+                                 #column(6, numericInput("quota", "Continue until W make up __", value=0.5, min=0, max=1, step=0.1)),
+                                 #column(6, radioButtons("quota_group", label="", choices=c("of selected candidates"="selected", "of urn"="urn"))),
+                                 #column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))
+                                 ),
+                     fluidRow(column(12, conditionalPanel(condition = "input.intervention != 'none'",
                          radioButtons("stopintervention", "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls more than __ in each urn"="majority","Stop if white balls more than __ among selected for each urn"="majority_selected", "Stop after X draws"="temp", "Stop if white balls more than __ in average urn" = "avg", "Stop if white balls more than __ in average selected candidates"="avg_selected")),
-                         column(6, numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))))
+                         ))
                 ), 
-                fluidRow(column(12, conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none' & input.intervention!='quota'", numericInput("stopafter", "Stop after", 30)),
-                                    conditionalPanel(condition="(input.stopintervention=='avg' | input.stopintervention=='majority') & input.intervention!='none'", numericInput("cutoff", "Use AA until white balls make up __ of the urn", value=0.5, min=0, max=1, step=0.1)),
-                                conditionalPanel(condition="(input.stopintervention=='avg_selected' | input.stopintervention=='majority_selected') & input.intervention!='none'", numericInput("cutoff", "Use AA until white balls make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)))),
+                fluidRow(column(6, conditionalPanel(condition = "input.intervention != 'none'", numericInput("aa_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
+                         conditionalPanel(condition="input.stopintervention=='temp'& input.intervention!='none'", 
+                                                     column(6, numericInput("stopafter", "Stop after", 30))),
+                                    conditionalPanel(condition="(input.stopintervention=='avg' | input.stopintervention=='majority') & input.intervention!='none'", 
+                                                     column(6, numericInput("cutoff", "Use AA until white balls make up __ of the urn", value=0.5, min=0, max=1, step=0.1))),
+                                conditionalPanel(condition="(input.stopintervention=='avg_selected' | input.stopintervention=='majority_selected') & input.intervention!='none'", 
+                                                 column(6, numericInput("cutoff", "Use AA until white balls make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)))),
                 )),
                 # Fifth section: Graph options
                 h3("Graph options"), 
@@ -351,7 +356,7 @@ server <- function(input, output){
       
       # Some options for AA 
       
-      stopintervention <- ifelse(input$intervention == "none" | input$intervention=="quota", "na", input$stopintervention)
+      stopintervention <- ifelse(input$intervention == "none", "na", input$stopintervention)
       
       # Set parameters for stochastic balanced replacement
       p_w_w <- ifelse(input$woman_stochastic=="none", 1, input$p_w_w)
@@ -462,14 +467,14 @@ server <- function(input, output){
             
             # Conditions for ending of affirmative action
             end <- ifelse(input$intervention=="none" & !is.na(previous_share), NA, 
-                     ifelse(input$intervention=="quota"& input$quota_group == "selected" & (previous_share_selected > input$quota | end %in% 1) & n > input$quota_start,1, 
-                        ifelse(input$intervention=="quota"& input$quota_group == "urn" & (previous_share > input$quota | end %in% 1) & n > input$quota_start,1, 
+                     #ifelse(input$intervention=="quota"& input$quota_group == "selected" & (previous_share_selected > input$quota | end %in% 1) & n > input$quota_start,1, 
+                        #ifelse(input$intervention=="quota"& input$quota_group == "urn" & (previous_share > input$quota | end %in% 1) & n > input$quota_start,1, 
                           ifelse(stopintervention=="continue" & !is.na(previous_share), 0, 
                             ifelse(stopintervention=="majority" & (previous_share>=input$cutoff | end %in% 1), 1, 
                               ifelse(stopintervention=="majority_selected" & (previous_share_selected >=input$cutoff | end %in% 1)& n > input$aa_start, 1,
                               ifelse(stopintervention=="temp" & n > input$stopafter & !is.na(previous_share), 1, 
                                 ifelse(stopintervention=="avg" & (previous_share_avg>=input$cutoff | end %in% 1 ), 1, 
-                                  ifelse(stopintervention=="avg_selected" & (previous_share_selected_avg >= input$cutoff | end %in% 1), 1, 0)))))))))
+                                  ifelse(stopintervention=="avg_selected" & (previous_share_selected_avg >= input$cutoff | end %in% 1), 1, 0)))))))#))
              
             firstend <- ifelse(is.na(firstend) & end*((stopintervention=="majority"  | stopintervention=="majority_selected" | stopintervention=="avg" | stopintervention=="avg_selected" | input$intervention =="quota")), n , firstend)
             
@@ -478,7 +483,7 @@ server <- function(input, output){
             prob_w_selected <- ifelse(input$multidraw=="multi" & input$multi_interp==T & !(end %in% 0),  1 - dhyper(input$num_draws, previous_m, previous_w, input$num_draws), 
                                  ifelse(input$intervention=="atleast" & (end %in% 0) & n > input$aa_start, 1-dhyper(2, previous_m, previous_w, 2), 
                                   ifelse(input$intervention=="atleast_stochastic" & (end %in% 0) & n > input$aa_start, previous_share+(1-previous_share)*(previous_share)*input$prob_atleast,
-                                    ifelse(input$intervention=="quota"& (end %in% 0) & n > input$quota_start,1/input$quota_window, previous_share))))
+                                    ifelse(input$intervention=="quota"& (end %in% 0) & n > input$aa_start,1/input$quota_window, previous_share))))
               
             
             # Random draws done ahead of time for the case of balanced replacement
@@ -563,7 +568,7 @@ server <- function(input, output){
                 if(is_empty(mball)) 0 else mball
               })
             }        
-            if (input$multidraw=="single" & input$intervention=="quota" & n>input$quota_start){
+            if (input$multidraw=="single" & input$intervention=="quota" & n>input$aa_start){
               
               # Quota with window > 1: selection strategy
               # Need to select at least one W every k draws
@@ -668,7 +673,7 @@ server <- function(input, output){
             }
             
             # For urns undergoing AA, use those draws instead 
-            if (input$multidraw=="single" & input$intervention != "none" & input$intervention!="quota" & n > input$aa_start | (input$multidraw=="single" & input$intervention=="quota" & n > input$quota_start) ){
+            if (input$multidraw=="single" & input$intervention != "none" & input$intervention!="quota" & n > input$aa_start | (input$multidraw=="single" & input$intervention=="quota" & n > input$aa_start) ){
             ball_drawn <- ifelse(end %in% 0, ball_drawn_aa, ball_drawn)
             ball_replaced_aa <- if(!("list" %in% class(ball_replaced_aa))) sapply(ball_replaced_aa, list) else ball_replaced_aa
             ball_replaced <- sapply(seq(1:I), function(x) if(end[x] %in% 0) ball_replaced_aa[[x]] else ball_replaced[x])
