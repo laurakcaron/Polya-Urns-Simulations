@@ -16,7 +16,7 @@ if (!require("remotes"))
   install.packages("remotes")
 
 #library(renv)
-#renv::restore()
+renv::restore()
 
 library(remotes)
 library(tidyverse)

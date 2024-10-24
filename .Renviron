@@ -1,0 +1,1 @@
+Sys.setenv(RENV_DOWNLOAD_METHOD = getOption("download.file.method"))
