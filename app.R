@@ -262,7 +262,7 @@ navbarPage("Polya Urns", id="nav",
                            fluidRow(column(6, plotlyOutput("share_best", height="50%")),
                                     column(6, plotlyOutput("avg_rank", height="50%"))),                           
                            # Probability of selecting best candidate 
-                           fluidRow(column(9, plotlyOutput("prob_best", height="50%")))
+                           fluidRow(column(6, plotlyOutput("prob_best", height="50%")))
                            
                   ),
                   # Fourth tab
@@ -614,6 +614,7 @@ server <- function(input, output){
                   
                 #
                   #(w[x]/(w[x]+m[x])) + sum(sapply(2:(m[x]+1), function(s) (w[x])*s*numer(s, w[x], m[x])/denom(s, w[x], m[x]))))
+                prev_expected_rank_W <- if(n > 1) expected_rank_W else NA 
                 expected_rank_W <- sum1
                 
                 # Compare to best rank of W this round 
@@ -633,9 +634,18 @@ server <- function(input, output){
                 # Save the rank of that ball 
                 rank_aa <- draw_aa
 
-              # Prob best this round = prob(W best) + free_choice*prob(choose M this round) 
-              prob_best_aa <- previous_share + sapply(seq(1:ncol(urn)), function(x) 1- dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x])))*sapply(seq(1:ncol(urn)), function(x) 1- dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x])))
-            
+              # Prob best this round = prob(free choice)*prob(rank > expected) + prob(rank < expected and W best)
+              # Prob(free choice) = prob selected W last round if 2nd in window ; 1 if first in window 
+#              prob_best_aa <- ((draw_in_window < input$quota_window) + (draw_in_window == input$quota_window)*sapply(seq(1:ncol(urn)), function(x) dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x])-1)))*sapply(seq(1:ncol(urn)), function(x) dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x]))) + previous_share
+              #prob_best_aa <- sapply(seq(1:ncol(urn)), function(x) dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x]))) + previous_share
+                
+              #if(draw_in_window > 1){
+              #  prob_best_aa <- sapply(seq(1:ncol(urn)), function(x) dhyper(0, previous_w[x], previous_m[x], floor(prev_expected_rank_W[x]))) + previous_share
+              #}
+              
+              quota_done <- w_so_far >= input$quota_per
+              prob_best_aa <- quota_done + (1-quota_done)*(free_choice*sapply(seq(1:ncol(urn)), function(x) dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x])) ) + previous_share)
+                
               ball_replaced_aa <- sapply(seq(1:I), function(x){
                 rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added*r_w_w[x]), rep("m", m_w_added*r_m_w[x])) else c(rep("w", w_m_added*r_w_m[x]), rep("m", m_m_added*r_m_m[x]))
                 if(is_empty(rball)) 0 else rball
@@ -717,9 +727,12 @@ server <- function(input, output){
             
             add <- sapply(seq(1:length(add_w)), function(x) c(rep("w", add_w[x]), rep("m", add_m[x])))
             
+            if(is.null(dim(add))) {
+              add <- matrix(add, ncol=ncol(urn))
+            }
             #urn_l <- lapply(seq(1:I), function(x) matrix(c(rep("w", new_w[x]), rep("m", new_m[x])), ncol=1) )
             #urn <- matrix(nrow= max(unlist(lapply(urn_l, nrow))), ncol=I)
-            urn <- sapply(seq(1:ncol(urn)), function(x) c(urn[,x], add[x]))
+            urn <- sapply(seq(1:ncol(urn)), function(x) c(urn[,x], add[, x]))
             
             #for (i in 1:I) {
             #  urn[1:length(urn_l[[i]]),i] <- urn_l[[i]]
