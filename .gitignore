@@ -3,3 +3,8 @@ rsconnect/
 *.dcf
 Data/
 .Rproj.user
+.vscode/launch.json
+.Rprofile
+.Rprofile
+/rsconnect
+/renv
