@@ -1081,8 +1081,8 @@ coloreq <- "#228833"
       # Plot
       bin.width1 <- 1/(sqrt(input[["N1"]]))
       bin.width2 <- 1/(sqrt(input[["N2"]]))
-      bins1 <- sqrt(input[["N1"]])
-      bins2 <- sqrt(input[["N2"]])
+      bins1 <- floor(sqrt(input[["N1"]]))
+      bins2 <- floor(sqrt(input[["N2"]]))
       hist <- ggplot() + 
         # Sim 2
         geom_histogram(data=hist_data2, aes(x=`Share of white balls in urn after trials`), bins=bins2, fill=color2.light, alpha=.5)+
