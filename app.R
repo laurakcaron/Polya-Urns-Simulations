@@ -196,6 +196,28 @@ simParamPanel <- function(num) {
                conditionalPanel(condition=paste0("(input.stopintervention", num, "=='avg_selected' | input.stopintervention", num, "=='majority_selected') & input.intervention", num, "!='none'"), 
                                 column(6, numericInput(paste0("cutoff", num), "Use AA until white balls make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)))),
     )),
+    # Interventions for multidraw  
+    conditionalPanel(paste0("input.multidraw", num, "=='multi'"), div(
+      h3("Interventions"),
+      fluidRow(column(12, radioButtons(paste0("intervention", num), "Affirmative Action", selected="none", choices=c("None"="none", "Draw K extra candidates, hire all as many W as possible"="atleast.multi", "Hiring quota: at least __ hires must be W in each round"="quota.multi")))),
+      conditionalPanel(condition=paste0("input.intervention", num, "=='atleast.multi'"), 
+                       fluidRow(
+                         column(6, numericInput(paste0("num_draws_aa.multi", num), "Number of extra draws", 1, step=1, min=1)))),
+      conditionalPanel(condition=paste0("input.intervention", num, "=='quota.multi'"), 
+                       column(6, numericInput(paste0("quota_per", num), "Select at least __ W", value=1, min=1, max=paste0("input.num_draws", num), step=1)),
+      ),
+      fluidRow(column(12, conditionalPanel(condition = paste0("input.intervention", num, "!= 'none'"),
+                                           radioButtons(paste0("stopintervention", num), "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls more than __ in each urn"="majority","Stop if white balls more than __ among selected for each urn"="majority_selected", "Stop after X draws"="temp", "Stop if white balls more than __ in average urn" = "avg", "Stop if white balls more than __ in average selected candidates"="avg_selected")),
+      ))
+      ), 
+      fluidRow(column(6, conditionalPanel(condition = paste0("input.intervention", num, "!= 'none'"), numericInput(paste0("aa_start", num), "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))),
+               conditionalPanel(condition=paste0("input.stopintervention", num, "=='temp'& input.intervention", num, "!='none'"), 
+                                column(6, numericInput(paste0("stopafter", num), "Stop after", 30))),
+               conditionalPanel(condition=paste0("(input.stopintervention", num, "=='avg' | input.stopintervention", num, "=='majority') & input.intervention", num, "!='none'"), 
+                                column(6, numericInput(paste0("cutoff", num), "Use AA until white balls make up __ of the urn", value=0.5, min=0, max=1, step=0.1))),
+               conditionalPanel(condition=paste0("(input.stopintervention", num, "=='avg_selected' | input.stopintervention", num, "=='majority_selected') & input.intervention", num, "!='none'"), 
+                                column(6, numericInput(paste0("cutoff", num), "Use AA until white balls make up __ of the pool of selected candidates", value=0.5, min=0, max=1, step=0.1)))),
+    )),
     # Fifth section: Graph options
     h3("Graph options"), 
     fluidRow(column(12,
@@ -334,7 +356,7 @@ multidrawMatrix <- function(num){
   
   if(is.na(input[[paste0("num_draws", num)]])){
     defaultmat <-  matrix(cbind(2, 2) , nrow=length(possibledraws), ncol=2, dimnames=list(possibledraws, c("Add||W", "Add||M")))
-    matrixInput("multi_matrix", rows = list(names=TRUE), cols=list(names=TRUE, multiheader=TRUE),value=defaultmat)
+    matrixInput(paste0("multi_matrix", num), rows = list(names=TRUE), cols=list(names=TRUE, multiheader=TRUE),value=defaultmat)
     
   }
   else{
@@ -344,7 +366,7 @@ multidrawMatrix <- function(num){
   defaultvalueM <- str_count(possibledraws, "M")
   defaultmat <-  matrix(cbind(defaultvalueW, defaultvalueM) , nrow=length(possibledraws), ncol=2, dimnames=list(possibledraws, c("Add||W", "Add||M")))
   
-  matrixInput("multi_matrix", rows = list(names=TRUE), cols=list(names=TRUE, multiheader=TRUE),value=defaultmat)
+  matrixInput(paste0("multi_matrix", num), rows = list(names=TRUE), cols=list(names=TRUE, multiheader=TRUE),value=defaultmat)
   }
 }
   
@@ -431,7 +453,8 @@ runSimulation <- function(num) {
     
     # Reset the urns to initial state
     # Each column is one urn, one row for each ball 
-    urn <- matrix(rep(c(rep("w", w_0),rep("m", m_0)), I), ncol = I, byrow=FALSE)
+      #urn <- matrix(rep(c(rep("w", w_0),rep("m", m_0)), I), ncol = I, byrow=FALSE)
+    urn <- lapply(seq(1:I), function(x) rep(c(rep("w", w_0),rep("m", m_0))))
     
     # Initialize some vectors
     w_n <- rep(w_0, I)
@@ -449,8 +472,10 @@ runSimulation <- function(num) {
     
     for (n in 1:(N)){
       # Save the previous number of women and men and share
-      previous_w <- colSums(urn=="w", na.rm=T)
-      previous_m <- colSums(urn=="m", na.rm=T)
+        #previous_w <- colSums(urn=="w", na.rm=T)
+        #previous_m <- colSums(urn=="m", na.rm=T)
+      previous_w <- sapply(urn, function(x) sum(x=="w", na.rm=T))
+      previous_m <- sapply(urn, function(x) sum(x=="m", na.rm=T))
       previous_share <- previous_w/(previous_w+previous_m)
       previous_share_selected = if(n == 1) previous_share else selected_w[n-1,]/(selected_w[n-1,] + selected_m[n-1,])
       
@@ -581,26 +606,26 @@ prob_best <- rep(1, I)
 
 ## SINGLE DRAW OPTIONS          
 if (input[[paste0("multidraw", num)]] == "single" & 1 == 1) {
-  ball_drawn <- apply(urn, 2, function(x) sample(na.omit(x), 1))
+  ball_drawn <- lapply(urn, function(x) sample(na.omit(x), 1))
   
   ball_replaced <- lapply(seq(1:I), function(x) {
-    rball <- if(ball_drawn[x] == "w") c(rep("w", w_w_added * r_w_w[x]), rep("m", m_w_added * r_m_w[x])) else c(rep("w", w_m_added * r_w_m[x]), rep("m", m_m_added * r_m_m[x]))
+    rball <- if(ball_drawn[[x]] == "w") c(rep("w", w_w_added * r_w_w[x]), rep("m", m_w_added * r_m_w[x])) else c(rep("w", w_m_added * r_w_m[x]), rep("m", m_m_added * r_m_m[x]))
     if(is_empty(rball)) 0 else rball
   })
   
   ball_removed <- lapply(seq(1:I), function(x) {
-    mball <- if(ball_drawn[x] == "w") c(rep("w", w_w_removed * r_w_w[x]), rep("m", m_w_removed * r_m_w[x])) else c(rep("w", w_m_removed * r_w_m[x]), rep("m", m_m_removed * r_m_m[x]))
+    mball <- if(ball_drawn[[x]] == "w") c(rep("w", w_w_removed * r_w_w[x]), rep("m", m_w_removed * r_m_w[x])) else c(rep("w", w_m_removed * r_w_m[x]), rep("m", m_m_removed * r_m_m[x]))
     if(is_empty(mball)) 0 else mball
   })
 }
 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "atleast" & n > input[[paste0("aa_start", num)]]) {
-  ball_drawn_aa <- apply(urn, 2, function(x) sample(na.omit(x), input[[paste0("num_draws_aa", num)]], replace = FALSE))
+  ball_drawn_aa <- sapply(urn,function(x) sample(na.omit(x), input[[paste0("num_draws_aa", num)]], replace = FALSE))
   
-  rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x == "w")), 1))
+  rank_aa <- sapply(ball_drawn_aa, function(x) ifelse("w" %in% x, min(which(x == "w")), 1))
   
   prob_best_aa <- dhyper(input[[paste0("num_draws_aa", num)]], previous_m, previous_w, input[[paste0("num_draws_aa", num)]]) + previous_share
-  ball_drawn_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, "w", "m"))
+  ball_drawn_aa <- sapply(ball_drawn_aa, function(x) ifelse("w" %in% x, "w", "m"))
   
   ball_replaced_aa <- lapply(seq(1:I), function(x) {
     rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added * r_w_w[x]), rep("m", m_w_added * r_m_w[x])) else c(rep("w", w_m_added * r_w_m[x]), rep("m", m_m_added * r_m_m[x]))
@@ -614,7 +639,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
 }
 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "atleast_stochastic" & n > input[[paste0("aa_start", num)]]) {
-  ball_drawn_aa <- apply(urn, 2, function(x) sample(na.omit(x), 2, replace = TRUE))
+  ball_drawn_aa <- sapply(urn, function(x) sample(na.omit(x), 2, replace = TRUE))
   
   rank_aa <- apply(ball_drawn_aa, 2, function(x) ifelse("w" %in% x, min(which(x == "w")), 1))
   
@@ -632,7 +657,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
 }
 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "alwayswoman") {
-  ball_drawn_aa <- apply(urn, 2, function(x) sample(na.omit(x), 1))
+  ball_drawn_aa <- lapply(urn, function(x) sample(na.omit(x), 1))
   
   rank_aa <- 1
   
@@ -653,20 +678,20 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   draws_left <- input[[paste0("quota_window", num)]] - draw_in_window
   
   if (draw_in_window > 1) {
-    w_so_far <- apply(urn, 2, function(x) sum(x[(length(x) - (draw_in_window - 2)):length(x)] == "w"))
+    w_so_far <- lapply(urn, function(x) sum(x[(length(x) - (draw_in_window - 2)):length(x)] == "w"))
   } else {
-    w_so_far <- rep(0, ncol(urn))
+    w_so_far <- rep(0, I)
   }
   
-  free_choice <- (draws_left >= input[[paste0("quota_per", num)]] - w_so_far)
-  free_choice <- ifelse(rep(draw_in_window, ncol(urn)) == 1 & rep(input[[paste0("quota_window", num)]], ncol(urn)) > 1, TRUE, free_choice)
+  free_choice <- sapply(w_so_far, function(x) draws_left >= input[[paste0("quota_per", num)]] - x)
+  free_choice <- ifelse(rep(draw_in_window, I) == 1 & rep(input[[paste0("quota_window", num)]], I) > 1, TRUE, free_choice)
   
   if (input[[paste0("quota_window", num)]] - draw_in_window <= 1) {
-    forecast_urn <- rbind(urn, rep("m", ncol(urn)))
+    forecast_urn <- lapply(urn, function(x) c(x, "m"))
     
     find_best_W <- function(forecast_urn) {
-      forecast_draws <- apply(forecast_urn, 2, function(x) sample(x, nrow(forecast_urn)))
-      rank <- apply(forecast_draws, 2, function(x) min(which(x == "w")))
+      forecast_draws <- lapply(forecast_urn, function(x) sample(x, length(x)))
+      rank <- lapply(forecast_draws, function(x) min(which(x == "w")))
       return(rank)
     }
     
@@ -679,7 +704,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
       prod(sapply(0:max(s - 1, 0), function(j) w + m - j))
     }
     
-    sum1 <- sapply(seq(1:ncol(urn)), function(x) 1 + sum(sapply(seq(1:(m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
+    sum1 <- sapply(seq(1:I), function(x) 1 + sum(sapply(seq(1:(m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
     
     expected_rank_W <- sum1
   }
@@ -687,30 +712,30 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   if (input[[paste0("quota_window", num)]] - draw_in_window > 1) {
     m <- previous_m + 2
     w <- previous_w
-    sum2.m <- sapply(seq(1:ncol(urn)), function(x) 1 + sum(sapply(seq(1:(m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
+    sum2.m <- sapply(seq(1:I), function(x) 1 + sum(sapply(seq(1:(m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
     
     m <- previous_m + 1
     w <- previous_w + 1
-    sum2.w <- sapply(seq(1:ncol(urn)), function(x) 1 + sum(sapply(seq(1:floor(sum2.m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
+    sum2.w <- sapply(seq(1:I), function(x) 1 + sum(sapply(seq(1:floor(sum2.m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
     
     m <- previous_m + 1
     w <- previous_w
-    prob.sum2 <- sapply(seq(1:ncol(urn)), function(x) (dhyper(0, w[x], m[x], floor(sum2.w[x]))))
+    prob.sum2 <- sapply(seq(1:I), function(x) (dhyper(0, w[x], m[x], floor(sum2.w[x]))))
     
     expected_rank_W <- sum2.m * (1 - prob.sum2) + sum2.w * (prob.sum2)
   }
   
-  draws_aa <- apply(urn, 2, function(x) sample(x, nrow(urn)))
-  rank_aa <- apply(draws_aa, 2, function(x) min(which(x == "w")))
+  draws_aa <- lapply(urn, function(x) sample(x, length(x)))
+  bestW_aa <- lapply(draws_aa, function(x) min(which(x == "w")))
   
-  draw_aa <- ifelse(rank_aa <= expected_rank_W & w_so_far != input[[paste0("quota_per", num)]], rank_aa, 1)
-  draw_aa <- ifelse(free_choice == FALSE, rank_aa, draw_aa)
+  draw_aa <- ifelse(bestW_aa <= expected_rank_W & w_so_far != input[[paste0("quota_per", num)]], bestW_aa, 1)
+  draw_aa <- ifelse(free_choice == FALSE, bestW_aa, draw_aa)
   
-  ball_drawn_aa <- sapply(seq(1:ncol(urn)), function(x) draws_aa[draw_aa[x], x])
+  ball_drawn_aa <- lapply(seq(1:I), function(x) draws_aa[[x]][[draw_aa[[x]]]])
   rank_aa <- draw_aa
   
   quota_done <- w_so_far >= input[[paste0("quota_per", num)]]
-  prob_best_aa <- quota_done + (1 - quota_done) * (free_choice * sapply(seq(1:ncol(urn)), function(x) dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x]))) + previous_share)
+  prob_best_aa <- quota_done + (1 - quota_done) * (free_choice * sapply(seq(1:I), function(x) dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x]))) + previous_share)
   
   ball_replaced_aa <- lapply(seq(1:I), function(x) {
     rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added * r_w_w[x]), rep("m", m_w_added * r_m_w[x])) else c(rep("w", w_m_added * r_w_m[x]), rep("m", m_m_added * r_m_m[x]))
@@ -726,20 +751,20 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
       
 ## MULTIPLE DRAW OPTIONS
 if (input[[paste0("multidraw", num)]] == "multi") {
-  ball_drawn <- lapply(seq(1:I), function(x) sample(na.omit(urn[,x]), input[[paste0("num_draws", num)]])) 
+  ball_drawn <- lapply(urn, function(x) sample(na.omit(x), input[[paste0("num_draws", num)]])) 
   
   if ("character" %in% class(ball_drawn)) ball_drawn <- matrix(ball_drawn, ncol=I)
-  
+
   ball_replaced <- lapply(seq(1:I), function(x) {
-    total_W = ifelse(input[[paste0("num_draws", num)]] == 1, str_count(ball_drawn[,x], "w"), str_count(paste(ball_drawn[,x], collapse=""), "w")) 
-    total_M = ifelse(input[[paste0("num_draws", num)]] == 1, str_count(ball_drawn[,x], "m"), str_count(paste(ball_drawn[,x], collapse=""), "m")) 
+    total_W = ifelse(input[[paste0("num_draws", num)]] == 1, str_count(ball_drawn[[x]], "w"), str_count(paste(ball_drawn[[x]], collapse=""), "w")) 
+    total_M = ifelse(input[[paste0("num_draws", num)]] == 1, str_count(ball_drawn[[x]], "m"), str_count(paste(ball_drawn[[x]], collapse=""), "m")) 
     # total W is the matrix row index for the input replacement matrix
     rball <- c(rep("w", as.numeric(input[[paste0("multi_matrix", num)]][total_M+1, 1])), rep("m", as.numeric(input[[paste0("multi_matrix", num)]][total_M+1, 2])))
     if(is_empty(rball)) 0 else rball
   })
   
   if (input[[paste0("multi_interp", num)]] == TRUE) {
-    rank <- apply(ball_drawn, 2, function(x) ifelse("w" %in% x, min(which(x == "w")), 1))
+    rank <- lapply(ball_drawn, function(x) ifelse("w" %in% x, min(which(x == "w")), 1))
     # Prob best
     # P(W first) = previous_share
     # P(M only) = (1-previous_share)^2
@@ -747,10 +772,11 @@ if (input[[paste0("multidraw", num)]] == "multi") {
   }
   
   # Not currently used--removals not allowed for multiple draw 
-  ball_removed <- lapply(seq(1:I), function(x) {
-    mball <- if("w" %in% ball_drawn[,x]) c(rep("w", w_w_removed * r_w_w[x]), rep("m", m_w_removed * r_m_w[x])) else c(rep("w", w_m_removed * r_w_m[x]), rep("m", m_m_removed * r_m_m[x]))
-    if(is_empty(mball)) 0 else mball
-  })
+  ball_removed <- as.list(rep(0, I))
+  #ball_removed <- lapply(seq(1:I), function(x) {
+  #  mball <- if("w" %in% ball_drawn[,x]) c(rep("w", w_w_removed * r_w_w[x]), rep("m", m_w_removed * r_m_w[x])) else c(rep("w", w_m_removed * r_w_m[x]), rep("m", m_m_removed * r_m_m[x]))
+  #  if(is_empty(mball)) 0 else mball
+  #})
 }
 
 # For urns undergoing AA, use those draws instead 
@@ -793,14 +819,14 @@ add_w <- ifelse(add_w < 0, 0, add_w)
 add_m <- sapply(seq(1:I), function(x) sum(ball_replaced[[x]] == "m") - sum(ball_removed[[x]] == "m"))
 add_m <- ifelse(add_m < 0, 0, add_m)
 
-add <- sapply(seq(1:length(add_w)), function(x) c(rep("w", add_w[x]), rep("m", add_m[x])))
+add <- lapply(seq(1:length(add_w)), function(x) c(rep("w", add_w[x]), rep("m", add_m[x])))
 
 if(is.null(dim(add))) {
-  add <- matrix(add, ncol = ncol(urn))
+  add <- as.list(add)
 }
 
-urn <- sapply(seq(1:ncol(urn)), function(x) c(urn[,x], add[,x]))
-
+urn <- lapply(seq(1:I), function(x) c(urn[[x]], add[[x]]))
+#urn <- mapply(c, urn, add, SIMPLIFY = FALSE )
 # For urns with multidraw intervention interpretation, change how "selected" is defined
 ball_selected <- ball_drawn
 if (input[[paste0("multidraw", num)]] == "multi" & input[[paste0("multi_interp", num)]] == TRUE) {
