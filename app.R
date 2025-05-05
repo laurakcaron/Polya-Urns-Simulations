@@ -692,7 +692,8 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   draws_left <- input[[paste0("quota_window", num)]] - draw_in_window
   
   if (draw_in_window > 1) {
-    w_so_far <- lapply(urn, function(x) sum(x[(length(x) - (draw_in_window - 2)):length(x)] == "w"))
+    w_so_far <- lapply(selected, function(x) sum(x[(length(x) - (draw_in_window - 2)):length(x)] == "w"))
+    #w_so_far <- lapply(urn, function(x) sum(x[(length(x) - (draw_in_window - 2)):length(x)] == "w"))
   } else {
     w_so_far <- rep(0, I)
   }
@@ -725,10 +726,11 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
     
     sum1 <- sapply(seq(1:I), function(x) {
                    
-                   # Deterministic addition 
+                  # Deterministic addition 
+                  # Simplified formula speeds up calculation 
                    if(input[[paste0("man_stochastic", num)]]=="none"){
-                   return(  1 +
-                     sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_m[x], z) - dhyper(0, w_if_w[x], m_if_m[x], z + 1))))
+                   return(  #1 + sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_m[x], z) - dhyper(0, w_if_w[x], m_if_m[x], z + 1))))
+                     1+(m_if_m[x])/(1+w_if_w[x])
                    )
                    }
                    
@@ -737,9 +739,11 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
                      return(
                      1 +
                      # M added 
-                     p_m_m * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_m[x], m_if_m[x], z) - dhyper(0, w_if_m[x], m_if_m[x], z + 1)))) +
+                     #p_m_m * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_m[x], m_if_m[x], z) - dhyper(0, w_if_m[x], m_if_m[x], z + 1)))) +
+                     p_m_m * ((m_if_m[x])/(1+w_if_m[x])) +
                      # W added 
-                     p_w_m * sum(sapply(seq(1:(m_if_w[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_w[x], z) - dhyper(0, w_if_w[x], m_if_w[x], z + 1))))
+                     #p_w_m * sum(sapply(seq(1:(m_if_w[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_w[x], z) - dhyper(0, w_if_w[x], m_if_w[x], z + 1))))
+                     p_w_m * ((m_if_w[x])/(1+w_if_w[x]))
                      ) 
                    }
                    
@@ -747,13 +751,17 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
                    if(input[[paste0("man_stochastic", num)]]=="unbalanced"){
                     return(1+
                    # Only M added 
-                   p_m_m*(1-p_w_m) * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_m[x], m_if_m[x], z) - dhyper(0, w_if_m[x], m_if_m[x], z + 1)))) +
+                   #p_m_m*(1-p_w_m) * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_m[x], m_if_m[x], z) - dhyper(0, w_if_m[x], m_if_m[x], z + 1)))) +
+                    p_m_m*(1-p_w_m)*((m_if_m[x])/(1+w_if_m[x])) +
                    # Only W added 
-                   p_w_m*(1-p_m_m) * sum(sapply(seq(1:(m_if_w[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_w[x], z) - dhyper(0, w_if_w[x], m_if_w[x], z + 1)))) +
+                   # p_w_m*(1-p_m_m) * sum(sapply(seq(1:(m_if_w[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_w[x], z) - dhyper(0, w_if_w[x], m_if_w[x], z + 1)))) +
+                     p_w_m*(1-p_m_m)*((m_if_w[x])/(1+w_if_w[x])) +
                    # Both added 
-                   p_m_m*p_w_m * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_m[x], z) - dhyper(0, w_if_w[x], m_if_m[x], z + 1)))) + 
+                   # p_m_m*p_w_m * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_m[x], z) - dhyper(0, w_if_w[x], m_if_m[x], z + 1)))) + 
+                   p_m_m*p_w_m*((m_if_m[x])/(1+w_if_w[x])) +
                   # None added 
-                   (1-p_m_m)*(1-p_w_m) * sum(sapply(seq(1:(previous_m[x])), function(z) z * (dhyper(0, previous_w[x], previous_m[x], z) - dhyper(0, previous_w[x], previous_m[x], z + 1))))
+                   #(1-p_m_m)*(1-p_w_m) * sum(sapply(seq(1:(previous_m[x])), function(z) z * (dhyper(0, previous_w[x], previous_m[x], z) - dhyper(0, previous_w[x], previous_m[x], z + 1))))
+                    (1-p_m_m)*(1-p_w_m)*((previous_m[x])/(1+previous_w[x]))
                     )
                    }
     
@@ -774,16 +782,19 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
     sum2.m <- sapply(seq(1:I), function(x) {
       # Deterministic addition 
       if(input[[paste0("man_stochastic", num)]]=="none"){
-        return(1 +
-                 sum(sapply(seq(1:(m_if_mm[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_mm[x], z) - dhyper(0, w_if_ww[x], m_if_mm[x], z + 1))))
+        return(# 1 + sum(sapply(seq(1:(m_if_mm[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_mm[x], z) - dhyper(0, w_if_ww[x], m_if_mm[x], z + 1))))
+          (1+(m_if_mm[x])/(1+w_if_ww[x]))
         )
       }
       # Correlated addition 
       if(input[[paste0("man_stochastic", num)]]=="balanced"){
         return(1 +
-                     p_m_m^2 * sum(sapply(seq(1:(m_if_mm[x])), function(z) z * (dhyper(0, w_if_mm[x], m_if_mm[x], z) - dhyper(0, w_if_mm[x], m_if_mm[x], z + 1)))) +
-                     p_w_m^2 * sum(sapply(seq(1:(m_if_ww[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_ww[x], z) - dhyper(0, w_if_ww[x], m_if_ww[x], z + 1)))) + 
-                     (1-p_m_m^2 - p_w_m^2) * sum(sapply(seq(1:(m_if_mw[x])), function(z) z * (dhyper(0, w_if_mw[x], m_if_mw[x], z) - dhyper(0, w_if_mw[x], m_if_mw[x], z + 1))))
+                    # p_m_m^2 * sum(sapply(seq(1:(m_if_mm[x])), function(z) z * (dhyper(0, w_if_mm[x], m_if_mm[x], z) - dhyper(0, w_if_mm[x], m_if_mm[x], z + 1)))) +
+                      p_m_m^2*((m_if_mm[x])/(1+w_if_mm[x])) +
+                     #p_w_m^2 * sum(sapply(seq(1:(m_if_ww[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_ww[x], z) - dhyper(0, w_if_ww[x], m_if_ww[x], z + 1)))) + 
+                      p_w_m^2*((m_if_ww[x])/(1+w_if_ww[x])) +
+                     # (1-p_m_m^2 - p_w_m^2) * sum(sapply(seq(1:(m_if_mw[x])), function(z) z * (dhyper(0, w_if_mw[x], m_if_mw[x], z) - dhyper(0, w_if_mw[x], m_if_mw[x], z + 1))))
+                      (1-p_m_m^2 - p_w_m^2)*((m_if_mw[x])/(1+w_if_mw[x]))
         )
       }
       })
@@ -804,8 +815,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
     # Deterministic addition 
     if(input[[paste0("man_stochastic", num)]]=="none" & input[[paste0("woman_stochastic", num)]]=="none"){
       sum2.w <- sapply(seq(1:I), function(x) 1 +
-                             sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_mm[x], z) - dhyper(0, w_if_ww[x], m_if_mm[x], z + 1)))) +
-                             sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_mm[x], z) - dhyper(0, w_if_ww[x], m_if_mm[x], z + 1))))
+                             sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_mm[x], z) - dhyper(0, w_if_ww[x], m_if_mm[x], z + 1)))) 
                              
       )
     }
