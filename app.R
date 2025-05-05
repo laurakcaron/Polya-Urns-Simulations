@@ -171,7 +171,7 @@ simParamPanel <- function(num) {
     conditionalPanel(paste0("input.multidraw", num, "=='single'"), div(
       h3("Interventions"),
       #fluidRow(column(12, radioButtons("intervention", "Affirmative Action", selected="none", choices=c("None"="none", "Draw K, if at least one is a woman, select a woman (deterministic)"="atleast","Draw two, if at least one is a woman, select a woman with probability"="atleast_stochastic","Draw one and add accordingly, plus always add one woman each round"="alwayswoman", "Hiring quota"="quota")))),
-      fluidRow(column(12, radioButtons(paste0("intervention", num), "Affirmative Action", selected="none", choices=c("None"="none", "Draw K, if at least one is a woman, select a woman (deterministic)"="atleast", "Hiring quota"="quota")))),
+      fluidRow(column(12, radioButtons(paste0("intervention", num), "Affirmative Action", selected="none", choices=c("None"="none", "Draw K, if at least one is a woman, select a woman (deterministic)"="atleast", "Hiring quota"="quota", "Expand role models for W"="recruit")))),
       conditionalPanel(condition=paste0("input.intervention", num, "=='atleast_stochastic'"), 
                        fluidRow(column(12, numericInput(paste0("prob_atleast", num), "Probability of selecting second-best woman", value=1, min=0, max=1, step=0.1)))),
       conditionalPanel(condition=paste0("input.intervention", num, "=='atleast'"), 
@@ -184,6 +184,9 @@ simParamPanel <- function(num) {
                        #column(6, radioButtons("quota_group", label="", choices=c("of selected candidates"="selected", "of urn"="urn"))),
                        #column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))
       ),
+      conditionalPanel(condition=paste0("input.intervention", num, "=='recruit'"), 
+                       fluidRow(
+                         column(8, numericInput(paste0("prob_recruit", num), "Add 1 W to candidates with prob __", 1, step=.1, min=0)))),
       fluidRow(column(12, conditionalPanel(condition = paste0("input.intervention", num, "!= 'none'"),
                                            radioButtons(paste0("stopintervention", num), "When to stop?", selected="continue", choices=c("Continue forever"="continue", "Stop if white balls more than __ in each urn"="majority","Stop if white balls more than __ among selected for each urn"="majority_selected", "Stop after X draws"="temp", "Stop if white balls more than __ in average urn" = "avg", "Stop if white balls more than __ in average selected candidates"="avg_selected")),
       ))
@@ -658,18 +661,24 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   })
 }
 
-if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "alwayswoman") {
+if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "recruit") {
   ball_drawn_aa <- lapply(urn, function(x) sample(na.omit(x), 1))
   ball_selected_aa <- ball_drawn_aa
   
-  rank_aa <- 1
+  rank_aa <- rep(1, I)
+  prob_best_aa <- rep(1, I)
   
-  ball_replaced_aa <- sapply(seq(1:I), function(x) {
+  # Check if we will add extra W to candidates this time 
+  r_recruit <- rbinom(I, 1, input[[paste0("prob_recruit", num)]])
+  
+  ball_replaced_aa <- lapply(seq(1:I), function(x) {
     rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added * r_w_w[x]), rep("m", m_w_added * r_m_w[x])) else c(rep("w", w_m_added * r_w_m[x]), rep("m", m_m_added * r_m_m[x]))
-    if(is_empty(rball)) "w" else c(rball, "w")
+    if(is_empty(rball) & r_recruit[x] == 1) "w" 
+    else if (r_recruit[x] == 1) c(rball, "w")
+    else rball  
   })
   
-  ball_removed_aa <- sapply(seq(1:I), function(x) {
+  ball_removed_aa <- lapply(seq(1:I), function(x) {
     mball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_removed * r_w_w[x]), rep("m", m_w_removed * r_m_w[x])) else c(rep("w", w_m_removed * r_w_m[x]), rep("m", m_m_removed * r_m_m[x]))
     if(is_empty(mball)) 0 else mball
   })
@@ -698,8 +707,13 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
       return(rank)
     }
     
-    m <- previous_m + 1
-    w <- previous_w
+    # Allow for probabilistic replacement after drawing M. M if M is replaced; W if W is replaced, etc. 
+    m_if_m <- previous_m + input[[paste0("m_m", num)]]
+    m_if_w <- previous_m
+    w_if_m <- previous_w 
+    w_if_w <- previous_w + input[[paste0("w_m", num)]]
+    
+      
     numer <- function(s, w, m) {
       prod(sapply(0:max(s - 2, 0), function(k) max(0, m - k)))
     }
@@ -707,25 +721,133 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
       prod(sapply(0:max(s - 1, 0), function(j) w + m - j))
     }
     
-    sum1 <- sapply(seq(1:I), function(x) 1 + sum(sapply(seq(1:(m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
+    sum1 <- sapply(seq(1:I), function(x) {
+                   
+                   # Deterministic addition 
+                   if(input[[paste0("man_stochastic", num)]]=="none"){
+                   return(  1 +
+                     sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_m[x], z) - dhyper(0, w_if_w[x], m_if_m[x], z + 1))))
+                   )
+                   }
+                   
+                   # Correlated stochastic addition 
+                   if(input[[paste0("man_stochastic", num)]]=="balanced"){
+                     return(
+                     1 +
+                     # M added 
+                     p_m_m * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_m[x], m_if_m[x], z) - dhyper(0, w_if_m[x], m_if_m[x], z + 1)))) +
+                     # W added 
+                     p_w_m * sum(sapply(seq(1:(m_if_w[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_w[x], z) - dhyper(0, w_if_w[x], m_if_w[x], z + 1))))
+                     ) 
+                   }
+                   
+                   # Uncorrelated stochastic addition 
+                   if(input[[paste0("man_stochastic", num)]]=="unbalanced"){
+                    return(1+
+                   # Only M added 
+                   p_m_m*(1-p_w_m) * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_m[x], m_if_m[x], z) - dhyper(0, w_if_m[x], m_if_m[x], z + 1)))) +
+                   # Only W added 
+                   p_w_m*(1-p_m_m) * sum(sapply(seq(1:(m_if_w[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_w[x], z) - dhyper(0, w_if_w[x], m_if_w[x], z + 1)))) +
+                   # Both added 
+                   p_m_m*p_w_m * sum(sapply(seq(1:(m_if_m[x])), function(z) z * (dhyper(0, w_if_w[x], m_if_m[x], z) - dhyper(0, w_if_w[x], m_if_m[x], z + 1)))) + 
+                  # None added 
+                   (1-p_m_m)*(1-p_w_m) * sum(sapply(seq(1:(previous_m[x])), function(z) z * (dhyper(0, previous_w[x], previous_m[x], z) - dhyper(0, previous_w[x], previous_m[x], z + 1))))
+                    )
+                   }
     
+    })
     expected_rank_W <- sum1
   }
   
   if (input[[paste0("quota_window", num)]] - draw_in_window > 1) {
-    m <- previous_m + 2
-    w <- previous_w
-    sum2.m <- sapply(seq(1:I), function(x) 1 + sum(sapply(seq(1:(m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
-    
+    # Allow for probabilistic replacement after drawing M. M if M is replaced; W if W is replaced, etc. 
+    m_if_mm <- previous_m + 2*input[[paste0("m_m", num)]]
+    m_if_mw <- previous_m + input[[paste0("m_m", num)]]
+    m_if_ww <- previous_m 
+      
+    w_if_mm <- previous_w
+    w_if_mw <- previous_w + input[[paste0("w_m", num)]]
+    w_if_ww <- previous_w + 2*input[[paste0("w_m", num)]]
+      
+    sum2.m <- sapply(seq(1:I), function(x) {
+      # Deterministic addition 
+      if(input[[paste0("man_stochastic", num)]]=="none"){
+        return(1 +
+                 sum(sapply(seq(1:(m_if_mm[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_mm[x], z) - dhyper(0, w_if_ww[x], m_if_mm[x], z + 1))))
+        )
+      }
+      # Correlated addition 
+      if(input[[paste0("man_stochastic", num)]]=="balanced"){
+        return(1 +
+                     p_m_m^2 * sum(sapply(seq(1:(m_if_mm[x])), function(z) z * (dhyper(0, w_if_mm[x], m_if_mm[x], z) - dhyper(0, w_if_mm[x], m_if_mm[x], z + 1)))) +
+                     p_w_m^2 * sum(sapply(seq(1:(m_if_ww[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_ww[x], z) - dhyper(0, w_if_ww[x], m_if_ww[x], z + 1)))) + 
+                     (1-p_m_m^2 - p_w_m^2) * sum(sapply(seq(1:(m_if_mw[x])), function(z) z * (dhyper(0, w_if_mw[x], m_if_mw[x], z) - dhyper(0, w_if_mw[x], m_if_mw[x], z + 1))))
+        )
+      }
+      })
+    # Case 2: hire one M then one W 
     m <- previous_m + 1
     w <- previous_w + 1
-    sum2.w <- sapply(seq(1:I), function(x) 1 + sum(sapply(seq(1:floor(sum2.m[x])), function(z) z * (dhyper(0, w[x], m[x], z) - dhyper(0, w[x], m[x], z + 1)))))
     
-    m <- previous_m + 1
-    w <- previous_w
-    prob.sum2 <- sapply(seq(1:I), function(x) (dhyper(0, w[x], m[x], floor(sum2.w[x]))))
+    m_if_mm <- previous_m + input[[paste0("m_m", num)]] + input[[paste0("m_w", num)]]
+    m_if_mw <- previous_m + input[[paste0("m_m", num)]]
+    m_if_wm <- previous_m + input[[paste0("m_w", num)]]
+    m_if_ww <- previous_m 
     
-    expected_rank_W <- sum2.m * (1 - prob.sum2) + sum2.w * (prob.sum2)
+    w_if_mm <- previous_w
+    w_if_mw <- previous_w + input[[paste0("w_w", num)]]
+    w_if_wm <- previous_m + input[[paste0("w_m", num)]]
+    w_if_ww <- previous_w + input[[paste0("w_m", num)]] + input[[paste0("w_w", num)]]
+    
+    # Deterministic addition 
+    if(input[[paste0("man_stochastic", num)]]=="none" & input[[paste0("woman_stochastic", num)]]=="none"){
+      sum2.w <- sapply(seq(1:I), function(x) 1 +
+                             sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_mm[x], z) - dhyper(0, w_if_ww[x], m_if_mm[x], z + 1)))) +
+                             sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_mm[x], z) - dhyper(0, w_if_ww[x], m_if_mm[x], z + 1))))
+                             
+      )
+    }
+    
+    # Correlated addition 
+    if(input[[paste0("man_stochastic", num)]]=="balanced" & input[[paste0("woman_stochastic", num)]]=="balanced"){
+    # If M replaced in period 1
+    sum2.w_if_m <- sapply(seq(1:I), function(x) 1 +
+                     p_m_w * sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_mm[x], m_if_mm[x], z) - dhyper(0, w_if_mm[x], m_if_mm[x], z + 1)))) +
+                     p_w_w * sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_mw[x], m_if_mw[x], z) - dhyper(0, w_if_mw[x], m_if_mw[x], z + 1))))
+
+    )
+    # if W replaced in period 1
+    sum2.w_if_w <- sapply(seq(1:I), function(x) 1 + 
+                     p_m_w * sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_wm[x], m_if_wm[x], z) - dhyper(0, w_if_wm[x], m_if_wm[x], z + 1)))) +
+                     p_w_w * sum(sapply(seq(1:(sum2.m[x])), function(z) z * (dhyper(0, w_if_ww[x], m_if_ww[x], z) - dhyper(0, w_if_ww[x], m_if_ww[x], z + 1))))
+                     
+    )
+    sum2.w <- p_m_m*sum2.w_if_m + p_w_m * sum2.w_if_w  
+    
+    }
+    
+    # Prob of hiring W in period 2 after hiring M in period 1
+    # 1 -prob of no W with rank less than sum2.w in period 2
+    m_if_m <- previous_m + input[[paste0("m_m", num)]]
+    m_if_w <- previous_m
+    w_if_m <- previous_w 
+    w_if_w <- previous_w + input[[paste0("w_m", num)]]
+    
+    # Deterministic addition 
+    if(input[[paste0("man_stochastic", num)]]=="none" & input[[paste0("woman_stochastic", num)]]=="none"){
+      prob.sum2 <- sapply(seq(1:I), function(x) ( dhyper(0, w_if_w[x], m_if_m[x], floor(sum2.w[x])) )
+      )
+      
+    }
+    # Correlated addition 
+    if(input[[paste0("man_stochastic", num)]]=="balanced" & input[[paste0("woman_stochastic", num)]]=="balanced"){
+      
+    prob.sum2 <- sapply(seq(1:I), function(x) (p_m_m * dhyper(0, w_if_m[x], m_if_m[x], floor(sum2.w_if_m[x])) ) +
+                                                p_w_m * dhyper(0, w_if_w[x], m_if_w[x], floor(sum2.w_if_w[x]))
+                    )
+    }
+    #expected_rank_W <- sum2.m * (1 - prob.sum2) + sum2.w * (prob.sum2)
+    expected_rank_W <- sum2.m * (prob.sum2) + sum2.w * (1-prob.sum2)
   }
   
   draws_aa <- lapply(urn, function(x) sample(x, length(x)))
