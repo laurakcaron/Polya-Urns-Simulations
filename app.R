@@ -623,6 +623,7 @@ if (input[[paste0("multidraw", num)]] == "single" & 1 == 1) {
   })
 }
 
+## RANK POLICY 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "atleast" & n > input[[paste0("aa_start", num)]]) {
   ball_drawn_aa <- lapply(urn,function(x) sample(na.omit(x), input[[paste0("num_draws_aa", num)]], replace = FALSE))
   rank_aa <- sapply(ball_drawn_aa, function(x) ifelse("w" %in% x, min(which(x == "w")), 1))
@@ -642,6 +643,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   })
 }
 
+## STOCHASTIC RANK POLICY 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "atleast_stochastic" & n > input[[paste0("aa_start", num)]]) {
   ball_drawn_aa <- sapply(urn, function(x) sample(na.omit(x), 2, replace = TRUE))
   
@@ -660,7 +662,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
     if(is_empty(mball)) 0 else mball
   })
 }
-
+## RECRUITMENT POLICY 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "recruit") {
   ball_drawn_aa <- lapply(urn, function(x) sample(na.omit(x), 1))
   ball_selected_aa <- ball_drawn_aa
@@ -683,7 +685,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
     if(is_empty(mball)) 0 else mball
   })
 }
-
+## QUOTA POLICY 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "quota" & n > input[[paste0("aa_start", num)]]) {
   
   draw_in_window <- ifelse(n %% input[[paste0("quota_window", num)]] > 0, n %% input[[paste0("quota_window", num)]], input[[paste0("quota_window", num)]])
