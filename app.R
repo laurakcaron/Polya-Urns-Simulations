@@ -326,7 +326,13 @@ navbarPage("Polya Urns", id="nav",
                            fluidRow(column(4, uiOutput("matrix1")), column(4, uiOutput("matrix2"))),
                            # End of AA 
                            fluidRow(column(9, plotlyOutput("hist_firstend", height="50%")))
-                  )
+                  ), 
+                 # Fifth tab
+                 tabPanel("Extra graphs",
+                          # share over time for 1 urn, colored
+                          fluidRow(column(6,plotlyOutput("ratio_over_time2", height="50%")))
+                                   
+                 ), 
                 )
               ))
    )
@@ -1132,7 +1138,7 @@ incProgress(1 / N, detail = paste(round(n * 100 / N, 1), "%"))
   # Save the urn functions for probability later
   
   w_w_function_t <- if(input[[paste0("woman_depends", num)]] == "none") {
-    paste0("X \\sim Bern(", p_w_w, ")")
+    paste0("X \\sim Bern(", input[[paste0("p_w_w", num)]], ")")
   }
   else if(input[[paste0("w_w_function", num)]] == "linear") {
     paste0("X \\sim Bern(1-", input[[paste0("w_w_b", num)]], "*share_w^", input[[paste0("w_w_a", num)]], ")")
@@ -1149,7 +1155,7 @@ incProgress(1 / N, detail = paste(round(n * 100 / N, 1), "%"))
     paste0("1-X")
   }
   else if(input[[paste0("woman_depends", num)]] == "none" & input[[paste0("woman_stochastic", num)]] == "unbalanced") {
-    paste0("Bern(", p_m_w, ")")
+    paste0("Bern(", input[[paste0("p_m_w", num)]], ")")
   }
   else if(input[[paste0("woman_depends", num)]] == "urn") {
     if (input[[paste0("woman_stochastic", num)]] == "balanced") {
@@ -1167,7 +1173,7 @@ incProgress(1 / N, detail = paste(round(n * 100 / N, 1), "%"))
   }
   
   w_m_function_t <- if(input[[paste0("man_depends", num)]] == "none") {
-    paste0("Y \\sim Bern(", p_w_m, ")")
+    paste0("Y \\sim Bern(", input[[paste0("p_w_m", num)]], ")")
   }
   else if(input[[paste0("w_m_function", num)]] == "linear") {
     paste0("Y \\sim Bern(1-", input[[paste0("w_m_b", num)]], "*share_w^", input[[paste0("w_m_a", num)]], ")")
@@ -1183,7 +1189,7 @@ incProgress(1 / N, detail = paste(round(n * 100 / N, 1), "%"))
     paste0("1-Y")
   }
   else if(input[[paste0("man_depends", num)]] == "none" & input[[paste0("man_stochastic", num)]] == "unbalanced") {
-    paste0("Y \\sim Bern(", p_m_m, ")")
+    paste0("Y \\sim Bern(", input[[paste0("p_m_m", num)]], ")")
   }
   else if(input[[paste0("man_depends", num)]] == "urn") {
     if (input[[paste0("man_stochastic", num)]] == "balanced") {
@@ -1202,7 +1208,7 @@ incProgress(1 / N, detail = paste(round(n * 100 / N, 1), "%"))
   
   
   # Create a vector of the parameters to save for later
-  parameters <- list("p_w_w"=p_w_w, "p_w_m"=p_w_m, "p_m_m"=p_m_m, "p_m_w"=p_m_w, 
+  parameters <- list("p_w_w"=input[[paste0("p_w_w", num)]], "p_w_m"=input[[paste0("p_w_m", num)]], "p_m_m"=input[[paste0("p_m_m", num)]], "p_m_w"=input[[paste0("p_m_w", num)]], 
                      "w_w_added"=w_w_added, "w_m_added"=w_m_added, "m_w_added"=m_w_added, "m_m_added"=m_m_added, 
                      "w_w_removed"=w_w_removed, "w_m_removed"=w_m_removed, "m_w_removed"=m_w_removed, "m_m_removed"=m_m_removed, 
                      "w_w_function" = w_w_function_t, "w_m_function"=w_m_function_t, "m_w_function"=m_w_function_t, "m_m_function"=m_m_function_t)
@@ -1986,6 +1992,51 @@ coloreq <- "#228833"
     })
     
   })  
+  
+  ### Plot of share of W over time, one urn only, urns have different colors 
+  output$ratio_over_time2 <- renderPlotly({
+
+    input$rerun
+    
+    isolate({
+      # Check that inputs are in place
+      t <- input$N1
+      if(is.null(t)){
+        input <- default_inputs
+      }
+      # Get and prepare data
+      outputlist1 <- list_output1()
+      paths_ratio1 <- outputlist1$paths_ratio
+      paths_ratio1 <- paths_ratio1 %>% as.data.frame %>% mutate(draw=row_number()) 
+      ratio1 <- paths_ratio1 %>% pivot_longer(-draw)
+      average_ratio1 <- paths_ratio1 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
+      text1 <- paste0('Simulation 1: <br>After draw ', paths_ratio1$draw -1,', avg. urn has<br>',round(average_ratio1, digits=4)* 100, '% white balls')
+      
+      # Plot
+      r <- ggplot() + 
+        geom_line(data=ratio1, aes(x=draw-1, y=value, color=name), alpha=.9) +
+        geom_point(aes(x=rep(0:(input$N1)), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
+        geom_line(aes(x=rep(0:(input$N1)), y=average_ratio1), color=color1) +
+        geom_hline(aes(yintercept=0.5), color=coloreq,linetype = "solid") +
+        scale_colour_brewer(palette = "Set3", type="qual", guide="none") +
+        scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          plot.title = element_text(size=12)) + 
+        labs(title ="Share of white balls in urn over time, average highlighted", x="Draw", y="White balls' share in the urn ($r_t$)") +
+        guides(color="none")
+      
+      
+      ggplotly(r, tooltip="text") %>%
+        layout(hovermode="x unified)") %>%
+        style(showlegend=FALSE)
+      
+    })
+  })  
+  
   
   ### Dynamic graph title
   output$distribution_title<- renderText({
