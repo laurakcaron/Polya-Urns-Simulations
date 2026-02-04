@@ -273,12 +273,14 @@ navbarPage("Polya Urns", id="nav",
                 h3("Simulation Parameters"),
                 fluidRow(column(12, radioGroupButtons("sim_num", "Currently editing", 
                                                  choiceNames =c('Simulation 1 (solid blue)', 
-                                                                 'Simulation 2 (dashed red)'), 
-                                                  choiceValues=c(1,2))
+                                                                 'Simulation 2 (dashed red)',
+                                                                  'Simulation 3 (dotted yellow)'), 
+                                                  choiceValues=c(1,2,3))
                                 )),
                 
                 conditionalPanel("input.sim_num==1", uiOutput("simParamPanel1") ),
                 conditionalPanel("input.sim_num==2", uiOutput("simParamPanel2") ),
+                conditionalPanel("input.sim_num==3", uiOutput("simParamPanel3") ),
                 
                 # Button to refresh simulation results 
                 fluidRow(column(5, actionButton("rerun", "Re-run Simulation")))
@@ -323,7 +325,7 @@ navbarPage("Polya Urns", id="nav",
                   # Fourth tab
                   tabPanel("About the Urn & AA",
                            # Replacement matrix
-                           fluidRow(column(4, uiOutput("matrix1")), column(4, uiOutput("matrix2"))),
+                           fluidRow(column(4, uiOutput("matrix1")), column(4, uiOutput("matrix2")),column(4, uiOutput("matrix3"))),
                            # End of AA 
                            fluidRow(column(9, plotlyOutput("hist_firstend", height="50%")))
                   ), 
@@ -358,6 +360,12 @@ server <- function(input, output){
   output$simParamPanel2 <- renderUI({
     # Generate input elements using the function
     withMathJax(simParamPanel(2))
+    
+  })  
+  
+  output$simParamPanel3 <- renderUI({
+    # Generate input elements using the function
+    withMathJax(simParamPanel(3))
     
   })  
   
@@ -1266,15 +1274,18 @@ default_inputs.0 <- list("I" = 100,
                       "graph_origin" = 0
                     )
 
-default_inputs <- rep(default_inputs.0, 2)
-names(default_inputs)<- c(paste0(names(default_inputs.0), "1"), paste0(names(default_inputs.0), "2"))
+default_inputs <- rep(default_inputs.0, 3)
+names(default_inputs)<- c(paste0(names(default_inputs.0), "1"), paste0(names(default_inputs.0), "2"),paste0(names(default_inputs.0), "3"))
 default_inputs$w_02 <- 20
+default_inputs$w_03 <- 30
 
 #https://packages.tesselle.org/khroma/articles/tol.html
 color1 <- "#004488"
 color2 <- "#BB5566"
+color3 <- "#DDAA33"
 color1.light <- "#BBCCEE"
 color2.light <- "#FFCCCC"
+color3.light <- "#EEEBBB"
 coloreq <- "#228833"
 
   list_output1<- reactive ({
@@ -1307,6 +1318,22 @@ coloreq <- "#228833"
     
   })
   
+  list_output3<- reactive ({
+    
+    # Trigger to rerun
+    input$rerun > 1
+    
+    # Isolate forces it not to refresh until the rerun button is pressed
+    isolate({
+      input <- reactiveValuesToList(input)
+      
+      runSimulation(3)
+    })
+    
+    
+  })
+  
+  
   ### Histogram 
   output$histogram <- renderPlotly({
     
@@ -1331,12 +1358,24 @@ coloreq <- "#228833"
       hist_data2 <- as.data.frame(paths_ratio2[nrow(paths_ratio2),])
       colnames(hist_data2) <- "Share of white balls in urn after trials"  
       
+      # Get the ratios and prepare data: Sim 3
+      outputlist3 <- list_output3()
+      paths_ratio3 <- outputlist3$paths_ratio
+      hist_data3 <- as.data.frame(paths_ratio3[nrow(paths_ratio3),])
+      colnames(hist_data3) <- "Share of white balls in urn after trials"  
+      
       # Plot
       bin.width1 <- 1/(sqrt(input[["N1"]]))
       bin.width2 <- 1/(sqrt(input[["N2"]]))
+      bin.width3 <- 1/(sqrt(input[["N3"]]))
       bins1 <- floor(sqrt(input[["N1"]]))
       bins2 <- floor(sqrt(input[["N2"]]))
+      bins3 <- floor(sqrt(input[["N3"]]))
+      
       hist <- ggplot() + 
+        # Sim 3
+        geom_histogram(data=hist_data3, aes(x=`Share of white balls in urn after trials`), bins=bins3, fill=color3.light, alpha=.5)+
+        geom_density(data=hist_data3, aes(x=`Share of white balls in urn after trials`, y =after_stat(count*bin.width3)), color=color3, linetype="dotted")+
         # Sim 2
         geom_histogram(data=hist_data2, aes(x=`Share of white balls in urn after trials`), bins=bins2, fill=color2.light, alpha=.5)+
         geom_density(data=hist_data2, aes(x=`Share of white balls in urn after trials`, y =after_stat(count*bin.width2)), color=color2, linetype="dashed")+
@@ -1355,13 +1394,15 @@ coloreq <- "#228833"
       g <- ggplotly(hist) %>%
         layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16)))
       
-      text_y2 <- paste("Simulation 2:<br>", g$x$data[[1]]$y, 'urns have white ball <br>share', round(g$x$data[[1]]$x, 2), "-", round(g$x$data[[1]]$x+g$x$data[[1]]$width,2))
-      text_y1 <- paste("Simulation 1:<br>",g$x$data[[3]]$y, 'urns have white ball <br>share', round(g$x$data[[3]]$x, 2), "-", round(g$x$data[[3]]$x+g$x$data[[3]]$width,2))
+      text_y3 <- paste("Simulation 3:<br>", g$x$data[[1]]$y, 'urns have white ball <br>share', round(g$x$data[[1]]$x, 2), "-", round(g$x$data[[1]]$x+g$x$data[[1]]$width,2))
+      text_y2 <- paste("Simulation 2:<br>", g$x$data[[3]]$y, 'urns have white ball <br>share', round(g$x$data[[3]]$x, 2), "-", round(g$x$data[[3]]$x+g$x$data[[3]]$width,2))
+      text_y1 <- paste("Simulation 1:<br>",g$x$data[[5]]$y, 'urns have white ball <br>share', round(g$x$data[[5]]$x, 2), "-", round(g$x$data[[5]]$x+g$x$data[[5]]$width,2))
       
-      g %>% style(text=text_y2, traces =1) %>%
-        style(text=text_y1, traces =3) %>%
+      g %>% style(text=text_y3, traces =1) %>%
+        style(text=text_y2, traces =3) %>%
+        style(text=text_y1, traces =5) %>%
         layout(hovermode="x") %>%
-        style(text=NA, hoverInfo="skip", traces=c(2, 4))
+        style(text=NA, hoverInfo="skip", traces=c(2, 4, 6))
       
       
     })
@@ -1384,7 +1425,12 @@ coloreq <- "#228833"
       outputlist2 <- list_output2()
       paths_ratio2 <- outputlist2$paths_ratio
       hist_data2 <- as.data.frame(paths_ratio2[nrow(paths_ratio2),])
-      colnames(hist_data2) <- "Share of white balls in urn after trials"      
+      colnames(hist_data2) <- "Share of white balls in urn after trials"  
+      
+      outputlist3 <- list_output3()
+      paths_ratio3 <- outputlist3$paths_ratio
+      hist_data3 <- as.data.frame(paths_ratio3[nrow(paths_ratio3),])
+      colnames(hist_data3) <- "Share of white balls in urn after trials"  
       # Plot
       density <- ggplot(hist_data) + 
         geom_density(aes(x=`Share of white balls in urn after trials`))+
@@ -1397,7 +1443,8 @@ coloreq <- "#228833"
         ) + 
         labs(title ="Distribution of final share of white balls")
       
-      plot_ly(x = ~density(hist_data2$`Share of white balls in urn after trials`)$x, y = ~density(hist_data2$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
+      plot_ly(x = ~density(hist_data3$`Share of white balls in urn after trials`)$x, y = ~density(hist_data3$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
+        add_trace(x = ~density(hist_data2$`Share of white balls in urn after trials`)$x, y = ~density(hist_data2$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
         add_trace(x = ~density(hist_data1$`Share of white balls in urn after trials`)$x, y = ~density(hist_data1$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
         layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified)")
       
@@ -1425,8 +1472,15 @@ coloreq <- "#228833"
       colnames(hist_data2) <- "Share of white balls in urn after trials"
       hist_data2 <- arrange(hist_data2, `Share of white balls in urn after trials`)  
       
+      outputlist3 <- list_output3()
+      paths_ratio3 <- outputlist3$paths_ratio
+      hist_data3 <- as.data.frame(paths_ratio3[nrow(paths_ratio3),])
+      colnames(hist_data3) <- "Share of white balls in urn after trials"
+      hist_data3 <- arrange(hist_data3, `Share of white balls in urn after trials`)  
+      
       # Plot
       cdf <- ggplot() + 
+        stat_ecdf(data = hist_data3, aes(x=`Share of white balls in urn after trials`, text=paste0("Simulation 3:<br>", ..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step", color=color3, linetype="dotted")+
         stat_ecdf(data = hist_data2, aes(x=`Share of white balls in urn after trials`, text=paste0("Simulation 2:<br>", ..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step", color=color2, linetype="dashed")+
         stat_ecdf(data = hist_data1, aes(x=`Share of white balls in urn after trials`, text=paste0("Simulation 1:<br>", ..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step", color=color1, linetype="solid")+
         geom_vline(xintercept=0.5, color=coloreq, linetype="solid")+
@@ -1475,11 +1529,21 @@ coloreq <- "#228833"
       ratio2 <- paths_ratio2 %>% pivot_longer(-draw)
       average_ratio2 <- paths_ratio2 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
       text2 <- paste0('Simulation 2: <br>After draw ', paths_ratio2$draw -1,', avg. urn has<br>',round(average_ratio2, digits=4)* 100, '% white balls')
+     
+      outputlist3 <- list_output3()
+      paths_ratio3 <- outputlist3$paths_ratio
+      paths_ratio3 <- paths_ratio3 %>% as.data.frame %>% mutate(draw=row_number()) 
+      ratio3 <- paths_ratio3 %>% pivot_longer(-draw)
+      average_ratio3 <- paths_ratio3 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
+      text3 <- paste0('Simulation 3: <br>After draw ', paths_ratio3$draw -1,', avg. urn has<br>',round(average_ratio3, digits=4)* 100, '% white balls')
       
       # Plot
       r <- ggplot() + 
+        geom_line(data=ratio3, aes(x=draw-1, y=value, group=name), color=color3.light, linetype="solid", alpha=.3) +
         geom_line(data=ratio2, aes(x=draw-1, y=value, group=name), color=color2.light, linetype="solid", alpha=.3) +
         geom_line(data=ratio1, aes(x=draw-1, y=value, group=name), color=color1.light, alpha=.3) +
+        geom_point(aes(x=rep(0:(input$N3)), y=average_ratio3, text=text3), size=0.1, color=color3, alpha=0) +
+        geom_line(aes(x=rep(0:(input$N3)), y=average_ratio3), color=color3, linetype="dotted") +
         geom_point(aes(x=rep(0:(input$N2)), y=average_ratio2, text=text2), size=0.1, color=color2, alpha=0) +
         geom_line(aes(x=rep(0:(input$N2)), y=average_ratio2), color=color2, linetype="dashed") +
         geom_point(aes(x=rep(0:(input$N1)), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
@@ -1528,10 +1592,20 @@ coloreq <- "#228833"
       average_ratio2 <- paths_selected_ratio2 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
       text2 <- paste0('Simulation 2: <br>After draw ', paths_selected_ratio2$draw ,', avg. pool of selected has<br>',round(average_ratio2, digits=4)* 100, '% white balls')
       
+      outputlist3 <- list_output3()
+      paths_selected_ratio3 <- outputlist3$paths_selected_w/(outputlist3$paths_selected_w + outputlist3$paths_selected_m)
+      paths_selected_ratio3 <- paths_selected_ratio3 %>% as.data.frame %>% mutate(draw=row_number()) 
+      ratio3 <- paths_selected_ratio3 %>% pivot_longer(-draw)
+      average_ratio3 <- paths_selected_ratio3 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()
+      text3 <- paste0('Simulation 3: <br>After draw ', paths_selected_ratio3$draw ,', avg. pool of selected has<br>',round(average_ratio3, digits=4)* 100, '% white balls')
+      
       # Plot
       r <- ggplot() + 
+        geom_line(data=ratio3, aes(x=draw-1, y=value, group=name), color=color3.light, alpha=.3) +
         geom_line(data=ratio2, aes(x=draw-1, y=value, group=name), color=color2.light, alpha=.3) +
         geom_line(data=ratio1, aes(x=draw-1, y=value, group=name), color=color1.light, alpha=.3) +
+        geom_point(aes(x=rep(1:(input$N3)), y=average_ratio3, text=text3), size=0.1, color=color3, alpha=0) +
+        geom_line(aes(x=rep(1:(input$N3)), y=average_ratio3), color=color3, linetype="dotted") +
         geom_point(aes(x=rep(1:(input$N2)), y=average_ratio2, text=text2), size=0.1, color=color2, alpha=0) +
         geom_line(aes(x=rep(1:(input$N2)), y=average_ratio2), color=color2, linetype="dashed") +
         geom_point(aes(x=rep(1:(input$N1)), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
@@ -1577,9 +1651,17 @@ coloreq <- "#228833"
       paths_prob_w_n2 <- paths_prob_w_n2  %>% mutate(draw=row_number()) 
       prob_w_n2 <- paths_prob_w_n2 %>% pivot_longer(-draw)
       average_prob_w2 <- paths_prob_w_n2 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()  
+ 
+      outputlist3 <- list_output3()
+      paths_prob_w_n3 <- outputlist3$paths_prob_w_n %>% as.data.frame
+      paths_prob_w_n3 <- paths_prob_w_n3  %>% mutate(draw=row_number()) 
+      prob_w_n3 <- paths_prob_w_n3 %>% pivot_longer(-draw)
+      average_prob_w3 <- paths_prob_w_n3 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()  
       
       # Plot
       r <- ggplot() + 
+        geom_line(data=prob_w_n3, aes(x=draw, y=value, group=name), color=color3.light, alpha=.3) +
+        geom_line(aes(x=rep(1:(input$N3)), y=average_prob_w3), color=color3, linetype="dotted") +
         geom_line(data=prob_w_n2, aes(x=draw, y=value, group=name), color=color2.light, alpha=.3) +
         geom_line(aes(x=rep(1:(input$N2)), y=average_prob_w2), color=color2, linetype="dashed") +
         geom_line(data=prob_w_n1, aes(x=draw, y=value, group=name), color=color1.light, alpha=.3) +
@@ -1594,11 +1676,13 @@ coloreq <- "#228833"
         ) + 
         labs(title ="Probability of selecting a white ball, average highlighted", y="Probability of selecting a white ball", x="Draw")
         
-      ggplotly(r) %>% style(hoverinfo = "skip", traces = c(1,3)) %>%
-        style(hovertemplate = paste('Simulation 2:<br>At draw %{x:.0f},',
+      ggplotly(r) %>% style(hoverinfo = "skip", traces = c(1,3,5)) %>%
+        style(hovertemplate = paste('Simulation 3:<br>At draw %{x:.0f},',
                                     '<br>avg. Prob(select white ball) = %{y:.2%}<br><extra></extra>'), traces = 2) %>%
-        style(hovertemplate = paste('Simulation 1:<br>At draw %{x:.0f},',
+        style(hovertemplate = paste('Simulation 2:<br>At draw %{x:.0f},',
                                     '<br>avg. Prob(select white ball) = %{y:.2%}<br><extra></extra>'), traces = 4) %>%
+        style(hovertemplate = paste('Simulation 1:<br>At draw %{x:.0f},',
+                                    '<br>avg. Prob(select white ball) = %{y:.2%}<br><extra></extra>'), traces = 6) %>%
         layout(hovermode="x unified)")
     })
     
@@ -1641,11 +1725,25 @@ coloreq <- "#228833"
       colnames(ray_data2)[5] <- "one"  
       average2 <- ray_data2 %>% group_by(draw) %>% summarize(mean_w = mean(W), mean_m = mean(M))
       
+      outputlist3 <- list_output3()
+      paths_w_n3 <- outputlist3$paths_w_n %>% as.data.frame
+      paths_m_n3 <- outputlist3$paths_m_n %>% as.data.frame
+      w_n_long3 <- mutate(paths_w_n3, draw = row_number()) %>% pivot_longer(cols=starts_with("Urn"), names_to="Urn")
+      colnames(w_n_long3)[3] <- "W"
+      m_n_long3 <- pivot_longer(paths_m_n3, cols=starts_with("Urn"), names_to="Urn")
+      colnames(m_n_long3)[2] <- "M"
+      ray_data3 <- cbind(w_n_long3, m_n_long3$M, rep(1, length(m_n_long3$M)))
+      colnames(ray_data3)[4] <- "M"  
+      colnames(ray_data3)[5] <- "one"  
+      average3 <- ray_data3 %>% group_by(draw) %>% summarize(mean_w = mean(W), mean_m = mean(M))
+      
       # Get the graph limits
-      limits<-c(ifelse(input$graph_auto1=="auto", min(input$w_01, input$m_01,input$w_02, input$m_02), input$graph_origin1), ifelse(input$graph_auto1=="auto", input$N1 + max(input$w_01, input$m_01, input$w_02, input$m_02), input$graph_dim1))
+      limits<-c(ifelse(input$graph_auto1=="auto", min(input$w_01, input$m_01,input$w_02, input$m_02, input$m_03, input$w_03), input$graph_origin1), ifelse(input$graph_auto1=="auto", input$N1 + max(input$w_01, input$m_01, input$w_02, input$m_02, input$w_03, input$m_03), input$graph_dim1))
       
       # Plot
       rays <- ggplot() +
+        geom_line(data=ray_data3, aes(x=W, y=M, group=Urn),alpha=.3, color=color3.light) +
+        geom_line(data=average3, aes(x=mean_w, y=mean_m),color=color3, linetype="dotted") +  
         geom_line(data=ray_data2, aes(x=W, y=M, group=Urn),alpha=.3, color=color2.light) +
         geom_line(data=average2, aes(x=mean_w, y=mean_m),color=color2, linetype="dashed") +
         geom_line(data=ray_data1, aes(x=W, y=M, group=Urn),alpha=.3, color=color1.light) +
@@ -1706,12 +1804,27 @@ coloreq <- "#228833"
       colnames(stock_data2)[4] <- "M"  
       stock_data2[is.na(stock_data2)]<- 0
       average2 <- stock_data2 %>% as.data.frame() %>% group_by(draw) %>% summarize(mean_w = mean(W), mean_m = mean(M))
+
+      outputlist3 <- list_output3()
+      paths_selected3 <- outputlist3$paths_selected %>% as.data.frame
+      paths_selected_w3 <- outputlist3$paths_selected_w %>% as.data.frame
+      paths_selected_m3 <- outputlist3$paths_selected_m %>% as.data.frame
+      w_n_long3 <- mutate(paths_selected_w3, draw=row_number()) %>% pivot_longer(cols=starts_with("Urn"), names_to="Urn") 
+      colnames(w_n_long3)[3] <- "W"
+      m_n_long3 <- pivot_longer(paths_selected_m3, cols=starts_with("Urn"), names_to="Urn")
+      colnames(m_n_long3)[2] <- "M"
+      stock_data3 <- cbind(w_n_long3, m_n_long3$M)
+      colnames(stock_data3)[4] <- "M"  
+      stock_data3[is.na(stock_data3)]<- 0
+      average3 <- stock_data3 %>% as.data.frame() %>% group_by(draw) %>% summarize(mean_w = mean(W), mean_m = mean(M))
       
       # Get the graph limits
-      limits<-c(ifelse(input$graph_auto1=="auto", min(input$w_01, input$m_01, input$w_02, input$m_02), input$graph_origin1), ifelse(input$graph_auto1=="auto", input$N1 + max(input$w_01, input$m_01, input$w_02, input$m_02), input$graph_dim1))
+      limits<-c(ifelse(input$graph_auto1=="auto", min(input$w_01, input$m_01, input$w_02, input$m_02, inputs$w_03, inputs$m_03), input$graph_origin1), ifelse(input$graph_auto1=="auto", input$N1 + max(input$w_01, input$m_01, input$w_02, input$m_02, input$w_03, input$m_03), input$graph_dim1))
       
       # Plot
       stock <- ggplot() +
+        geom_line(data=stock_data3, aes(x=W, y=M, group=Urn),alpha=.3, color=color3.light) +
+        geom_line(data=average3, aes(x=mean_w, y=mean_m),color=color3, linetype="dotted") +
         geom_line(data=stock_data2, aes(x=W, y=M, group=Urn),alpha=.3, color=color2.light) +
         geom_line(data=average2, aes(x=mean_w, y=mean_m),color=color2, linetype="dashed") +
         geom_line(data=stock_data1, aes(x=W, y=M, group=Urn),alpha=.3, color=color1.light) +
@@ -1728,9 +1841,10 @@ coloreq <- "#228833"
       
       
       ggplotly(stock) %>%
-        style(hovertemplate=paste('Simulation 1:<br>Avg. maroon: %{y}<br>', 'Avg. white: %{x} <extra></extra>'), traces=4) %>%
-        style(hovertemplate=paste('Simulation 2:<br>Avg. maroon: %{y}<br>', 'Avg. white: %{x} <extra></extra>'), traces=2) %>%
-        style(hoverinfo="skip", traces=c(1,3)) %>%
+        style(hovertemplate=paste('Simulation 1:<br>Avg. maroon: %{y}<br>', 'Avg. white: %{x} <extra></extra>'), traces=6) %>%
+        style(hovertemplate=paste('Simulation 2:<br>Avg. maroon: %{y}<br>', 'Avg. white: %{x} <extra></extra>'), traces=4) %>%
+        style(hovertemplate=paste('Simulation 4:<br>Avg. maroon: %{y}<br>', 'Avg. white: %{x} <extra></extra>'), traces=2) %>%
+        style(hoverinfo="skip", traces=c(1,3, 5)) %>%
         layout(hovermode="x unified)") 
         
       
@@ -1754,9 +1868,16 @@ coloreq <- "#228833"
       paths_selected_rank2 <- outputlist2$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(name) %>% arrange(draw) %>% mutate(count_best=cumsum(value==1), share_best=cumsum(value==1)/draw) %>% ungroup()
       average2 <- paths_selected_rank2 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))   
+
+      outputlist3 <- list_output3()
+      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(name) %>% arrange(draw) %>% mutate(count_best=cumsum(value==1), share_best=cumsum(value==1)/draw) %>% ungroup()
+      average3 <- paths_selected_rank3 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))   
       
       # Plot
       stock <- ggplot() +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I3), color=color3.light) +
+        geom_line(data=average3, aes(x=draw, y=mean_share), color=color3, linetype="dotted") +
         geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I2), color=color2.light) +
         geom_line(data=average2, aes(x=draw, y=mean_share), color=color2, linetype="dashed") +
         geom_line(data=paths_selected_rank1, aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I1), color=color1.light) +
@@ -1768,11 +1889,13 @@ coloreq <- "#228833"
           axis.line = element_line(colour = "black")) + 
         labs(x="Draw", y="Share of selected that are the best candidate")
       
-      ggplotly(stock) %>% style(hoverinfo = "skip", traces = c(1, 3)) %>%
-        style(hovertemplate = paste('Simulation 2:<br>After draw %{x:.0f},',
+      ggplotly(stock) %>% style(hoverinfo = "skip", traces = c(1, 3, 5)) %>%
+        style(hovertemplate = paste('Simulation 3:<br>After draw %{x:.0f},',
                                     '<br>%{y:.0%} are the best candidate<br><extra></extra>'), traces = 2) %>%
-        style(hovertemplate = paste('Simulation 1:<br>After draw %{x:.0f},',
+        style(hovertemplate = paste('Simulation 2:<br>After draw %{x:.0f},',
                                     '<br>%{y:.0%} are the best candidate<br><extra></extra>'), traces = 4) %>%
+        style(hovertemplate = paste('Simulation 1:<br>After draw %{x:.0f},',
+                                    '<br>%{y:.0%} are the best candidate<br><extra></extra>'), traces = 6) %>%
         layout(hovermode="x unified)")
       
       
@@ -1796,8 +1919,15 @@ coloreq <- "#228833"
         group_by(name, draw) %>% summarize(share_best=mean(value==1)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
       average2 <- paths_selected_rank2 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
       
+      outputlist3 <- list_output3()
+      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=substr(name, 1, str_locate(name,"\\.")[,1]-1)) %>%
+        group_by(name, draw) %>% summarize(share_best=mean(value==1)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
+      average3 <- paths_selected_rank3 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
+      
       # Plot
       stock <- ggplot() +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best, group=name),color=color3.light, alpha=.3) +
+        geom_line(data=average3, aes(x=draw, y=mean_share), color=color3) +
         geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best, group=name),color=color2.light, alpha=.3) +
         geom_line(data=average2, aes(x=draw, y=mean_share), color=color2) +
         geom_line(data=paths_selected_rank1, aes(x=draw, y=share_best, group=name),color=color1.light, alpha=.3) +
@@ -1809,11 +1939,13 @@ coloreq <- "#228833"
           axis.line = element_line(colour = "black")) + 
         labs(x="Draw", y="Share of selected that are the best candidate")
       
-      ggplotly(stock) %>% style(hoverinfo = "skip", traces = c(1,3)) %>%
-        style(hovertemplate = paste('Simulation 2:<br>After draw %{x:.0f},',
+      ggplotly(stock) %>% style(hoverinfo = "skip", traces = c(1,3,5)) %>%
+        style(hovertemplate = paste('Simulation 3:<br>After draw %{x:.0f},',
                                     '<br>%{y:.0%} are the best candidate<br><extra></extra>'), traces = 2) %>%
-        style(hovertemplate = paste('Simulation 1:<br>After draw %{x:.0f},',
+        style(hovertemplate = paste('Simulation 2:<br>After draw %{x:.0f},',
                                     '<br>%{y:.0%} are the best candidate<br><extra></extra>'), traces = 4) %>%
+        style(hovertemplate = paste('Simulation 1:<br>After draw %{x:.0f},',
+                                    '<br>%{y:.0%} are the best candidate<br><extra></extra>'), traces = 6) %>%
         layout(hovermode="x unified)")
           })
   })
@@ -1832,8 +1964,13 @@ coloreq <- "#228833"
       paths_selected_rank2 <- outputlist2$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(draw) %>% summarize(count_best=sum(value==1), share_best=sum(value==1)/length(outputlist2$paths_selected_rank)) %>% ungroup()
       
+      outputlist3 <- list_output3()
+      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% summarize(count_best=sum(value==1), share_best=sum(value==1)/length(outputlist3$paths_selected_rank)) %>% ungroup()
+      
       # Plot
       stock <- ggplot() +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best), color=color3) +
         geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best), color=color2) +
         geom_line(data=paths_selected_rank1, aes(x=draw, y=share_best), color=color1) +
         theme(
@@ -1845,8 +1982,10 @@ coloreq <- "#228833"
       
       ggplotly(stock) %>%
         style(hovertemplate = paste('Simulation 1:<br>At draw %{x:.0f},',
-                                    '<br>%{y:.0%} of urns select the best candidate<br><extra></extra>'), traces = 2) %>%
+                                    '<br>%{y:.0%} of urns select the best candidate<br><extra></extra>'), traces = 3) %>%
         style(hovertemplate = paste('Simulation 2:<br>At draw %{x:.0f},',
+                                    '<br>%{y:.0%} of urns select the best candidate<br><extra></extra>'), traces = 2) %>%
+        style(hovertemplate = paste('Simulation 3:<br>At draw %{x:.0f},',
                                     '<br>%{y:.0%} of urns select the best candidate<br><extra></extra>'), traces = 1) %>%
         layout(hovermode="x unified)")
     })
@@ -1865,8 +2004,14 @@ coloreq <- "#228833"
       outputlist2 <- list_output2()
       paths_selected_rank2 <- outputlist2$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(draw) %>% summarize(avg_rank = mean(value)) %>% ungroup()      
+      
+      outputlist3 <- list_output3()
+      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% summarize(avg_rank = mean(value)) %>% ungroup()
+      
       # Plot
       stock <- ggplot() +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=avg_rank), color=color3) +
         geom_line(data=paths_selected_rank2, aes(x=draw, y=avg_rank), color=color2) +
         geom_line(data=paths_selected_rank1, aes(x=draw, y=avg_rank), color=color1) +
         theme(
@@ -1877,10 +2022,12 @@ coloreq <- "#228833"
         labs(x="Draw", y="Average rank of selected candidate")
       
       ggplotly(stock) %>%
-        style(hovertemplate = paste('Simulation 2:<br>At draw %{x:.0f},',
+        style(hovertemplate = paste('Simulation 3:<br>At draw %{x:.0f},',
                                     '<br>the average candidate is the %{y:.0}th draw <br><extra></extra>'), traces = 1) %>%
-        style(hovertemplate = paste('Simulation 1:<br>At draw %{x:.0f},',
+        style(hovertemplate = paste('Simulation 2:<br>At draw %{x:.0f},',
                                     '<br>the average candidate is the %{y:.0}th draw <br><extra></extra>'), traces = 2) %>%
+        style(hovertemplate = paste('Simulation 1:<br>At draw %{x:.0f},',
+                                    '<br>the average candidate is the %{y:.0}th draw <br><extra></extra>'), traces = 3) %>%
         layout(hovermode="x unified)")
     })
   })  
@@ -1899,9 +2046,15 @@ coloreq <- "#228833"
       outputlist2 <- list_output2()
       paths_prob_best2 <- outputlist2$paths_prob_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(draw) %>% mutate(value=unlist(value), mean_share=mean(value)) %>% ungroup()
+ 
+      outputlist3 <- list_output3()
+      paths_prob_best3 <- outputlist3$paths_prob_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% mutate(value=unlist(value), mean_share=mean(value)) %>% ungroup()
       
       # Plot
       stock <- ggplot() +
+        geom_line(data=paths_prob_best3, aes(x=draw, y=value, group=name), alpha=.3, color=color3.light) +
+        geom_line(data=paths_prob_best3, aes(x=draw, y=mean_share), color=color3) +
         geom_line(data=paths_prob_best2, aes(x=draw, y=value, group=name), alpha=.3, color=color2.light) +
         geom_line(data=paths_prob_best2, aes(x=draw, y=mean_share), color=color2) +
         geom_line(data=paths_prob_best1, aes(x=draw, y=value, group=name), alpha=.3, color=color1.light) +
@@ -1913,10 +2066,12 @@ coloreq <- "#228833"
           axis.line = element_line(colour = "black")) + 
         labs(x="Draw", y="Prob of urns selecting best candidate in each round")
       
-      ggplotly(stock) %>% style(hoverinfo = "skip", traces = c(1, 3)) %>% 
+      ggplotly(stock) %>% style(hoverinfo = "skip", traces = c(1, 3, 5)) %>% 
         style(hovertemplate = paste('Simulation 1:<br>At draw %{x:.0f},',
-                                    '<br>prob. of selecting best candidate is %{y:.0%}<br><extra></extra>'), traces = 4) %>%
+                                    '<br>prob. of selecting best candidate is %{y:.0%}<br><extra></extra>'), traces = 6) %>%
         style(hovertemplate = paste('Simulation 2:<br>At draw %{x:.0f},',
+                                    '<br>prob. of selecting best candidate is %{y:.0%}<br><extra></extra>'), traces = 4) %>%
+        style(hovertemplate = paste('Simulation 3:<br>At draw %{x:.0f},',
                                     '<br>prob. of selecting best candidate is %{y:.0%}<br><extra></extra>'), traces = 2) %>%
         layout(hovermode="x unified)")
     })
@@ -1936,13 +2091,19 @@ coloreq <- "#228833"
       outputlist2 <- list_output2()
       paths_selected_rank2 <- outputlist2$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
         group_by(name) %>% summarize(share_best=mean(value==1)) %>% ungroup()
+ 
+      outputlist3 <- list_output3()
+      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
+        group_by(name) %>% summarize(share_best=mean(value==1)) %>% ungroup()
       
       # Plot
-      plot_ly(x =~paths_selected_rank2$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank2)), marker=list(color=color2), opacity=.5)  %>%
+      plot_ly(x =~paths_selected_rank3$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank3)), marker=list(color=color3), opacity=.5)  %>%
+        add_trace(x =~paths_selected_rank2$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank2)), marker=list(color=color2), opacity=.5, showlegend=FALSE) %>%
         add_trace(x =~paths_selected_rank1$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank1)), marker=list(color=color1), opacity=.5, showlegend=FALSE) %>%
         layout(xaxis=list(title = "Share of selected that are the best candidate after trials", range=c(0,1)), yaxis=list(title="Frequency")) %>%
-        style(hovertemplate = paste('Simulation 2:<br>%{y:.0f} urns have <br>best candidate share','%{x} <extra></extra>'), traces = 1) %>%
-        style(hovertemplate = paste('Simulation 1:<br>%{y:.0f} urns have <br>best candidate share','%{x} <extra></extra>'), traces = 2) %>%
+        style(hovertemplate = paste('Simulation 3:<br>%{y:.0f} urns have <br>best candidate share','%{x} <extra></extra>'), traces = 1) %>%
+        style(hovertemplate = paste('Simulation 2:<br>%{y:.0f} urns have <br>best candidate share','%{x} <extra></extra>'), traces = 2) %>%
+        style(hovertemplate = paste('Simulation 1:<br>%{y:.0f} urns have <br>best candidate share','%{x} <extra></extra>'), traces = 3) %>%
         layout(hovermode='x unified)',
                barmode="overlay")
       
@@ -1966,26 +2127,39 @@ coloreq <- "#228833"
       outputlist2 <- list_output2()
       m2 <- mean(outputlist2$firstend, na.rm=T)
       num_end2 <- sum(!is.na(outputlist2$firstend))
+ 
+      outputlist3 <- list_output3()
+      m3 <- mean(outputlist3$firstend, na.rm=T)
+      num_end3 <- sum(!is.na(outputlist3$firstend))
       
       # Plot
-      p <- plot_ly(x =~outputlist2$firstend,type="histogram", name="Freq.", marker=list(color=color2.light), opacity=.5, showlegend=FALSE) %>%
+      p <- plot_ly(x =~outputlist3$firstend,type="histogram", name="Freq.", marker=list(color=color3.light), opacity=.5, showlegend=FALSE) %>%
+        add_trace(x =~outputlist2$firstend,type="histogram", name="Freq.", marker=list(color=color2.light), opacity=.5, showlegend=FALSE) %>%
         add_trace(x =~outputlist1$firstend,type="histogram", name="Freq.", marker=list(color=color1.light), opacity=.5, showlegend=FALSE) %>%
         layout(xaxis=list(title = paste("When AA ended<br>Simulation 1: AA ended in", num_end1, "out of", ncol(outputlist1$paths_ratio), "urns<br>Simulation 2: AA ended in", num_end2, "out of", ncol(outputlist2$paths_ratio), "urns"), range=c(0,max(nrow(outputlist1$paths_ratio), nrow(outputlist2$paths_ratio)))), yaxis=list(title="Frequency"))%>%
         layout(hovermode="x unified)", 
                barmode="overlay") 
       if (!is.na(m1) ){
        p<- p %>%  add_segments(x=m1, y=0, xend=m1, yend=100, line=list(color=color1, width = 4), opacity=1, marker=NULL, name="Mean", showlegend=FALSE) %>%
-         style(hovertemplate = paste('Simulation 1:<br>Mean: %{x:.1f}'), traces = 3) %>%
-         style(hovertemplate = paste('Simulation 1:<br>%{y:.0f} urns have ended<br>AA after','%{x} draws<extra></extra>'), traces =2 ) 
+         style(hovertemplate = paste('Simulation 1:<br>Mean: %{x:.1f}'), traces = 4) %>%
+         style(hovertemplate = paste('Simulation 1:<br>%{y:.0f} urns have ended<br>AA after','%{x} draws<extra></extra>'), traces =3 ) 
        
       }
       if (!is.na(m2) ){
         p<- p %>%  add_segments(x=m2, y=0, xend=m2, yend=100, line=list(color=color2, width = 4), opacity=1, marker=NULL, name="Mean", showlegend=FALSE) %>%
-          style(hovertemplate = paste('Simulation 2:<br>Mean: %{x:.1f}'), traces = 4) %>%
-          style(hovertemplate = paste('Simulation 2:<br>%{y:.0f} urns have ended<br>AA after','%{x} draws<extra></extra>'), traces =1)
+          style(hovertemplate = paste('Simulation 2:<br>Mean: %{x:.1f}'), traces = 5) %>%
+          style(hovertemplate = paste('Simulation 2:<br>%{y:.0f} urns have ended<br>AA after','%{x} draws<extra></extra>'), traces =2)
         
         
       }
+      if (!is.na(m3) ){
+        p<- p %>%  add_segments(x=m3, y=0, xend=m3, yend=100, line=list(color=color3, width = 4), opacity=1, marker=NULL, name="Mean", showlegend=FALSE) %>%
+          style(hovertemplate = paste('Simulation 3:<br>Mean: %{x:.1f}'), traces = 6) %>%
+          style(hovertemplate = paste('Simulation 3:<br>%{y:.0f} urns have ended<br>AA after','%{x} draws<extra></extra>'), traces =1)
+        
+        
+      }
+      
       
       p
       
@@ -2110,7 +2284,44 @@ coloreq <- "#228833"
                  "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "*", parameters[["w_m_function"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]], "*(", parameters[["m_m_function"]], ") \\end{pmatrix}$$")
         }   
         else if(input$woman_stochastic2=="none" & input$man_stochastic2!="none"){
-          paste0("Simulation 1 ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]],
+          paste0("Simulation 2 ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]],
+                 "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "*", parameters[["w_m_function"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]], "*(", parameters[["m_m_function"]], ") \\end{pmatrix}$$")
+        }        
+      )   
+      
+      
+    })
+  })
+  
+  
+  output$matrix3 <- renderUI({
+    input$rerun
+    
+    isolate({
+      # Check that inputs are in place
+      t <- input$N1
+      if(is.null(t)){
+        input <- default_inputs
+      }
+      
+      outputlist3 <- list_output3()
+      parameters <- outputlist3$parameters
+      withMathJax(
+        if(input$woman_stochastic3=="none" & input$man_stochastic3=="none"){
+          paste0("Simulation 3 ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]],
+                 "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]],"\\end{pmatrix}$$")
+        }
+        else if(input$woman_stochastic3!="none" & input$man_stochastic3=="none"){
+          paste0("Simulation 3 ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "*", parameters[["w_w_function"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]], "*(", parameters[["m_w_function"]], ")",
+                 "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]],"\\end{pmatrix}$$")
+        }
+        
+        else if(input$woman_stochastic3!="none" & input$man_stochastic3!="none"){
+          paste0("Simulation 3 ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "*", parameters[["w_w_function"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]], "*(", parameters[["m_w_function"]], ")",
+                 "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "*", parameters[["w_m_function"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]], "*(", parameters[["m_m_function"]], ") \\end{pmatrix}$$")
+        }   
+        else if(input$woman_stochastic3=="none" & input$man_stochastic3!="none"){
+          paste0("Simulation 3 ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]],
                  "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "*", parameters[["w_m_function"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]], "*(", parameters[["m_m_function"]], ") \\end{pmatrix}$$")
         }        
       )   
