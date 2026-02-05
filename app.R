@@ -1285,7 +1285,7 @@ color2 <- "#BB5566"
 color3 <- "#DDAA33"
 color1.light <- "#BBCCEE"
 color2.light <- "#FFCCCC"
-color3.light <- "#EEEBBB"
+color3.light <- "#EECC66"
 coloreq <- "#228833"
 
   list_output1<- reactive ({
@@ -1394,9 +1394,17 @@ coloreq <- "#228833"
       g <- ggplotly(hist) %>%
         layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Frequency", titlefont = list(size = 16)))
       
+      
+      # When there are identical traces, ggplotly drops them
       text_y3 <- paste("Simulation 3:<br>", g$x$data[[1]]$y, 'urns have white ball <br>share', round(g$x$data[[1]]$x, 2), "-", round(g$x$data[[1]]$x+g$x$data[[1]]$width,2))
+      if(length(g$x$data)>4){
       text_y2 <- paste("Simulation 2:<br>", g$x$data[[3]]$y, 'urns have white ball <br>share', round(g$x$data[[3]]$x, 2), "-", round(g$x$data[[3]]$x+g$x$data[[3]]$width,2))
       text_y1 <- paste("Simulation 1:<br>",g$x$data[[5]]$y, 'urns have white ball <br>share', round(g$x$data[[5]]$x, 2), "-", round(g$x$data[[5]]$x+g$x$data[[5]]$width,2))
+      }
+      else{
+        text_y2 <- paste("Simulation 2:<br>", g$x$data[[1]]$y, 'urns have white ball <br>share', round(g$x$data[[1]]$x, 2), "-", round(g$x$data[[1]]$x+g$x$data[[1]]$width,2))
+        text_y1 <- paste("Simulation 1:<br>", g$x$data[[1]]$y, 'urns have white ball <br>share', round(g$x$data[[1]]$x, 2), "-", round(g$x$data[[1]]$x+g$x$data[[1]]$width,2))
+      }
       
       g %>% style(text=text_y3, traces =1) %>%
         style(text=text_y2, traces =3) %>%
