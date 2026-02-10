@@ -1280,13 +1280,26 @@ default_inputs$w_02 <- 20
 default_inputs$w_03 <- 30
 
 #https://packages.tesselle.org/khroma/articles/tol.html
+
+
 color1 <- "#004488"
 color2 <- "#BB5566"
+color3 <- "#117733"
 color3 <- "#DDAA33"
+color3 <- "#997700"
+
+
 color1.light <- "#BBCCEE"
 color2.light <- "#FFCCCC"
+color3.light <- "#CCDDAA"
+color3.light <- "#EEEEBB"
+
+color2.light <- "#EE99AA"
 color3.light <- "#EECC66"
-coloreq <- "#228833"
+
+
+
+coloreq <- "#555555"
 
   list_output1<- reactive ({
     
@@ -1374,13 +1387,13 @@ coloreq <- "#228833"
       
       hist <- ggplot() + 
         # Sim 3
-        geom_histogram(data=hist_data3, aes(x=`Share of white balls in urn after trials`), bins=bins3, fill=color3.light, alpha=.5)+
+        geom_histogram(data=hist_data3, aes(x=`Share of white balls in urn after trials`), bins=bins3, fill=color3.light, alpha=.3)+
         geom_density(data=hist_data3, aes(x=`Share of white balls in urn after trials`, y =after_stat(count*bin.width3)), color=color3, linetype="dotted")+
         # Sim 2
-        geom_histogram(data=hist_data2, aes(x=`Share of white balls in urn after trials`), bins=bins2, fill=color2.light, alpha=.5)+
+        geom_histogram(data=hist_data2, aes(x=`Share of white balls in urn after trials`), bins=bins2, fill=color2.light, alpha=.3)+
         geom_density(data=hist_data2, aes(x=`Share of white balls in urn after trials`, y =after_stat(count*bin.width2)), color=color2, linetype="dashed")+
         # Sim 1
-        geom_histogram(data=hist_data, aes(x=`Share of white balls in urn after trials`), bins=bins1, fill=color1.light, alpha=.5)+
+        geom_histogram(data=hist_data, aes(x=`Share of white balls in urn after trials`), bins=bins1, fill=color1.light, alpha=.3)+
         geom_density(data=hist_data, aes(x=`Share of white balls in urn after trials`, y =after_stat(count*bin.width1)), color=color1)+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
