@@ -279,9 +279,14 @@ navbarPage("Polya Urns", id="nav",
                                 )),
                 
                 conditionalPanel("input.sim_num==1", uiOutput("simParamPanel1") ),
-                conditionalPanel("input.sim_num==2", uiOutput("simParamPanel2") ),
-                conditionalPanel("input.sim_num==3", uiOutput("simParamPanel3") ),
-                
+                conditionalPanel("input.sim_num==2", div(
+                  fluidRow(column(12, materialSwitch("enable2s", label="Enable simulation", value=TRUE))), 
+                                  uiOutput("simParamPanel2") 
+                  )),
+                conditionalPanel("input.sim_num==3", div(
+                  fluidRow(column(12, materialSwitch("enable3s", label="Enable simulation", value=TRUE))), 
+                                  uiOutput("simParamPanel3") 
+                )),
                 # Button to refresh simulation results 
                 fluidRow(column(5, actionButton("rerun", "Re-run Simulation")))
               ),
@@ -396,6 +401,10 @@ multidrawMatrix <- function(num){
       multidrawMatrix(2)
   })
   
+  output$matrixIn3 <- renderUI({
+    multidrawMatrix(3)
+  })
+  
   
 runSimulation <- function(num) {
   
@@ -404,6 +413,29 @@ runSimulation <- function(num) {
   t <- input$N1
   if(is.null(t)){
     input <- default_inputs
+  }
+  
+  # To disable a simulation, set parameters the same as simulation 1 and turn down urns and draws to save computing power
+  if (input[["enable2s"]] ==0 & num == 2) {
+    updateNumericInput(inputId = "I2", value=1)
+    updateNumericInput(inputId = "N2", value=1)
+    
+    input <- reactiveValuesToList(input)
+    base_names <- sapply(names(input[str_ends(names(input),"1")]), function(x) substr(x, 1, nchar(x)-1)) 
+    input[paste0(base_names, "2")] <- input[paste0(base_names,"1")]
+    input$N2 <- 1
+    input$I2 <- 1
+    
+  }
+  if (input[["enable3s"]] ==0 & num == 3) {
+    updateNumericInput(inputId = "I3", value=1)
+    updateNumericInput(inputId = "N3", value=1)
+    
+    input <- reactiveValuesToList(input)
+    base_names <- sapply(names(input[str_ends(names(input),"1")]), function(x) substr(x, 1, nchar(x)-1)) 
+    input[paste0(base_names, "3")] <- input[paste0(base_names,"1")]
+    input$N3 <- 1
+    input$I3 <- 1
   }
   
   # Set the random number seed
@@ -1232,6 +1264,7 @@ default_inputs.0 <- list("I" = 100,
                       "w_0" = 10,
                       "m_0" = 40,
                       "multidraw" = "single",
+                      "multi_matrix" = "single",
                       "multi_interp" = FALSE,
                       "woman_stochastic" = "none",
                       "woman_depends" = "none",
@@ -1272,12 +1305,14 @@ default_inputs.0 <- list("I" = 100,
                       "graph_auto" = "auto",
                       "graph_dim" = 100,
                       "graph_origin" = 0
-                    )
+                      )
 
 default_inputs <- rep(default_inputs.0, 3)
 names(default_inputs)<- c(paste0(names(default_inputs.0), "1"), paste0(names(default_inputs.0), "2"),paste0(names(default_inputs.0), "3"))
 default_inputs$w_02 <- 20
 default_inputs$w_03 <- 30
+default_inputs$enable2s <- TRUE
+default_inputs$enable3s <- TRUE
 
 #https://packages.tesselle.org/khroma/articles/tol.html
 
@@ -1324,7 +1359,7 @@ coloreq <- "#555555"
       # Isolate forces it not to refresh until the rerun button is pressed
       isolate({
         input <- reactiveValuesToList(input)
-        
+
         runSimulation(2)
       })
 
@@ -1563,12 +1598,12 @@ coloreq <- "#555555"
         geom_line(data=ratio3, aes(x=draw-1, y=value, group=name), color=color3.light, linetype="solid", alpha=.3) +
         geom_line(data=ratio2, aes(x=draw-1, y=value, group=name), color=color2.light, linetype="solid", alpha=.3) +
         geom_line(data=ratio1, aes(x=draw-1, y=value, group=name), color=color1.light, alpha=.3) +
-        geom_point(aes(x=rep(0:(input$N3)), y=average_ratio3, text=text3), size=0.1, color=color3, alpha=0) +
-        geom_line(aes(x=rep(0:(input$N3)), y=average_ratio3), color=color3, linetype="dotted") +
-        geom_point(aes(x=rep(0:(input$N2)), y=average_ratio2, text=text2), size=0.1, color=color2, alpha=0) +
-        geom_line(aes(x=rep(0:(input$N2)), y=average_ratio2), color=color2, linetype="dashed") +
-        geom_point(aes(x=rep(0:(input$N1)), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
-        geom_line(aes(x=rep(0:(input$N1)), y=average_ratio1), color=color1) +
+        geom_point(aes(x=rep(0:(length(average_ratio3)-1)), y=average_ratio3, text=text3), size=0.1, color=color3, alpha=0) +
+        geom_line(aes(x=rep(0:(length(average_ratio3)-1)), y=average_ratio3), color=color3, linetype="dotted") +
+        geom_point(aes(x=rep(0:(length(average_ratio2)-1)), y=average_ratio2, text=text2), size=0.1, color=color2, alpha=0) +
+        geom_line(aes(x=rep(0:(length(average_ratio2)-1)), y=average_ratio2), color=color2, linetype="dashed") +
+        geom_point(aes(x=rep(0:(length(average_ratio1)-1)), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
+        geom_line(aes(x=rep(0:(length(average_ratio1)-1)), y=average_ratio1), color=color1) +
         geom_hline(aes(yintercept=0.5), color=coloreq,linetype = "solid") +
         scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
@@ -1625,12 +1660,12 @@ coloreq <- "#555555"
         geom_line(data=ratio3, aes(x=draw-1, y=value, group=name), color=color3.light, alpha=.3) +
         geom_line(data=ratio2, aes(x=draw-1, y=value, group=name), color=color2.light, alpha=.3) +
         geom_line(data=ratio1, aes(x=draw-1, y=value, group=name), color=color1.light, alpha=.3) +
-        geom_point(aes(x=rep(1:(input$N3)), y=average_ratio3, text=text3), size=0.1, color=color3, alpha=0) +
-        geom_line(aes(x=rep(1:(input$N3)), y=average_ratio3), color=color3, linetype="dotted") +
-        geom_point(aes(x=rep(1:(input$N2)), y=average_ratio2, text=text2), size=0.1, color=color2, alpha=0) +
-        geom_line(aes(x=rep(1:(input$N2)), y=average_ratio2), color=color2, linetype="dashed") +
-        geom_point(aes(x=rep(1:(input$N1)), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
-        geom_line(aes(x=rep(1:(input$N1)), y=average_ratio1), color=color1, linetype="solid") +
+        geom_point(aes(x=rep(1:(length(average_ratio3))), y=average_ratio3, text=text3), size=0.1, color=color3, alpha=0) +
+        geom_line(aes(x=rep(1:(length(average_ratio3))), y=average_ratio3), color=color3, linetype="dotted") +
+        geom_point(aes(x=rep(1:(length(average_ratio2))), y=average_ratio2, text=text2), size=0.1, color=color2, alpha=0) +
+        geom_line(aes(x=rep(1:(length(average_ratio2))), y=average_ratio2), color=color2, linetype="dashed") +
+        geom_point(aes(x=rep(1:(length(average_ratio1))), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
+        geom_line(aes(x=rep(1:(length(average_ratio1))), y=average_ratio1), color=color1, linetype="solid") +
         geom_hline(aes(yintercept=0.5), color=coloreq,linetype = "solid") +
         scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
