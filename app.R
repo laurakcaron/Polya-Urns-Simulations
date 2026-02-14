@@ -510,6 +510,9 @@ runSimulation <- function(num) {
     m_n <- rep(m_0, I)
     prob_w_n <- NULL
     prob_best_n <- NULL
+    prob_best_aa <- NULL
+    prev1_prob_best_aa <- NULL
+    prev2_prob_best_aa <- NULL
     prob_w_w_replace_n <- NULL
     prob_w_m_replace_n <- NULL
     selected <- NULL
@@ -920,7 +923,19 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   rank_aa <- draw_aa
   
   quota_done <- w_so_far >= input[[paste0("quota_per", num)]]
+  prev2_prob_best_aa <- prev1_prob_best_aa 
+  prev1_prob_best_aa <- prob_best_aa 
   prob_best_aa <- quota_done + (1 - quota_done) * (free_choice * sapply(seq(1:I), function(x) dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x]))) + previous_share)
+  
+  if (draw_in_window==2 & draws_left==0 ){
+    prob_best_aa <- (prob_best_aa + prev1_prob_best_aa)/2
+    prev1_prob_best_aa <- prob_best_aa 
+  }
+  if (draw_in_window==3 & draws_left==0 ){
+    prob_best_aa <- (prob_best_aa + prev1_prob_best_aa + prev2_prob_best_aa)/3
+    prev1_prob_best_aa <- prob_best_aa 
+    prev2_prob_best_aa <- prob_best_aa 
+  }
   
   ball_replaced_aa <- lapply(seq(1:I), function(x) {
     rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added * r_w_w[x]), rep("m", m_w_added * r_m_w[x])) else c(rep("w", w_m_added * r_w_m[x]), rep("m", m_m_added * r_m_m[x]))
@@ -931,7 +946,12 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
     mball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_removed * r_w_w[x]), rep("m", m_w_removed * r_m_w[x])) else c(rep("w", w_m_removed * r_w_m[x]), rep("m", m_m_removed * r_m_m[x]))
     if(is_empty(mball)) 0 else mball
   })
+  
+  
+  
 }
+
+
 
       
 ## MULTIPLE DRAW OPTIONS
@@ -1119,12 +1139,26 @@ w_n <- rbind(w_n, new_w)
 m_n <- rbind(m_n, new_m)
 prob_w_n <- rbind(prob_w_n, prob_w_selected)
 prob_best_n <- rbind(prob_best_n, prob_best)
+  # For quota policy, go back and edit prior probabilities 
+  if (!is.null(prev1_prob_best_aa)){
+    if(min(prev1_prob_best_aa == prob_best_aa)==1){
+    prob_best_n[(n-1), ] <- lapply(seq(1:I), function(x) if(end[x] %in% 0) prob_best_aa[[x]] else prob_best_n[[(n-1), x]])
+    } 
+  }
+  if (!is.null(prev2_prob_best_aa)){
+    if (min(prev1_prob_best_aa == prev2_prob_best_aa) ==1 & min(prev1_prob_best_aa %in% prob_best_aa)==1){
+    prob_best_n[(n-1), ] <- lapply(seq(1:I), function(x) if(end[x] %in% 0) prob_best_aa[[x]] else prob_best_n[[(n-1), x]])
+    prob_best_n[(n-2), ] <- lapply(seq(1:I), function(x) if(end[x] %in% 0) prob_best_aa[[x]] else prob_best_n[[(n-2), x]])
+    }
+  }
+
 prob_w_w_replace_n <- rbind(prob_w_w_replace_n, p_w_w)
 prob_w_m_replace_n <- rbind(prob_w_m_replace_n, p_w_m)
 
 incProgress(1 / N, detail = paste(round(n * 100 / N, 1), "%"))
 
     }
+    
     
     # Output all the results 
     
