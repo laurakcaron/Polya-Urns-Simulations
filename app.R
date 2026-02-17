@@ -271,11 +271,31 @@ navbarPage("Polya Urns", id="nav",
                
                 # Parameters panel 
                 h3("Simulation Parameters"),
-                fluidRow(column(12, radioGroupButtons("sim_num", "Currently editing", 
+                fluidRow(column(12, 
+                        conditionalPanel("input.enable2s==true && input.enable3s==true", 
+                                         radioGroupButtons("sim_num", "Currently editing", 
                                                  choiceNames =c('Simulation 1 (solid blue)', 
                                                                  'Simulation 2 (dashed red)',
                                                                   'Simulation 3 (dotted yellow)'), 
-                                                  choiceValues=c(1,2,3))
+                                                  choiceValues=c(1,2,3))), 
+                            conditionalPanel("input.enable2s==false && input.enable3s==true", 
+                                             radioGroupButtons("sim_num", "Currently editing", 
+                                                               choiceNames =c('Simulation 1 (solid blue)', 
+                                                                              'Simulation 2 (disabled)',
+                                                                              'Simulation 3 (dotted yellow)'), 
+                                                               choiceValues=c(1,2,3))), 
+                           conditionalPanel("input.enable2s==true && input.enable3s==false", 
+                                            radioGroupButtons("sim_num", "Currently editing", 
+                                                              choiceNames =c('Simulation 1 (solid blue)', 
+                                                                             'Simulation 2 (dashed red)',
+                                                                             'Simulation 3 (disabled)'), 
+                                                              choiceValues=c(1,2,3))),                    
+                           conditionalPanel("input.enable2s==false && input.enable3s==false", 
+                                            radioGroupButtons("sim_num", "Currently editing", 
+                                                              choiceNames =c('Simulation 1 (solid blue)', 
+                                                                             'Simulation 2 (disabled)',
+                                                                             'Simulation 3 (disabled)'), 
+                                                              choiceValues=c(1,2,3)))
                                 )),
                 
                 conditionalPanel("input.sim_num==1", uiOutput("simParamPanel1") ),
@@ -2005,12 +2025,12 @@ coloreq <- "#555555"
       average1 <- paths_selected_rank1 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
      
       outputlist2 <- list_output2()
-      paths_selected_rank2 <- outputlist2$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=substr(name, 1, str_locate(name,"\\.")[,1]-1)) %>%
+      paths_selected_rank2 <- outputlist2$paths_selected_rank  %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
         group_by(name, draw) %>% summarize(share_best=mean(value==1)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
       average2 <- paths_selected_rank2 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
       
       outputlist3 <- list_output3()
-      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=substr(name, 1, str_locate(name,"\\.")[,1]-1)) %>%
+      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
         group_by(name, draw) %>% summarize(share_best=mean(value==1)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
       average3 <- paths_selected_rank3 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
       
