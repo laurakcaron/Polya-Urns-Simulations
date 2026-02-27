@@ -539,6 +539,9 @@ runSimulation <- function(num) {
     prob_best_aa <- NULL
     prev1_prob_best_aa <- NULL
     prev2_prob_best_aa <- NULL
+    rank_aa <- NULL
+    prev1_rank_aa <- NULL
+    prev2_rank_aa <- NULL
     prob_w_w_replace_n <- NULL
     prob_w_m_replace_n <- NULL
     selected <- NULL
@@ -946,9 +949,12 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   ball_drawn_aa <- lapply(seq(1:I), function(x) draws_aa[[x]][[draw_aa[[x]]]])
   ball_selected_aa <- ball_drawn_aa
   
+  prev2_rank_aa <- prev1_rank_aa
+  prev1_rank_aa <- rank_aa 
   rank_aa <- draw_aa
   
   quota_done <- w_so_far >= input[[paste0("quota_per", num)]]
+  
   prev2_prob_best_aa <- prev1_prob_best_aa 
   prev1_prob_best_aa <- prob_best_aa 
   prob_best_aa <- quota_done + (1 - quota_done) * (free_choice * sapply(seq(1:I), function(x) dhyper(0, previous_w[x], previous_m[x], floor(expected_rank_W[x]))) + previous_share)
@@ -956,11 +962,18 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   if (draw_in_window==2 & draws_left==0 ){
     prob_best_aa <- (prob_best_aa + prev1_prob_best_aa)/2
     prev1_prob_best_aa <- prob_best_aa 
+    
+    rank_aa <- lapply(seq(1:I), function(x) (rank_aa[[x]] + prev1_rank_aa[[x]])/2 )
+    prev1_rank_aa <- rank_aa 
   }
   if (draw_in_window==3 & draws_left==0 ){
     prob_best_aa <- (prob_best_aa + prev1_prob_best_aa + prev2_prob_best_aa)/3
     prev1_prob_best_aa <- prob_best_aa 
     prev2_prob_best_aa <- prob_best_aa 
+    
+    rank_aa <-  lapply(seq(1:I), function(x) (rank_aa[[x]] + prev1_rank_aa[[x]] + prev2_rank_aa[[x]])/3)
+    prev1_rank_aa <- rank_aa 
+    prev2_rank_aa <- rank_aa 
   }
   
   ball_replaced_aa <- lapply(seq(1:I), function(x) {
@@ -1169,12 +1182,32 @@ prob_best_n <- rbind(prob_best_n, prob_best)
   if (!is.null(prev1_prob_best_aa)){
     if(min(prev1_prob_best_aa == prob_best_aa)==1){
     prob_best_n[(n-1), ] <- lapply(seq(1:I), function(x) if(end[x] %in% 0) prob_best_aa[[x]] else prob_best_n[[(n-1), x]])
+    selected_rank <- lapply(seq(1:I), function(x) {
+      if(end[x] %in% 0) {
+        selected_rank[[x]][(n-1), ] <- unlist(selected_rank[[x]][(n), ] )
+      }
+      selected_rank[[x]]
+      })
     } 
   }
   if (!is.null(prev2_prob_best_aa)){
     if (min(prev1_prob_best_aa == prev2_prob_best_aa) ==1 & min(prev1_prob_best_aa %in% prob_best_aa)==1){
     prob_best_n[(n-1), ] <- lapply(seq(1:I), function(x) if(end[x] %in% 0) prob_best_aa[[x]] else prob_best_n[[(n-1), x]])
     prob_best_n[(n-2), ] <- lapply(seq(1:I), function(x) if(end[x] %in% 0) prob_best_aa[[x]] else prob_best_n[[(n-2), x]])
+    
+    selected_rank <- lapply(seq(1:I), function(x) {
+      if(end[x] %in% 0) {
+        selected_rank[[x]][n-1, ] <- unlist(selected_rank[[x]][n, ] )
+      }
+      selected_rank[[x]]
+    })
+    
+    selected_rank <- lapply(seq(1:I), function(x) {
+      if(end[x] %in% 0) {
+        selected_rank[[x]][n-2, ] <- unlist(selected_rank[[x]][n, ] )
+      }
+      selected_rank[[x]]
+    })
     }
   }
 
@@ -2144,11 +2177,25 @@ coloreq <- "#555555"
       paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(draw) %>% summarize(avg_rank = mean(value)) %>% ungroup()
       
+      # Smoothing factor
+      smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
+      if(input$enable2s==TRUE){
+        smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
+      } 
+      else {
+        smooth2 <- 1
+      }
+      if(input$enable3s==TRUE){
+        smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
+      }
+      else{
+        smooth3 <-1 
+      }
       # Plot
       stock <- ggplot() +
-        geom_line(data=paths_selected_rank3, aes(x=draw, y=avg_rank), color=color3) +
-        geom_line(data=paths_selected_rank2, aes(x=draw, y=avg_rank), color=color2) +
-        geom_line(data=paths_selected_rank1, aes(x=draw, y=avg_rank), color=color1) +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=rollmean(avg_rank, smooth3, fill=NA)), color=color3) +
+        geom_line(data=paths_selected_rank2, aes(x=draw, y=rollmean(avg_rank, smooth2, fill=NA)), color=color2) +
+        geom_line(data=paths_selected_rank1, aes(x=draw, y=rollmean(avg_rank, smooth1, fill=NA)), color=color1) +
         theme(
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
