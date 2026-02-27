@@ -2,7 +2,7 @@
 #              Polya Urns Simulations
 #              Laura Caron
 #              Columbia University
-#         This version: October 20, 2024
+#         This version: February 26, 2026
 ##################################################
 
 ##################################################
@@ -30,6 +30,7 @@ library(rsconnect)
 library(shinyMatrix)
 library(shinyBS)
 library(shinyWidgets)
+library(zoo)
 
 ##################################################
 #                      UI
@@ -180,6 +181,7 @@ simParamPanel <- function(num) {
       conditionalPanel(condition=paste0("input.intervention", num, "=='quota'"), 
                        column(6, numericInput(paste0("quota_per", num), "Select at least __ W", value=1, min=1, max=2, step=1)),
                        column(6, numericInput(paste0("quota_window", num), "every __ draws", value=1, min=1, max=3, step=1)),
+                       column(12, numericInput(paste0("smoothing", num), "Factor for smoothing graphs on selected candidates", value=1, min=1, step=1)),
                        #column(6, numericInput("quota", "Continue until W make up __", value=0.5, min=0, max=1, step=0.1)),
                        #column(6, radioButtons("quota_group", label="", choices=c("of selected candidates"="selected", "of urn"="urn"))),
                        #column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))
@@ -300,11 +302,11 @@ navbarPage("Polya Urns", id="nav",
                 
                 conditionalPanel("input.sim_num==1", uiOutput("simParamPanel1") ),
                 conditionalPanel("input.sim_num==2", div(
-                  fluidRow(column(12, materialSwitch("enable2s", label="Enable simulation", value=TRUE))), 
+                  fluidRow(column(12, materialSwitch("enable2s", label="Enable simulation", value=FALSE))), 
                                   uiOutput("simParamPanel2") 
                   )),
                 conditionalPanel("input.sim_num==3", div(
-                  fluidRow(column(12, materialSwitch("enable3s", label="Enable simulation", value=TRUE))), 
+                  fluidRow(column(12, materialSwitch("enable3s", label="Enable simulation", value=FALSE))), 
                                   uiOutput("simParamPanel3") 
                 )),
                 # Button to refresh simulation results 
@@ -342,7 +344,7 @@ navbarPage("Polya Urns", id="nav",
                            h4("Statistics on the selection at each draw:"),
                            # Avg. rank and share selecting the best  
                            fluidRow(column(6, plotlyOutput("share_best", height="50%")),
-                                    column(6, plotlyOutput("avg_rank", height="50%")))                           
+                                    column(6, plotlyOutput("avg_rank", height="50%"))),                           
                            # Probability of selecting best candidate 
                            fluidRow(column(6, plotlyOutput("prob_best", height="50%")))
                            
@@ -440,7 +442,9 @@ runSimulation <- function(num) {
     updateNumericInput(inputId = "I2", value=1)
     updateNumericInput(inputId = "N2", value=1)
     
-    input <- reactiveValuesToList(input)
+    if (class(input)!="list") {
+      input <- reactiveValuesToList(input)  
+    }
     base_names <- sapply(names(input[str_ends(names(input),"1")]), function(x) substr(x, 1, nchar(x)-1)) 
     input[paste0(base_names, "2")] <- input[paste0(base_names,"1")]
     input$N2 <- 1
@@ -451,7 +455,9 @@ runSimulation <- function(num) {
     updateNumericInput(inputId = "I3", value=1)
     updateNumericInput(inputId = "N3", value=1)
     
-    input <- reactiveValuesToList(input)
+    if (class(input)!="list") {
+      input <- reactiveValuesToList(input)  
+    }
     base_names <- sapply(names(input[str_ends(names(input),"1")]), function(x) substr(x, 1, nchar(x)-1)) 
     input[paste0(base_names, "3")] <- input[paste0(base_names,"1")]
     input$N3 <- 1
@@ -1365,8 +1371,8 @@ default_inputs <- rep(default_inputs.0, 3)
 names(default_inputs)<- c(paste0(names(default_inputs.0), "1"), paste0(names(default_inputs.0), "2"),paste0(names(default_inputs.0), "3"))
 default_inputs$w_02 <- 20
 default_inputs$w_03 <- 30
-default_inputs$enable2s <- TRUE
-default_inputs$enable3s <- TRUE
+default_inputs$enable2s <- FALSE
+default_inputs$enable3s <- FALSE
 
 #https://packages.tesselle.org/khroma/articles/tol.html
 
@@ -1466,13 +1472,17 @@ coloreq <- "#555555"
       hist_data3 <- as.data.frame(paths_ratio3[nrow(paths_ratio3),])
       colnames(hist_data3) <- "Share of white balls in urn after trials"  
       
+      N1 <- nrow(hist_data)
+      N2 <- nrow(hist_data2)
+      N3 <- nrow(hist_data3)
+        
       # Plot
-      bin.width1 <- 1/(sqrt(input[["N1"]]))
-      bin.width2 <- 1/(sqrt(input[["N2"]]))
-      bin.width3 <- 1/(sqrt(input[["N3"]]))
-      bins1 <- floor(sqrt(input[["N1"]]))
-      bins2 <- floor(sqrt(input[["N2"]]))
-      bins3 <- floor(sqrt(input[["N3"]]))
+      bin.width1 <- 1/(sqrt(N1))
+      bin.width2 <- 1/(sqrt(N2))
+      bin.width3 <- 1/(sqrt(N3))
+      bins1 <- floor(sqrt(N1))
+      bins2 <- floor(sqrt(N2))
+      bins3 <- floor(sqrt(N3))
       
       hist <- ggplot() + 
         # Sim 3
@@ -1766,16 +1776,16 @@ coloreq <- "#555555"
       paths_prob_w_n3 <- outputlist3$paths_prob_w_n %>% as.data.frame
       paths_prob_w_n3 <- paths_prob_w_n3  %>% mutate(draw=row_number()) 
       prob_w_n3 <- paths_prob_w_n3 %>% pivot_longer(-draw)
-      average_prob_w3 <- paths_prob_w_n3 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()  
+      average_prob_w3 <- as.vector(paths_prob_w_n3 %>% as.data.frame() %>% dplyr::select(-draw) %>% rowMeans()  )
       
       # Plot
       r <- ggplot() + 
         geom_line(data=prob_w_n3, aes(x=draw, y=value, group=name), color=color3.light, alpha=.3) +
-        geom_line(aes(x=rep(1:(input$N3)), y=average_prob_w3), color=color3, linetype="dotted") +
+        geom_line(aes(x=rep(1:(length(average_prob_w3))), y=average_prob_w3), color=color3, linetype="dotted") +
         geom_line(data=prob_w_n2, aes(x=draw, y=value, group=name), color=color2.light, alpha=.3) +
-        geom_line(aes(x=rep(1:(input$N2)), y=average_prob_w2), color=color2, linetype="dashed") +
+        geom_line(aes(x=rep(1:(length(average_prob_w2))), y=average_prob_w2), color=color2, linetype="dashed") +
         geom_line(data=prob_w_n1, aes(x=draw, y=value, group=name), color=color1.light, alpha=.3) +
-        geom_line(aes(x=rep(1:(input$N1)), y=average_prob_w1), color=color1) +
+        geom_line(aes(x=rep(1:(length(average_prob_w1))), y=average_prob_w1), color=color1) +
         geom_hline(aes(yintercept=0.5), color=coloreq,linetype = "solid" ) +
         scale_y_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
         theme(
@@ -2078,11 +2088,26 @@ coloreq <- "#555555"
       paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(draw) %>% summarize(count_best=sum(value==1), share_best=sum(value==1)/length(outputlist3$paths_selected_rank)) %>% ungroup()
       
+      # Smoothing factor
+      smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
+      if(input$enable2s==TRUE){
+      smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
+      } 
+      else {
+        smooth2 <- 1
+      }
+      if(input$enable3s==TRUE){
+      smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
+      }
+      else{
+        smooth3 <-1 
+      }
+      
       # Plot
       stock <- ggplot() +
-        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best), color=color3) +
-        geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best), color=color2) +
-        geom_line(data=paths_selected_rank1, aes(x=draw, y=share_best), color=color1) +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=rollmean(share_best, smooth3, fill=NA)), color=color3) +
+        geom_line(data=paths_selected_rank2, aes(x=draw, y=rollmean(share_best, smooth2, fill=NA)), color=color2) +
+        geom_line(data=paths_selected_rank1, aes(x=draw, y=rollmean(share_best, smooth1, fill=NA)), color=color1) +
         theme(
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -2161,6 +2186,35 @@ coloreq <- "#555555"
       paths_prob_best3 <- outputlist3$paths_prob_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(draw) %>% mutate(value=unlist(value), mean_share=mean(value)) %>% ungroup()
       
+      # Smoothing factor
+      smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
+      if(input$enable2s==TRUE){
+        smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
+      } 
+      else {
+        smooth2 <- 1
+      }
+      if(input$enable3s==TRUE){
+        smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
+      }
+      else{
+        smooth3 <-1 
+      }
+      
+      paths_prob_best1 <- paths_prob_best1 %>%
+        group_by(name) %>%
+        mutate(value=rollmean(value, smooth1, fill=NA), 
+               mean_share=rollmean(mean_share, smooth1, fill=NA))
+ 
+     paths_prob_best2 <- paths_prob_best2 %>%
+        group_by(name) %>%
+        mutate(value=rollmean(value, smooth2, fill=NA), 
+               mean_share=rollmean(mean_share, smooth2, fill=NA))
+      
+      paths_prob_best3 <- paths_prob_best3 %>%
+        group_by(name) %>%
+        mutate(value=rollmean(value, smooth3, fill=NA), 
+               mean_share=rollmean(mean_share, smooth3, fill=NA))
       # Plot
       stock <- ggplot() +
         geom_line(data=paths_prob_best3, aes(x=draw, y=value, group=name), alpha=.3, color=color3.light) +
@@ -2379,6 +2433,7 @@ coloreq <- "#555555"
       
       outputlist2 <- list_output2()
       parameters <- outputlist2$parameters
+      if(input$enable2s == TRUE){
       withMathJax(
         if(input$woman_stochastic2=="none" & input$man_stochastic2=="none"){
           paste0("Simulation 2 ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]],
@@ -2398,7 +2453,7 @@ coloreq <- "#555555"
                  "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "*", parameters[["w_m_function"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]], "*(", parameters[["m_m_function"]], ") \\end{pmatrix}$$")
         }        
       )   
-      
+      }
       
     })
   })
@@ -2416,6 +2471,8 @@ coloreq <- "#555555"
       
       outputlist3 <- list_output3()
       parameters <- outputlist3$parameters
+      
+      if(input$enable3s == TRUE){
       withMathJax(
         if(input$woman_stochastic3=="none" & input$man_stochastic3=="none"){
           paste0("Simulation 3 ball replacement matrix: $$\\begin{pmatrix}", parameters[["w_w_added"]]-parameters[["w_w_removed"]], "&", parameters[["m_w_added"]]-parameters[["m_w_removed"]],
@@ -2435,7 +2492,7 @@ coloreq <- "#555555"
                  "\\\\",parameters[["w_m_added"]]-parameters[["w_m_removed"]], "*", parameters[["w_m_function"]], "&", parameters[["m_m_added"]]-parameters[["m_m_removed"]], "*(", parameters[["m_m_function"]], ") \\end{pmatrix}$$")
         }        
       )   
-      
+      }
       
     })
   })
@@ -2444,12 +2501,12 @@ coloreq <- "#555555"
     input$rerun
     
   isolate({
-      outputlist <- list_output()
+      outputlist <- list_output1()
       parameters <- outputlist$parameters
       withMathJax(
         HTML(paste0(
           h2("About the Urn Simulator"),
-          p("Updated October 2024."), 
+          p("Updated February 2026."), 
           p("This simulator accompanies the paper \"Women, Men, and Polya Urns. Underrepresentation at Equal Talent in the Absence of Discrimination\" by Laura Caron, Alessandra Casella, and Victoria Mooers at Columbia University."),
           p("Note: you need to press \"re-run\" simulation in order to refresh the results. Some graphs may be slow to appear."),
           h3("Simulation Parameters"),
@@ -2465,12 +2522,13 @@ coloreq <- "#555555"
           p("The app allows simulation of various affirmative action policies. The first type is one where two balls are drawn from the urn, representing the best and second-best candidates. If the best candidate is a woman, they are selected. If not, the second-best candidate is considered and is selected if they are a woman (surely, in the determinisitc case, or with a certain probability, in the stochastic case). Otherwise, the best man candidate is selected."), 
           p("The second type of affirmative action adds one woman to the urn in every round, regardless of draw and addition."), 
           p("These two types can also be simulated using the multiple draw options."),
-          p("The third type is a hiring quota, where women are selected every draw or at least every 2 draws until the stopping conditions are met. When necessary, we continue drawing until a woman is selected."), 
+          p("The third type is a hiring quota, where women are selected every \\(k\\) draws until the stopping conditions are met. When necessary, we continue drawing until a woman is selected."), 
           h4("Stopping conditions"), 
-          p("The affirmative action may continue forever, stop when W become the majority in the sample (urn), stop when W become the majority among those selected, or stop after a certain number of draws. The hiring quota may be stopped when W make up a certain percentage of those selected or in the sample (urn)."),
+          p("The affirmative action may continue forever, stop when W become the majority in the sample (urn), stop when W become the majority among those selected, or stop after a certain number of draws."),
           h3("Stochastic addition options"), 
           
-          HTML(paste0("Stochastic addition is currently:<b>", if(input$woman_stochastic!="none") " enabled " else " disabled", "</b> when W is drawn and <b>",if(input$man_stochastic!="none") " enabled " else " disabled ", "</b> when M is drawn. <br></br>", 
+          HTML(paste0(
+            #"Stochastic addition is currently:<b>", if(input$woman_stochastic!="none") " enabled " else " disabled", "</b> when W is drawn and <b>",if(input$man_stochastic!="none") " enabled " else " disabled ", "</b> when M is drawn. <br></br>", 
                       "The stochastic addition may be either correlated or uncorrelated. In the correlated variety, balls are always added to the urn in each draw, regardless of the state of any random variables. The 2 \\(\\times\\) 2 case can be written in terms of 2 Bernoulli random variables:
 
 $$
@@ -2482,7 +2540,7 @@ d_{mw} \\times Y \\sim Bern(q) & d_{mm} (1-Y)
 
 $$", 
                       "In that case, when a white ball is drawn, \\(p\\) gives the probability that \\(d_{ww}\\) white balls are added. Otherwise, \\(d_{wm}\\) mauve balls are added. <br></br>",
-                      "Correlated stochastic addition is currently: <b>", if(input$woman_stochastic=="balanced") " enabled" else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic=="balanced") " enabled " else " disabled ", "</b>when a man is drawn. <br></br>", 
+                      #"Correlated stochastic addition is currently: <b>", if(input$woman_stochastic=="balanced") " enabled" else " disabled", "</b> when a woman is drawn and <b>",if(input$man_stochastic=="balanced") " enabled " else " disabled ", "</b>when a man is drawn. <br></br>", 
                       
                       "The case with uncorrelated addition is written in terms of four Bernoulli random variables:
 
