@@ -367,7 +367,7 @@ navbarPage("Polya Urns", id="nav",
    )
 
   # Set the default tab to be the Simulations tab
-   , selected ="About"))
+   , selected ="Simulations"))
 
 ##############################################################
 #                          Server
