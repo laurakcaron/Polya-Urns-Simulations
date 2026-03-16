@@ -162,10 +162,10 @@ simParamPanel <- function(num) {
         column(12, uiOutput(paste0("matrixIn", num))))
     )),
     # Fourth section: Exit
-    h3("Exit Options"),
-    fluidRow(column(12, checkboxInput(paste0("exit_selected", num), "Balls exit from pool of selected (oldest first)", value=F))),
-    conditionalPanel(condition=paste0("input.exit_selected", num, "==true"), 
-                     fluidRow(column(12, numericInput(paste0("prob_exit",num), "Probability of exit in each round", value=0.01, min=0, max=1, step=0.1)))),
+    #h3("Exit Options"),
+    #fluidRow(column(12, checkboxInput(paste0("exit_selected", num), "Balls exit from pool of selected (oldest first)", value=F))),
+    #conditionalPanel(condition=paste0("input.exit_selected", num, "==true"), 
+    #                 fluidRow(column(12, numericInput(paste0("prob_exit",num), "Probability of exit in each round", value=0.01, min=0, max=1, step=0.1)))),
     
     # Fourth section: Interventions
     # Only show for single draw 
@@ -181,7 +181,7 @@ simParamPanel <- function(num) {
       conditionalPanel(condition=paste0("input.intervention", num, "=='quota'"), 
                        column(6, numericInput(paste0("quota_per", num), "Select at least __ W", value=1, min=1, max=2, step=1)),
                        column(6, numericInput(paste0("quota_window", num), "every __ draws", value=1, min=1, max=3, step=1)),
-                       column(12, numericInput(paste0("smoothing", num), "Factor for smoothing graphs on selected candidates", value=1, min=1, step=1)),
+                       #column(12, numericInput(paste0("smoothing", num), "Factor for smoothing graphs on selected candidates", value=1, min=1, step=1)),
                        #column(6, numericInput("quota", "Continue until W make up __", value=0.5, min=0, max=1, step=0.1)),
                        #column(6, radioButtons("quota_group", label="", choices=c("of selected candidates"="selected", "of urn"="urn"))),
                        #column(6, numericInput("quota_start", "Start after draw (enter 0 for start at beginning)", value=0, min=0, step=1))
@@ -464,6 +464,16 @@ runSimulation <- function(num) {
     input$I3 <- 1
   }
   
+  # If exit options are gone, set default parameters 
+  if (is.null(input[[paste0("exit_selected", num)]]) ){
+    updateCheckboxInput(inputId = paste0("exit_selected", num), value=FALSE)
+    updateNumericInput(inputId = paste0("prob_exit", num), value=0)
+    if (class(input)!="list") {
+      input <- reactiveValuesToList(input)  
+    }
+    input[[paste0("exit_selected", num)]] <- FALSE
+  }
+  
   # Set the random number seed
   set.seed(input[[paste0("seed", num)]])
     
@@ -548,6 +558,8 @@ runSimulation <- function(num) {
     selected_w <- NULL
     selected_m <- NULL
     selected_rank <- NULL
+    selected_best <- NULL
+    smooth_best <- NULL 
     end <- NA 
     firstend <- rep(NA, I)
     
@@ -952,6 +964,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   prev2_rank_aa <- prev1_rank_aa
   prev1_rank_aa <- rank_aa 
   rank_aa <- draw_aa
+  check_best <- (rank_aa == 1)
   
   quota_done <- w_so_far >= input[[paste0("quota_per", num)]]
   
@@ -1169,7 +1182,24 @@ if (input[[paste0("multidraw", num)]] == "multi" & input[[paste0("multi_interp",
 
 selected <- lapply(seq(1:I), function(x) rbind(selected[[x]], ball_selected[[x]]))
 selected_rank <- if (n > 1) lapply(seq(1:I), function(x) rbind(selected_rank[[x]], rank[[x]])) else as.list(rank)
-
+if (input[[paste0("intervention", num)]]=="quota"){
+  selected_best <- if (n > 1) {
+    lapply(seq(1:I), function(x) {
+    if(end[x] %in% 0) {
+      rbind(selected_best[[x]], (check_best[[x]]==1))
+    }
+    else {
+      rbind(selected_best[[x]], (rank[[x]]==1)) 
+    }
+    })
+  }
+  else as.list(check_best==1)  
+}
+else {
+  selected_best <- if (n > 1) lapply(seq(1:I), function(x) rbind(selected_best[[x]], (rank[[x]]==1))) else as.list(rank==1)
+}
+  
+smooth_best <- if (n > 1) lapply(seq(1:I), function(x) rbind(smooth_best[[x]], selected_best[[x]][[n]])) else selected_best  
 selected_w <- rbind(selected_w, sapply(seq(1:I), function(x) sum(selected[[x]] == "w")))
 selected_m <- rbind(selected_m, sapply(seq(1:I), function(x) sum(selected[[x]] == "m")))
 
@@ -1188,6 +1218,15 @@ prob_best_n <- rbind(prob_best_n, prob_best)
       }
       selected_rank[[x]]
       })
+    smooth_best <- lapply(seq(1:I), function(x) {
+      if(end[x] %in% 0) {
+        avg_best <- (selected_best[[x]][(n)] + selected_best[[x]][(n-1)])/2
+        smooth_best[[x]][(n-1), ] <- avg_best
+        smooth_best[[x]][(n), ] <- avg_best
+      }
+      smooth_best[[x]]
+    })
+
     } 
   }
   if (!is.null(prev2_prob_best_aa)){
@@ -1209,6 +1248,17 @@ prob_best_n <- rbind(prob_best_n, prob_best)
       selected_rank[[x]]
     })
     }
+    
+    smooth_best <- lapply(seq(1:I), function(x) {
+      if(end[x] %in% 0) {
+        avg_best <- (selected_best[[x]][(n)] + selected_best[[x]][(n-1)] + selected_best[[x]][(n-2)])/3
+        smooth_best[[x]][(n-2), ] <- avg_best
+        smooth_best[[x]][(n-1), ] <- avg_best
+        smooth_best[[x]][(n), ] <- avg_best
+        }
+      smooth_best[[x]]
+    })
+
   }
 
 prob_w_w_replace_n <- rbind(prob_w_w_replace_n, p_w_w)
@@ -1255,6 +1305,12 @@ incProgress(1 / N, detail = paste(round(n * 100 / N, 1), "%"))
     paths_selected_rank <- selected_rank
     names(paths_selected_rank) = sapply(seq(1:I), function(x) paste0("Urn", x))
 
+    paths_selected_best <- selected_best
+    names(paths_selected_best) = sapply(seq(1:I), function(x) paste0("Urn", x))
+   
+    paths_smooth_best <- smooth_best
+    names(paths_smooth_best) = sapply(seq(1:I), function(x) paste0("Urn", x))
+    
     paths_selected_w <- selected_w
     colnames(paths_selected_w) = sapply(seq(1:I), function(x) paste0("Urn", x))
     rownames(paths_selected_w) <- NULL     
@@ -1346,7 +1402,7 @@ incProgress(1 / N, detail = paste(round(n * 100 / N, 1), "%"))
                      "w_w_removed"=w_w_removed, "w_m_removed"=w_m_removed, "m_w_removed"=m_w_removed, "m_m_removed"=m_m_removed, 
                      "w_w_function" = w_w_function_t, "w_m_function"=w_m_function_t, "m_w_function"=m_w_function_t, "m_m_function"=m_m_function_t)
   # Create a list with all the outputs
-  outputlist <- list(paths_ratio=paths_ratio, paths_w_n=paths_w_n, paths_m_n=paths_m_n, paths_prob_w_w_replace_n=paths_prob_w_w_replace_n, paths_prob_w_m_replace_n=paths_prob_w_m_replace_n, paths_prob_w_n=paths_prob_w_n, paths_selected=paths_selected, paths_selected_rank=paths_selected_rank, paths_selected_w=paths_selected_w, paths_selected_m=paths_selected_m, parameters=parameters, firstend=firstend, paths_prob_best=paths_prob_best)
+  outputlist <- list(paths_ratio=paths_ratio, paths_w_n=paths_w_n, paths_m_n=paths_m_n, paths_prob_w_w_replace_n=paths_prob_w_w_replace_n, paths_prob_w_m_replace_n=paths_prob_w_m_replace_n, paths_prob_w_n=paths_prob_w_n, paths_selected=paths_selected, paths_selected_rank=paths_selected_rank, paths_selected_w=paths_selected_w, paths_selected_m=paths_selected_m, parameters=parameters, firstend=firstend, paths_prob_best=paths_prob_best, paths_selected_best = paths_selected_best, paths_smooth_best = paths_smooth_best)
   return(outputlist)
   
 }
@@ -1397,7 +1453,8 @@ default_inputs.0 <- list("I" = 100,
                       "cutoff" = 0.5,
                       "graph_auto" = "auto",
                       "graph_dim" = 100,
-                      "graph_origin" = 0
+                      "graph_origin" = 0, 
+                      "smooth"=1
                       )
 
 default_inputs <- rep(default_inputs.0, 3)
@@ -2013,17 +2070,17 @@ coloreq <- "#555555"
     isolate({
       # Get and prepare data
       outputlist1 <- list_output1()
-      paths_selected_rank1 <- outputlist1$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+      paths_selected_rank1 <- outputlist1$paths_selected_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(name) %>% arrange(draw) %>% mutate(count_best=cumsum(value==1), share_best=cumsum(value==1)/draw) %>% ungroup()
       average1 <- paths_selected_rank1 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
 
       outputlist2 <- list_output2()
-      paths_selected_rank2 <- outputlist2$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+      paths_selected_rank2 <- outputlist2$paths_selected_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(name) %>% arrange(draw) %>% mutate(count_best=cumsum(value==1), share_best=cumsum(value==1)/draw) %>% ungroup()
       average2 <- paths_selected_rank2 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))   
 
       outputlist3 <- list_output3()
-      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+      paths_selected_rank3 <- outputlist3$paths_selected_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
         group_by(name) %>% arrange(draw) %>% mutate(count_best=cumsum(value==1), share_best=cumsum(value==1)/draw) %>% ungroup()
       average3 <- paths_selected_rank3 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))   
       
@@ -2063,18 +2120,18 @@ coloreq <- "#555555"
     isolate({
       # Get and prepare data
       outputlist1 <- list_output1()
-      paths_selected_rank1 <- outputlist1$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
-        group_by(name, draw) %>% summarize(share_best=mean(value==1)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
+      paths_selected_rank1 <- outputlist1$paths_selected_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
+        group_by(name, draw) %>% summarize(share_best=mean(value)) %>% ungroup() %>% group_by(name) %>% arrange(name, draw) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
       average1 <- paths_selected_rank1 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
      
       outputlist2 <- list_output2()
-      paths_selected_rank2 <- outputlist2$paths_selected_rank  %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
-        group_by(name, draw) %>% summarize(share_best=mean(value==1)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
+      paths_selected_rank2 <- outputlist2$paths_selected_best  %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
+        group_by(name, draw) %>% summarize(share_best=mean(value)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
       average2 <- paths_selected_rank2 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
       
       outputlist3 <- list_output3()
-      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
-        group_by(name, draw) %>% summarize(share_best=mean(value==1)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
+      paths_selected_rank3 <- outputlist3$paths_selected_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
+        group_by(name, draw) %>% summarize(share_best=mean(value)) %>% ungroup() %>% group_by(name) %>% mutate(share_best = cumsum(share_best)/cumsum(share_best==share_best))
       average3 <- paths_selected_rank3 %>% group_by(draw) %>% summarize(mean_share = mean(share_best))
       
       # Plot
@@ -2110,37 +2167,40 @@ coloreq <- "#555555"
     isolate({
       # Get and prepare data
       outputlist1 <- list_output1()
-      paths_selected_rank1 <- outputlist1$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
-        group_by(draw) %>% summarize(count_best=sum(value==1), share_best=sum(value==1)/length(outputlist1$paths_selected_rank)) %>% ungroup()
+      paths_selected_rank1 <- outputlist1$paths_smooth_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% summarize(count_best=sum(value), share_best=sum(value)/length(outputlist1$paths_selected_rank)) %>% ungroup()
 
       outputlist2 <- list_output2()
-      paths_selected_rank2 <- outputlist2$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
-        group_by(draw) %>% summarize(count_best=sum(value==1), share_best=sum(value==1)/length(outputlist2$paths_selected_rank)) %>% ungroup()
+      paths_selected_rank2 <- outputlist2$paths_smooth_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% summarize(count_best=sum(value), share_best=sum(value)/length(outputlist2$paths_selected_rank)) %>% ungroup()
       
       outputlist3 <- list_output3()
-      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
-        group_by(draw) %>% summarize(count_best=sum(value==1), share_best=sum(value==1)/length(outputlist3$paths_selected_rank)) %>% ungroup()
+      paths_selected_rank3 <- outputlist3$paths_smooth_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% 
+        group_by(draw) %>% summarize(count_best=sum(value), share_best=sum(value)/length(outputlist3$paths_selected_rank)) %>% ungroup()
       
       # Smoothing factor
-      smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
-      if(input$enable2s==TRUE){
-      smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
-      } 
-      else {
-        smooth2 <- 1
-      }
-      if(input$enable3s==TRUE){
-      smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
-      }
-      else{
-        smooth3 <-1 
-      }
+      #smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
+      #if(input$enable2s==TRUE){
+      #smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
+      #} 
+      #else {
+      #  smooth2 <- 1
+      #}
+      #if(input$enable3s==TRUE){
+      #smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
+      #}
+      #else{
+      #  smooth3 <-1 
+      #}
       
       # Plot
       stock <- ggplot() +
-        geom_line(data=paths_selected_rank3, aes(x=draw, y=rollmean(share_best, smooth3, fill=NA)), color=color3) +
-        geom_line(data=paths_selected_rank2, aes(x=draw, y=rollmean(share_best, smooth2, fill=NA)), color=color2) +
-        geom_line(data=paths_selected_rank1, aes(x=draw, y=rollmean(share_best, smooth1, fill=NA)), color=color1) +
+        #geom_line(data=paths_selected_rank3, aes(x=draw, y=rollmean(share_best, smooth3, fill=NA)), color=color3) +
+        #geom_line(data=paths_selected_rank2, aes(x=draw, y=rollmean(share_best, smooth2, fill=NA)), color=color2) +
+        #geom_line(data=paths_selected_rank1, aes(x=draw, y=rollmean(share_best, smooth1, fill=NA)), color=color1) +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best), color=color3) +
+        geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best), color=color2) +
+        geom_line(data=paths_selected_rank1, aes(x=draw, y=share_best), color=color1) +
         theme(
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -2178,24 +2238,27 @@ coloreq <- "#555555"
         group_by(draw) %>% summarize(avg_rank = mean(value)) %>% ungroup()
       
       # Smoothing factor
-      smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
-      if(input$enable2s==TRUE){
-        smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
-      } 
-      else {
-        smooth2 <- 1
-      }
-      if(input$enable3s==TRUE){
-        smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
-      }
-      else{
-        smooth3 <-1 
-      }
+      #smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
+      #if(input$enable2s==TRUE){
+      #  smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
+      #} 
+      #else {
+      #  smooth2 <- 1
+      #}
+      #if(input$enable3s==TRUE){
+      #  smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
+      #}
+      #else{
+      #  smooth3 <-1 
+      #}
       # Plot
       stock <- ggplot() +
-        geom_line(data=paths_selected_rank3, aes(x=draw, y=rollmean(avg_rank, smooth3, fill=NA)), color=color3) +
-        geom_line(data=paths_selected_rank2, aes(x=draw, y=rollmean(avg_rank, smooth2, fill=NA)), color=color2) +
-        geom_line(data=paths_selected_rank1, aes(x=draw, y=rollmean(avg_rank, smooth1, fill=NA)), color=color1) +
+        #geom_line(data=paths_selected_rank3, aes(x=draw, y=rollmean(avg_rank, smooth3, fill=NA)), color=color3) +
+        #geom_line(data=paths_selected_rank2, aes(x=draw, y=rollmean(avg_rank, smooth2, fill=NA)), color=color2) +
+        #geom_line(data=paths_selected_rank1, aes(x=draw, y=rollmean(avg_rank, smooth1, fill=NA)), color=color1) +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=avg_rank), color=color3) +
+        geom_line(data=paths_selected_rank2, aes(x=draw, y=avg_rank), color=color2) +
+        geom_line(data=paths_selected_rank1, aes(x=draw, y=avg_rank), color=color1) +
         theme(
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -2234,34 +2297,34 @@ coloreq <- "#555555"
         group_by(draw) %>% mutate(value=unlist(value), mean_share=mean(value)) %>% ungroup()
       
       # Smoothing factor
-      smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
-      if(input$enable2s==TRUE){
-        smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
-      } 
-      else {
-        smooth2 <- 1
-      }
-      if(input$enable3s==TRUE){
-        smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
-      }
-      else{
-        smooth3 <-1 
-      }
+      #smooth1 <- ifelse(input$intervention1 == "quota", input$smoothing1, 1)
+      #if(input$enable2s==TRUE){
+      #  smooth2 <- ifelse(input$intervention2 == "quota", input$smoothing2, 1)
+      #} 
+      #else {
+      #  smooth2 <- 1
+      #}
+      #if(input$enable3s==TRUE){
+      #  smooth3 <- ifelse(input$intervention3 == "quota", input$smoothing3, 1)
+      #}
+      #else{
+      #  smooth3 <-1 
+      #}
       
-      paths_prob_best1 <- paths_prob_best1 %>%
-        group_by(name) %>%
-        mutate(value=rollmean(value, smooth1, fill=NA), 
-               mean_share=rollmean(mean_share, smooth1, fill=NA))
+      #paths_prob_best1 <- paths_prob_best1 %>%
+      #  group_by(name) %>%
+      #  mutate(value=rollmean(value, smooth1, fill=NA), 
+      #         mean_share=rollmean(mean_share, smooth1, fill=NA))
  
-     paths_prob_best2 <- paths_prob_best2 %>%
-        group_by(name) %>%
-        mutate(value=rollmean(value, smooth2, fill=NA), 
-               mean_share=rollmean(mean_share, smooth2, fill=NA))
+     #paths_prob_best2 <- paths_prob_best2 %>%
+      #  group_by(name) %>%
+      #  mutate(value=rollmean(value, smooth2, fill=NA), 
+      #         mean_share=rollmean(mean_share, smooth2, fill=NA))
       
-      paths_prob_best3 <- paths_prob_best3 %>%
-        group_by(name) %>%
-        mutate(value=rollmean(value, smooth3, fill=NA), 
-               mean_share=rollmean(mean_share, smooth3, fill=NA))
+      #paths_prob_best3 <- paths_prob_best3 %>%
+      #  group_by(name) %>%
+       # mutate(value=rollmean(value, smooth3, fill=NA), 
+        #       mean_share=rollmean(mean_share, smooth3, fill=NA))
       # Plot
       stock <- ggplot() +
         geom_line(data=paths_prob_best3, aes(x=draw, y=value, group=name), alpha=.3, color=color3.light) +
@@ -2296,15 +2359,15 @@ coloreq <- "#555555"
     isolate({
       # Get and prepare data
       outputlist1 <- list_output1()
-      paths_selected_rank1 <-  outputlist1$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
+      paths_selected_rank1 <-  outputlist1$paths_selected_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
         group_by(name) %>% summarize(share_best=mean(value==1)) %>%  ungroup()
       
       outputlist2 <- list_output2()
-      paths_selected_rank2 <- outputlist2$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
+      paths_selected_rank2 <- outputlist2$paths_selected_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
         group_by(name) %>% summarize(share_best=mean(value==1)) %>% ungroup()
  
       outputlist3 <- list_output3()
-      paths_selected_rank3 <- outputlist3$paths_selected_rank %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
+      paths_selected_rank3 <- outputlist3$paths_selected_best %>% as.data.frame %>% mutate(draw=row_number()) %>% pivot_longer(-draw) %>% mutate(name=ifelse(!is.na(str_locate(name,"\\.")[,1]), substr(name, 1, str_locate(name,"\\.")[,1]-1), name)) %>%
         group_by(name) %>% summarize(share_best=mean(value==1)) %>% ungroup()
       
       # Plot
