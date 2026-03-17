@@ -1182,7 +1182,7 @@ if (input[[paste0("multidraw", num)]] == "multi" & input[[paste0("multi_interp",
 
 selected <- lapply(seq(1:I), function(x) rbind(selected[[x]], ball_selected[[x]]))
 selected_rank <- if (n > 1) lapply(seq(1:I), function(x) rbind(selected_rank[[x]], rank[[x]])) else as.list(rank)
-if (input[[paste0("intervention", num)]]=="quota"){
+if (input[[paste0("intervention", num)]]=="quota" & n > input[[paste0("aa_start", num)]]){
   selected_best <- if (n > 1) {
     lapply(seq(1:I), function(x) {
     if(end[x] %in% 0) {
