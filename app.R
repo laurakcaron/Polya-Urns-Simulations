@@ -733,7 +733,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
   ball_selected_aa <- ball_drawn_aa
   
   # Average over window 
-  draw_in_window <- ifelse(n %% input[[paste0("num_draws_aa", num)]] > 0, n %% input[[paste0("num_draws_aa", num)]], input[[paste0("num_draws_aa", num)]])
+  draw_in_window <- ifelse((n-input[[paste0("aa_start", num)]]) %% input[[paste0("num_draws_aa", num)]] > 0, (n-input[[paste0("aa_start", num)]]) %% input[[paste0("num_draws_aa", num)]], input[[paste0("num_draws_aa", num)]])
   draws_left <- input[[paste0("num_draws_aa", num)]] - draw_in_window
 
 
@@ -803,7 +803,7 @@ if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention"
 ## QUOTA POLICY 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "quota" & n > input[[paste0("aa_start", num)]]) {
   
-  draw_in_window <- ifelse(n %% input[[paste0("quota_window", num)]] > 0, n %% input[[paste0("quota_window", num)]], input[[paste0("quota_window", num)]])
+  draw_in_window <- ifelse((n-input[[paste0("aa_start", num)]]) %% input[[paste0("quota_window", num)]] > 0, (n-input[[paste0("aa_start", num)]]) %% input[[paste0("quota_window", num)]], input[[paste0("quota_window", num)]])
   draws_left <- input[[paste0("quota_window", num)]] - draw_in_window
   
   if (draw_in_window > 1) {
