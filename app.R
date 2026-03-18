@@ -715,12 +715,37 @@ if (input[[paste0("multidraw", num)]] == "single" & 1 == 1) {
 
 ## RANK POLICY 
 if (input[[paste0("multidraw", num)]] == "single" & input[[paste0("intervention", num)]] == "atleast" & n > input[[paste0("aa_start", num)]]) {
+  
+  # Save for later averaging 
+  prev2_rank_aa <- prev1_rank_aa
+  prev1_rank_aa <- rank_aa 
+  
+  prev2_prob_best_aa <- prev1_prob_best_aa 
+  prev1_prob_best_aa <- prob_best_aa 
+  
+  # AA 
   ball_drawn_aa <- lapply(urn,function(x) sample(na.omit(x), input[[paste0("num_draws_aa", num)]], replace = FALSE))
   rank_aa <- sapply(ball_drawn_aa, function(x) ifelse("w" %in% x, min(which(x == "w")), 1))
+  check_best <- (rank_aa == 1)
   
   prob_best_aa <- dhyper(input[[paste0("num_draws_aa", num)]], previous_m, previous_w, input[[paste0("num_draws_aa", num)]]) + previous_share
   ball_drawn_aa <- sapply(ball_drawn_aa, function(x) ifelse("w" %in% x, "w", "m"))
   ball_selected_aa <- ball_drawn_aa
+  
+  # Average over window 
+  draw_in_window <- ifelse(n %% input[[paste0("num_draws_aa", num)]] > 0, n %% input[[paste0("num_draws_aa", num)]], input[[paste0("num_draws_aa", num)]])
+  draws_left <- input[[paste0("num_draws_aa", num)]] - draw_in_window
+
+
+  if (draw_in_window==2 & draws_left==0 ){
+    prob_best_aa <- (prob_best_aa + prev1_prob_best_aa)/2
+    prev1_prob_best_aa <- prob_best_aa 
+    
+    rank_aa <- lapply(seq(1:I), function(x) (rank_aa[[x]] + prev1_rank_aa[[x]])/2 )
+    prev1_rank_aa <- rank_aa 
+  }
+  
+  
   
   ball_replaced_aa <- lapply(seq(1:I), function(x) {
     rball <- if(ball_drawn_aa[x] == "w") c(rep("w", w_w_added * r_w_w[x]), rep("m", m_w_added * r_m_w[x])) else c(rep("w", w_m_added * r_w_m[x]), rep("m", m_m_added * r_m_m[x]))
@@ -1182,7 +1207,7 @@ if (input[[paste0("multidraw", num)]] == "multi" & input[[paste0("multi_interp",
 
 selected <- lapply(seq(1:I), function(x) rbind(selected[[x]], ball_selected[[x]]))
 selected_rank <- if (n > 1) lapply(seq(1:I), function(x) rbind(selected_rank[[x]], rank[[x]])) else as.list(rank)
-if (input[[paste0("intervention", num)]]=="quota" & n > input[[paste0("aa_start", num)]]){
+if ((input[[paste0("intervention", num)]]=="quota" | input[[paste0("intervention", num)]]=="atleast") & n > input[[paste0("aa_start", num)]]){
   selected_best <- if (n > 1) {
     lapply(seq(1:I), function(x) {
     if(end[x] %in% 0) {
@@ -1576,10 +1601,10 @@ coloreq <- "#555555"
       
       hist <- ggplot() + 
         # Sim 3
-        geom_histogram(data=hist_data3, aes(x=`Share of white balls in urn after trials`), bins=bins3, fill=color3.light, alpha=.3)+
+        geom_histogram(data=hist_data3, aes(x=`Share of white balls in urn after trials`), bins=bins3, fill=color3.light, alpha=.3*input$enable3s)+
         geom_density(data=hist_data3, aes(x=`Share of white balls in urn after trials`, y =after_stat(count*bin.width3)), color=color3, linetype="dotted")+
         # Sim 2
-        geom_histogram(data=hist_data2, aes(x=`Share of white balls in urn after trials`), bins=bins2, fill=color2.light, alpha=.3)+
+        geom_histogram(data=hist_data2, aes(x=`Share of white balls in urn after trials`), bins=bins2, fill=color2.light, alpha=.3*input$enable2s)+
         geom_density(data=hist_data2, aes(x=`Share of white balls in urn after trials`, y =after_stat(count*bin.width2)), color=color2, linetype="dashed")+
         # Sim 1
         geom_histogram(data=hist_data, aes(x=`Share of white balls in urn after trials`), bins=bins1, fill=color1.light, alpha=.3)+
@@ -1653,8 +1678,8 @@ coloreq <- "#555555"
         ) + 
         labs(title ="Distribution of final share of white balls")
       
-      plot_ly(x = ~density(hist_data3$`Share of white balls in urn after trials`)$x, y = ~density(hist_data3$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
-        add_trace(x = ~density(hist_data2$`Share of white balls in urn after trials`)$x, y = ~density(hist_data2$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
+      plot_ly(x = ~density(hist_data3$`Share of white balls in urn after trials`)$x, y = ~density(hist_data3$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines', opacity=input$enable3s)  %>%
+        add_trace(x = ~density(hist_data2$`Share of white balls in urn after trials`)$x, y = ~density(hist_data2$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines', opacity=input$enable2s)  %>%
         add_trace(x = ~density(hist_data1$`Share of white balls in urn after trials`)$x, y = ~density(hist_data1$`Share of white balls in urn after trials`)$y, type = 'scatter', mode = 'lines')  %>%
         layout(xaxis=list(title = "Share of white balls in the urn after trials", range=c(0,1)), yaxis=list(title="Density"), hovermode="x unified)")
       
@@ -1690,8 +1715,8 @@ coloreq <- "#555555"
       
       # Plot
       cdf <- ggplot() + 
-        stat_ecdf(data = hist_data3, aes(x=`Share of white balls in urn after trials`, text=paste0("Simulation 3:<br>", ..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step", color=color3, linetype="dotted")+
-        stat_ecdf(data = hist_data2, aes(x=`Share of white balls in urn after trials`, text=paste0("Simulation 2:<br>", ..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step", color=color2, linetype="dashed")+
+        stat_ecdf(data = hist_data3, aes(x=`Share of white balls in urn after trials`, text=paste0("Simulation 3:<br>", ..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step", color=color3, linetype="dotted", alpha=input$enable3s)+
+        stat_ecdf(data = hist_data2, aes(x=`Share of white balls in urn after trials`, text=paste0("Simulation 2:<br>", ..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step", color=color2, linetype="dashed", alpha=input$enable2s)+
         stat_ecdf(data = hist_data1, aes(x=`Share of white balls in urn after trials`, text=paste0("Simulation 1:<br>", ..y.. * 100, '% of urns have less than<br>', round(..x.., 2)*100, '% white balls')), geom="step", color=color1, linetype="solid")+
         geom_vline(xintercept=0.5, color=coloreq, linetype="solid")+
         scale_x_continuous(limits=c(0,1), breaks=seq(0,1,by=0.1))+
@@ -1749,13 +1774,13 @@ coloreq <- "#555555"
       
       # Plot
       r <- ggplot() + 
-        geom_line(data=ratio3, aes(x=draw-1, y=value, group=name), color=color3.light, linetype="solid", alpha=.3) +
-        geom_line(data=ratio2, aes(x=draw-1, y=value, group=name), color=color2.light, linetype="solid", alpha=.3) +
+        geom_line(data=ratio3, aes(x=draw-1, y=value, group=name), color=color3.light, linetype="solid", alpha=.3*input$enable3s) +
+        geom_line(data=ratio2, aes(x=draw-1, y=value, group=name), color=color2.light, linetype="solid", alpha=.3*input$enable2s) +
         geom_line(data=ratio1, aes(x=draw-1, y=value, group=name), color=color1.light, alpha=.3) +
         geom_point(aes(x=rep(0:(length(average_ratio3)-1)), y=average_ratio3, text=text3), size=0.1, color=color3, alpha=0) +
-        geom_line(aes(x=rep(0:(length(average_ratio3)-1)), y=average_ratio3), color=color3, linetype="dotted") +
+        geom_line(aes(x=rep(0:(length(average_ratio3)-1)), y=average_ratio3), color=color3, linetype="dotted", alpha=input$enable3s) +
         geom_point(aes(x=rep(0:(length(average_ratio2)-1)), y=average_ratio2, text=text2), size=0.1, color=color2, alpha=0) +
-        geom_line(aes(x=rep(0:(length(average_ratio2)-1)), y=average_ratio2), color=color2, linetype="dashed") +
+        geom_line(aes(x=rep(0:(length(average_ratio2)-1)), y=average_ratio2), color=color2, linetype="dashed", alpha=input$enable2s) +
         geom_point(aes(x=rep(0:(length(average_ratio1)-1)), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
         geom_line(aes(x=rep(0:(length(average_ratio1)-1)), y=average_ratio1), color=color1) +
         geom_hline(aes(yintercept=0.5), color=coloreq,linetype = "solid") +
@@ -1811,13 +1836,13 @@ coloreq <- "#555555"
       
       # Plot
       r <- ggplot() + 
-        geom_line(data=ratio3, aes(x=draw-1, y=value, group=name), color=color3.light, alpha=.3) +
-        geom_line(data=ratio2, aes(x=draw-1, y=value, group=name), color=color2.light, alpha=.3) +
+        geom_line(data=ratio3, aes(x=draw-1, y=value, group=name), color=color3.light, alpha=.3*input$enable3s) +
+        geom_line(data=ratio2, aes(x=draw-1, y=value, group=name), color=color2.light, alpha=.3*input$enable2s) +
         geom_line(data=ratio1, aes(x=draw-1, y=value, group=name), color=color1.light, alpha=.3) +
         geom_point(aes(x=rep(1:(length(average_ratio3))), y=average_ratio3, text=text3), size=0.1, color=color3, alpha=0) +
-        geom_line(aes(x=rep(1:(length(average_ratio3))), y=average_ratio3), color=color3, linetype="dotted") +
+        geom_line(aes(x=rep(1:(length(average_ratio3))), y=average_ratio3), color=color3, linetype="dotted", alpha=input$enable3s) +
         geom_point(aes(x=rep(1:(length(average_ratio2))), y=average_ratio2, text=text2), size=0.1, color=color2, alpha=0) +
-        geom_line(aes(x=rep(1:(length(average_ratio2))), y=average_ratio2), color=color2, linetype="dashed") +
+        geom_line(aes(x=rep(1:(length(average_ratio2))), y=average_ratio2), color=color2, linetype="dashed", alpha=input$enable2s) +
         geom_point(aes(x=rep(1:(length(average_ratio1))), y=average_ratio1, text=text1), size=0.1, color=color1, alpha=0) +
         geom_line(aes(x=rep(1:(length(average_ratio1))), y=average_ratio1), color=color1, linetype="solid") +
         geom_hline(aes(yintercept=0.5), color=coloreq,linetype = "solid") +
@@ -1870,10 +1895,10 @@ coloreq <- "#555555"
       
       # Plot
       r <- ggplot() + 
-        geom_line(data=prob_w_n3, aes(x=draw, y=value, group=name), color=color3.light, alpha=.3) +
-        geom_line(aes(x=rep(1:(length(average_prob_w3))), y=average_prob_w3), color=color3, linetype="dotted") +
-        geom_line(data=prob_w_n2, aes(x=draw, y=value, group=name), color=color2.light, alpha=.3) +
-        geom_line(aes(x=rep(1:(length(average_prob_w2))), y=average_prob_w2), color=color2, linetype="dashed") +
+        geom_line(data=prob_w_n3, aes(x=draw, y=value, group=name), color=color3.light, alpha=.3*input$enable3s) +
+        geom_line(aes(x=rep(1:(length(average_prob_w3))), y=average_prob_w3), color=color3, linetype="dotted", alpha=input$enable3s) +
+        geom_line(data=prob_w_n2, aes(x=draw, y=value, group=name), color=color2.light, alpha=.3*input$enable2s) +
+        geom_line(aes(x=rep(1:(length(average_prob_w2))), y=average_prob_w2), color=color2, linetype="dashed", alpha=input$enable2s) +
         geom_line(data=prob_w_n1, aes(x=draw, y=value, group=name), color=color1.light, alpha=.3) +
         geom_line(aes(x=rep(1:(length(average_prob_w1))), y=average_prob_w1), color=color1) +
         geom_hline(aes(yintercept=0.5), color=coloreq,linetype = "solid" ) +
@@ -1952,10 +1977,10 @@ coloreq <- "#555555"
       
       # Plot
       rays <- ggplot() +
-        geom_line(data=ray_data3, aes(x=W, y=M, group=Urn),alpha=.3, color=color3.light) +
-        geom_line(data=average3, aes(x=mean_w, y=mean_m),color=color3, linetype="dotted") +  
-        geom_line(data=ray_data2, aes(x=W, y=M, group=Urn),alpha=.3, color=color2.light) +
-        geom_line(data=average2, aes(x=mean_w, y=mean_m),color=color2, linetype="dashed") +
+        geom_line(data=ray_data3, aes(x=W, y=M, group=Urn),alpha=.3*input$enable3s, color=color3.light) +
+        geom_line(data=average3, aes(x=mean_w, y=mean_m),color=color3, linetype="dotted", alpha=input$enable3s) +  
+        geom_line(data=ray_data2, aes(x=W, y=M, group=Urn),alpha=.3*input$enable2s, color=color2.light) +
+        geom_line(data=average2, aes(x=mean_w, y=mean_m),color=color2, linetype="dashed", alpha=input$enable2s) +
         geom_line(data=ray_data1, aes(x=W, y=M, group=Urn),alpha=.3, color=color1.light) +
         geom_line(data=average1, aes(x=mean_w, y=mean_m),color=color1) +
         geom_abline(aes(slope=1, intercept=0), color=coloreq, linetype="solid") +
@@ -2033,10 +2058,10 @@ coloreq <- "#555555"
       
       # Plot
       stock <- ggplot() +
-        geom_line(data=stock_data3, aes(x=W, y=M, group=Urn),alpha=.3, color=color3.light) +
-        geom_line(data=average3, aes(x=mean_w, y=mean_m),color=color3, linetype="dotted") +
-        geom_line(data=stock_data2, aes(x=W, y=M, group=Urn),alpha=.3, color=color2.light) +
-        geom_line(data=average2, aes(x=mean_w, y=mean_m),color=color2, linetype="dashed") +
+        geom_line(data=stock_data3, aes(x=W, y=M, group=Urn),alpha=.3*input$enable3s, color=color3.light) +
+        geom_line(data=average3, aes(x=mean_w, y=mean_m),color=color3, linetype="dotted", alpha=input$enable3s) +
+        geom_line(data=stock_data2, aes(x=W, y=M, group=Urn),alpha=.3*input$enable2s, color=color2.light) +
+        geom_line(data=average2, aes(x=mean_w, y=mean_m),color=color2, linetype="dashed", alpha=input$enable2s) +
         geom_line(data=stock_data1, aes(x=W, y=M, group=Urn),alpha=.3, color=color1.light) +
         geom_line(data=average1, aes(x=mean_w, y=mean_m),color=color1) +
         geom_abline(aes(slope=1, intercept=0), color=coloreq, linetype="solid") +
@@ -2086,10 +2111,10 @@ coloreq <- "#555555"
       
       # Plot
       stock <- ggplot() +
-        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I3), color=color3.light) +
-        geom_line(data=average3, aes(x=draw, y=mean_share), color=color3, linetype="dotted") +
-        geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I2), color=color2.light) +
-        geom_line(data=average2, aes(x=draw, y=mean_share), color=color2, linetype="dashed") +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I3)*input$enable3s, color=color3.light) +
+        geom_line(data=average3, aes(x=draw, y=mean_share), color=color3, linetype="dotted", alpha=input$enable3s) +
+        geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I2)*input$enable2s, color=color2.light) +
+        geom_line(data=average2, aes(x=draw, y=mean_share), color=color2, linetype="dashed", alpha=input$enable2s) +
         geom_line(data=paths_selected_rank1, aes(x=draw, y=share_best, group=name),size = 0.1, alpha=min(1, 50/input$I1), color=color1.light) +
         geom_line(data=average1, aes(x=draw, y=mean_share), color=color1) +
         theme(
@@ -2136,10 +2161,10 @@ coloreq <- "#555555"
       
       # Plot
       stock <- ggplot() +
-        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best, group=name),color=color3.light, alpha=.3) +
-        geom_line(data=average3, aes(x=draw, y=mean_share), color=color3) +
-        geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best, group=name),color=color2.light, alpha=.3) +
-        geom_line(data=average2, aes(x=draw, y=mean_share), color=color2) +
+        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best, group=name),color=color3.light, alpha=.3*input$enable3s) +
+        geom_line(data=average3, aes(x=draw, y=mean_share), color=color3, alpha=input$enable3s) +
+        geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best, group=name),color=color2.light, alpha=.3*input$enable2s) +
+        geom_line(data=average2, aes(x=draw, y=mean_share), color=color2, alpha=input$enable2s) +
         geom_line(data=paths_selected_rank1, aes(x=draw, y=share_best, group=name),color=color1.light, alpha=.3) +
         geom_line(data=average1, aes(x=draw, y=mean_share), color=color1) +
         theme(
@@ -2198,9 +2223,9 @@ coloreq <- "#555555"
         #geom_line(data=paths_selected_rank3, aes(x=draw, y=rollmean(share_best, smooth3, fill=NA)), color=color3) +
         #geom_line(data=paths_selected_rank2, aes(x=draw, y=rollmean(share_best, smooth2, fill=NA)), color=color2) +
         #geom_line(data=paths_selected_rank1, aes(x=draw, y=rollmean(share_best, smooth1, fill=NA)), color=color1) +
-        geom_line(data=paths_selected_rank3, aes(x=draw, y=share_best), color=color3) +
-        geom_line(data=paths_selected_rank2, aes(x=draw, y=share_best), color=color2) +
-        geom_line(data=paths_selected_rank1, aes(x=draw, y=share_best), color=color1) +
+        geom_point(data=paths_selected_rank3, aes(x=draw, y=share_best), color=color3, size=1, alpha=input$enable3s) +
+        geom_point(data=paths_selected_rank2, aes(x=draw, y=share_best), color=color2, size=1, alpha=input$enable2s) +
+        geom_point(data=paths_selected_rank1, aes(x=draw, y=share_best), color=color1, size=1) +
         theme(
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -2256,9 +2281,9 @@ coloreq <- "#555555"
         #geom_line(data=paths_selected_rank3, aes(x=draw, y=rollmean(avg_rank, smooth3, fill=NA)), color=color3) +
         #geom_line(data=paths_selected_rank2, aes(x=draw, y=rollmean(avg_rank, smooth2, fill=NA)), color=color2) +
         #geom_line(data=paths_selected_rank1, aes(x=draw, y=rollmean(avg_rank, smooth1, fill=NA)), color=color1) +
-        geom_line(data=paths_selected_rank3, aes(x=draw, y=avg_rank), color=color3) +
-        geom_line(data=paths_selected_rank2, aes(x=draw, y=avg_rank), color=color2) +
-        geom_line(data=paths_selected_rank1, aes(x=draw, y=avg_rank), color=color1) +
+        geom_point(data=paths_selected_rank3, aes(x=draw, y=avg_rank), color=color3, size=1, alpha=input$enable3s) +
+        geom_point(data=paths_selected_rank2, aes(x=draw, y=avg_rank), color=color2, size=1, alpha=input$enable2s) +
+        geom_point(data=paths_selected_rank1, aes(x=draw, y=avg_rank), color=color1, size=1) +
         theme(
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -2327,10 +2352,10 @@ coloreq <- "#555555"
         #       mean_share=rollmean(mean_share, smooth3, fill=NA))
       # Plot
       stock <- ggplot() +
-        geom_line(data=paths_prob_best3, aes(x=draw, y=value, group=name), alpha=.3, color=color3.light) +
-        geom_line(data=paths_prob_best3, aes(x=draw, y=mean_share), color=color3) +
-        geom_line(data=paths_prob_best2, aes(x=draw, y=value, group=name), alpha=.3, color=color2.light) +
-        geom_line(data=paths_prob_best2, aes(x=draw, y=mean_share), color=color2) +
+        geom_line(data=paths_prob_best3, aes(x=draw, y=value, group=name), alpha=.3*input$enable3s, color=color3.light) +
+        geom_line(data=paths_prob_best3, aes(x=draw, y=mean_share), color=color3, alpha=input$enable3s) +
+        geom_line(data=paths_prob_best2, aes(x=draw, y=value, group=name), alpha=.3*input$enable2s, color=color2.light) +
+        geom_line(data=paths_prob_best2, aes(x=draw, y=mean_share), color=color2, alpha=input$enable2s) +
         geom_line(data=paths_prob_best1, aes(x=draw, y=value, group=name), alpha=.3, color=color1.light) +
         geom_line(data=paths_prob_best1, aes(x=draw, y=mean_share), color=color1) +
         theme(
@@ -2371,8 +2396,8 @@ coloreq <- "#555555"
         group_by(name) %>% summarize(share_best=mean(value==1)) %>% ungroup()
       
       # Plot
-      plot_ly(x =~paths_selected_rank3$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank3)), marker=list(color=color3), opacity=.5)  %>%
-        add_trace(x =~paths_selected_rank2$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank2)), marker=list(color=color2), opacity=.5, showlegend=FALSE) %>%
+      plot_ly(x =~paths_selected_rank3$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank3)), marker=list(color=color3), opacity=.5*input$enable3s)  %>%
+        add_trace(x =~paths_selected_rank2$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank2)), marker=list(color=color2), opacity=.5*input$enable2s, showlegend=FALSE) %>%
         add_trace(x =~paths_selected_rank1$share_best,type="histogram",  nbinsx = sqrt(nrow(paths_selected_rank1)), marker=list(color=color1), opacity=.5, showlegend=FALSE) %>%
         layout(xaxis=list(title = "Share of selected that are the best candidate after trials", range=c(0,1)), yaxis=list(title="Frequency")) %>%
         style(hovertemplate = paste('Simulation 3:<br>%{y:.0f} urns have <br>best candidate share','%{x} <extra></extra>'), traces = 1) %>%
@@ -2407,8 +2432,8 @@ coloreq <- "#555555"
       num_end3 <- sum(!is.na(outputlist3$firstend))
       
       # Plot
-      p <- plot_ly(x =~outputlist3$firstend,type="histogram", name="Freq.", marker=list(color=color3.light), opacity=.5, showlegend=FALSE) %>%
-        add_trace(x =~outputlist2$firstend,type="histogram", name="Freq.", marker=list(color=color2.light), opacity=.5, showlegend=FALSE) %>%
+      p <- plot_ly(x =~outputlist3$firstend,type="histogram", name="Freq.", marker=list(color=color3.light), opacity=.5*input$enable3s, showlegend=FALSE) %>%
+        add_trace(x =~outputlist2$firstend,type="histogram", name="Freq.", marker=list(color=color2.light), opacity=.5*input$enable2s, showlegend=FALSE) %>%
         add_trace(x =~outputlist1$firstend,type="histogram", name="Freq.", marker=list(color=color1.light), opacity=.5, showlegend=FALSE) %>%
         layout(xaxis=list(title = paste("When AA ended<br>Simulation 1: AA ended in", num_end1, "out of", ncol(outputlist1$paths_ratio), "urns<br>Simulation 2: AA ended in", num_end2, "out of", ncol(outputlist2$paths_ratio), "urns"), range=c(0,max(nrow(outputlist1$paths_ratio), nrow(outputlist2$paths_ratio)))), yaxis=list(title="Frequency"))%>%
         layout(hovermode="x unified)", 
